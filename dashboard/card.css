@@ -189,8 +189,9 @@ a {
 
 .public-contact-details {
     display: grid;
+    width: min(100%, 320px);
     gap: 8px;
-    margin-top: 18px;
+    margin: 18px auto 0;
 }
 
 .public-contact-detail {
@@ -241,9 +242,28 @@ a {
     transition: transform 0.15s ease, background 0.15s ease;
 }
 
+.public-social[data-social="linkedin"] {
+    border-color: #c8dff2;
+    background: #eef6fc;
+    color: #0a66c2;
+}
+
+.public-social[data-social="whatsapp"] {
+    border-color: #25d366;
+    background: #25d366;
+    color: #fff;
+}
+
 .public-social:hover {
     transform: translateY(-2px);
-    background: #eaf3ff;
+}
+
+.public-social[data-social="linkedin"]:hover {
+    background: #e0f0fc;
+}
+
+.public-social[data-social="whatsapp"]:hover {
+    background: #20bd5a;
 }
 
 .public-social svg {

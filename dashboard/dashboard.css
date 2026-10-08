@@ -886,6 +886,27 @@ textarea:focus {
     color: #086bd5;
 }
 
+.preview-social[data-social="linkedin"] {
+    border-color: #c8dff2;
+    background: #eef6fc;
+    color: #0a66c2;
+}
+
+.preview-social[data-social="whatsapp"] {
+    border-color: #25d366;
+    background: #25d366;
+    color: #fff;
+}
+
+.preview-social[data-social="linkedin"]:hover {
+    background: #e0f0fc;
+}
+
+.preview-social[data-social="whatsapp"]:hover {
+    background: #20bd5a;
+    color: #fff;
+}
+
 .preview-social svg {
     width: 17px;
     height: 17px;
