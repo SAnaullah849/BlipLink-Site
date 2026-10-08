@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Company Dashboard | BlipLink</title>
+    <link rel="icon" type="image/png" href="../assets/logo-symbol.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css?v=1">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="dashboard.js?v=1" defer></script>
+</head>
+<body>
+    <div id="loginView" class="login-screen">
+        <div class="login-card">
+            <a class="brand" href="../" aria-label="BlipLink home">
+                <img src="../assets/logo-symbol.png" alt="" width="42" height="42">
+                <img src="../assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark">
+            </a>
+            <div class="login-heading">
+                <span class="eyebrow">COMPANY PORTAL</span>
+                <h1>Welcome back</h1>
+                <p>Sign in to manage your BlipLink professional profile.</p>
+            </div>
+            <div id="setupNotice" class="notice notice-info" role="status" hidden></div>
+            <form id="loginForm" class="form-stack">
+                <label for="loginEmail">Work email</label>
+                <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="you@company.com" required>
+                <label for="loginPassword">Password</label>
+                <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+                <button id="loginButton" class="button button-primary button-full" type="submit">Sign in</button>
+                <p id="loginMessage" class="form-message" role="alert" aria-live="polite"></p>
+            </form>
+            <p class="login-footnote">Company accounts are created by BlipLink administrators.</p>
+            <a class="back-link" href="../">← Back to BlipLink</a>
+        </div>
+    </div>
+
+    <div id="dashboardView" class="dashboard-shell" hidden>
+        <aside class="sidebar">
+            <a class="brand sidebar-brand" href="../" aria-label="BlipLink home">
+                <img src="../assets/logo-symbol.png" alt="" width="38" height="38">
+                <img src="../assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark">
+            </a>
+            <span class="sidebar-label">WORKSPACE</span>
+            <nav class="side-nav" aria-label="Dashboard">
+                <a class="side-nav-link active" href="#overview" data-nav="overview">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="11" width="7" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/></svg>
+                    Overview
+                </a>
+                <a class="side-nav-link" href="#profileEditor" data-nav="profile">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                    My profile
+                </a>
+                <a class="side-nav-link" href="#socialLinks" data-nav="social">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
+                    Social links
+                </a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a class="side-nav-link" href="../">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6M9 12h12"/><path d="M4 4v16"/></svg>
+                    View website
+                </a>
+                <button id="signOutButton" class="side-nav-link sign-out-button" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/></svg>
+                    Sign out
+                </button>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="topbar">
+                <div>
+                    <p class="topbar-kicker">BLIPLINK COMPANY PORTAL</p>
+                    <h1>Profile dashboard</h1>
+                </div>
+                <div class="account-chip">
+                    <span id="accountAvatar" class="account-avatar">B</span>
+                    <span id="accountEmail" class="account-email">Company account</span>
+                </div>
+            </header>
+
+            <div id="dashboardMessage" class="notice" role="status" aria-live="polite" hidden></div>
+
+            <section id="overview" class="welcome-panel">
+                <div>
+                    <span class="eyebrow">YOUR DIGITAL PRESENCE</span>
+                    <h2>Make every connection count.</h2>
+                    <p>Keep your professional profile current and ready to share.</p>
+                </div>
+                <a class="button button-white" href="#profileEditor">Edit your profile <span aria-hidden="true">→</span></a>
+                <div class="welcome-decoration" aria-hidden="true"></div>
+            </section>
+
+            <div class="dashboard-grid">
+                <section id="profileEditor" class="panel profile-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="eyebrow">PROFILE DETAILS</span>
+                            <h2>Edit your profile</h2>
+                            <p>These details appear on your BlipLink profile.</p>
+                        </div>
+                        <span id="saveState" class="save-state">Changes save when you click Save</span>
+                    </div>
+
+                    <form id="profileForm">
+                        <div class="photo-editor">
+                            <div class="profile-photo-frame">
+                                <img id="profilePhoto" alt="Profile photo preview" hidden>
+                                <span id="photoFallback" class="photo-fallback">BL</span>
+                            </div>
+                            <div class="photo-controls">
+                                <strong>Profile photo</strong>
+                                <span>JPG, PNG, WebP or GIF · up to 5 MB</span>
+                                <div class="photo-actions">
+                                    <label class="button button-secondary button-small" for="photoInput">Upload photo</label>
+                                    <button id="removePhotoButton" class="text-button" type="button" hidden>Remove</button>
+                                </div>
+                                <input id="photoInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                                <p id="photoMessage" class="inline-message" aria-live="polite"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="fullName">Full name</label>
+                                <input id="fullName" name="full_name" autocomplete="name" maxlength="100" placeholder="Your name" required>
+                            </div>
+                            <div class="field">
+                                <label for="jobTitle">Job title</label>
+                                <input id="jobTitle" name="job_title" maxlength="100" placeholder="e.g. Managing Director">
+                            </div>
+                            <div class="field">
+                                <label for="companyName">Company</label>
+                                <input id="companyName" name="company_name" maxlength="120" placeholder="Company name">
+                            </div>
+                            <div class="field">
+                                <label for="contactEmail">Contact email</label>
+                                <input id="contactEmail" name="contact_email" type="email" autocomplete="email" maxlength="254" placeholder="hello@company.com">
+                            </div>
+                            <div class="field">
+                                <label for="phone">Phone</label>
+                                <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="40" placeholder="+1 555 000 0000">
+                            </div>
+                            <div class="field">
+                                <label for="websiteUrl">Website</label>
+                                <input id="websiteUrl" name="website_url" type="url" inputmode="url" maxlength="500" placeholder="https://company.com">
+                            </div>
+                            <div class="field field-full">
+                                <label for="bio">About</label>
+                                <textarea id="bio" name="bio" rows="4" maxlength="500" placeholder="A short introduction about you and your work"></textarea>
+                                <span class="field-hint"><span id="bioCount">0</span>/500</span>
+                            </div>
+                        </div>
+
+                        <div id="socialLinks" class="social-section">
+                            <div class="section-divider"></div>
+                            <span class="eyebrow">STAY CONNECTED</span>
+                            <h3>Social links</h3>
+                            <p>Add public links so people can find and connect with you.</p>
+                            <div class="form-grid social-grid">
+                                <div class="field">
+                                    <label for="linkedinUrl">LinkedIn</label>
+                                    <input id="linkedinUrl" name="linkedin_url" type="url" inputmode="url" maxlength="500" placeholder="https://linkedin.com/in/yourname">
+                                </div>
+                                <div class="field">
+                                    <label for="instagramUrl">Instagram</label>
+                                    <input id="instagramUrl" name="instagram_url" type="url" inputmode="url" maxlength="500" placeholder="https://instagram.com/yourname">
+                                </div>
+                                <div class="field">
+                                    <label for="xUrl">X</label>
+                                    <input id="xUrl" name="x_url" type="url" inputmode="url" maxlength="500" placeholder="https://x.com/yourname">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-footer">
+                            <p id="profileMessage" class="form-message" role="alert" aria-live="polite"></p>
+                            <button id="saveProfileButton" class="button button-primary" type="submit">Save changes</button>
+                        </div>
+                    </form>
+                </section>
+
+                <aside class="panel preview-panel" aria-label="Profile preview">
+                    <div class="preview-heading">
+                        <span class="eyebrow">LIVE PREVIEW</span>
+                        <span class="preview-status"><i></i> Your profile</span>
+                    </div>
+                    <div class="preview-card">
+                        <div class="preview-cover"></div>
+                        <div class="preview-content">
+                            <div class="preview-photo-frame">
+                                <img id="previewPhoto" alt="" hidden>
+                                <span id="previewPhotoFallback">BL</span>
+                            </div>
+                            <h2 id="previewName">Your name</h2>
+                            <p id="previewRole">Your job title</p>
+                            <span id="previewCompany" class="preview-company">Your company</span>
+                            <p id="previewBio" class="preview-bio">Your introduction will appear here.</p>
+                            <div id="previewSocials" class="preview-socials"></div>
+                        </div>
+                    </div>
+                    <p class="preview-hint">Your changes appear in this preview as you edit.</p>
+                </aside>
+            </div>
+            <footer class="dashboard-footer">© 2026 BlipLink · Company dashboard</footer>
+        </main>
+    </div>
+</body>
+</html>
