@@ -10,13 +10,14 @@ The SQL in [`schema.sql`](./schema.sql) has been applied to the project. Before 
 
 1. In **Authentication → Settings**, disable public sign-ups. The dashboard has no registration screen, but this Auth setting is also required to prevent self-registration through the Supabase API.
 2. Under **Authentication → Users**, create each company user manually with a unique email and password. Confirm the email or send the Supabase password setup/invitation flow before sharing access.
-3. Deploy the site with the `dashboard/` directory included. The login is available at `/dashboard/`; the homepage login link points there.
+3. Deploy the site with the `dashboard/` directory and `login.html` included. The homepage sends visitors directly to `/login.html`; after sign-in, they are redirected to `/dashboard/`. Opening the dashboard while signed out returns visitors to the sign-in page. The sign-in screen includes a link back to the public homepage.
 
 The `profile-photos` bucket is private, limited to 5 MB image uploads, and uses signed URLs. Row-level security restricts each account to its own profile and photo folder.
 
 ## Included
 
 - Email/password sign-in and sign-out, with no register form or sign-up action.
+- A clean `/login.html` sign-in route; the dashboard app remains separate and requires an active session.
 - Responsive dashboard with profile editing and a live preview.
 - Profile photo upload and removal.
 - Website, LinkedIn, Instagram, and X profile link editing.

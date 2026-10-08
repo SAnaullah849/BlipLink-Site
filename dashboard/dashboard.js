@@ -26,7 +26,6 @@
     document.addEventListener('DOMContentLoaded', initialize);
 
     async function initialize() {
-        byId('loginForm').addEventListener('submit', handleSignIn);
         byId('signOutButton').addEventListener('click', handleSignOut);
         byId('profileForm').addEventListener('submit', handleProfileSave);
         byId('photoInput').addEventListener('change', handlePhotoSelection);
@@ -41,7 +40,8 @@
 
         const config = window.BLIPLINK_SUPABASE_CONFIG;
         if (!window.supabase?.createClient || !config?.url || !config?.anonKey) {
-            showSetupRequired();
+            byId('dashboardView').hidden = false;
+            showDashboardMessage('Dashboard configuration is unavailable. Please try again later.', 'error');
             return;
         }
 
@@ -53,77 +53,40 @@
             },
         });
 
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-            if (session?.user) {
-                currentUser = session.user;
-                showDashboard();
-                window.setTimeout(() => loadProfile(), 0);
-            } else {
-                currentUser = null;
-                showLogin();
-            }
-        });
-
         const { data, error } = await supabaseClient.auth.getSession();
         if (error) {
-            showLogin();
-            showLoginError(`Unable to check your sign-in: ${error.message}`);
+            byId('dashboardView').hidden = false;
+            showDashboardMessage(`Unable to check your sign-in: ${error.message}`, 'error');
             return;
         }
 
-        if (data.session?.user) {
-            currentUser = data.session.user;
-            showDashboard();
-            await loadProfile();
-        } else {
-            showLogin();
+        if (!data.session?.user) {
+            window.location.replace('../login.html');
+            return;
         }
-    }
 
-    function showSetupRequired() {
-        showLogin();
-        byId('setupNotice').hidden = false;
-        byId('setupNotice').textContent =
-            'Dashboard setup required: add your Supabase project URL and public anon key in dashboard/config.js, then apply dashboard/schema.sql in your Supabase SQL Editor.';
-        byId('loginButton').disabled = true;
-    }
+        currentUser = data.session.user;
+        showDashboard();
+        await loadProfile();
 
-    function showLogin() {
-        byId('dashboardView').hidden = true;
-        byId('loginView').hidden = false;
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT' || !session?.user) {
+                currentUser = null;
+                window.location.replace('../login.html');
+                return;
+            }
+
+            if (session.user.id !== currentUser?.id) {
+                currentUser = session.user;
+                window.setTimeout(() => loadProfile(), 0);
+            }
+        });
     }
 
     function showDashboard() {
-        byId('loginView').hidden = true;
         byId('dashboardView').hidden = false;
         byId('accountEmail').textContent = currentUser?.email || 'Company account';
         byId('accountAvatar').textContent = getInitials(profile.full_name || currentUser?.email || 'BlipLink');
-    }
-
-    async function handleSignIn(event) {
-        event.preventDefault();
-        if (!supabaseClient) return;
-
-        const button = byId('loginButton');
-        button.disabled = true;
-        button.textContent = 'Signing in…';
-        showLoginError('');
-
-        const email = byId('loginEmail').value.trim();
-        const password = byId('loginPassword').value;
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-        button.disabled = false;
-        button.textContent = 'Sign in';
-        if (error) {
-            showLoginError('Sign-in failed. Check your email and password, then try again.');
-            console.error('Company sign-in failed:', error.message);
-            return;
-        }
-
-        currentUser = data.user;
-        showDashboard();
-        await loadProfile();
     }
 
     async function handleSignOut() {
@@ -136,7 +99,7 @@
             return;
         }
         profile = {};
-        showLogin();
+        window.location.replace('../login.html');
     }
 
     async function loadProfile() {
@@ -395,10 +358,6 @@
 
     function setSaveState(text) {
         byId('saveState').textContent = text;
-    }
-
-    function showLoginError(text) {
-        byId('loginMessage').textContent = text;
     }
 
     function showDashboardMessage(text, type) {

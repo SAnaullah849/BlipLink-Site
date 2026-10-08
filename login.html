@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Company Sign In | BlipLink</title>
+    <link rel="icon" type="image/png" href="assets/logo-symbol.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard/dashboard.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="dashboard/config.js"></script>
+    <script src="dashboard/login.js?v=1" defer></script>
+</head>
+<body>
+    <main class="login-screen">
+        <section class="login-card" aria-labelledby="loginTitle">
+            <a class="brand" href="./" aria-label="BlipLink home">
+                <img src="assets/logo-symbol.png" alt="" width="42" height="42">
+                <img src="assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark">
+            </a>
+            <div class="login-heading">
+                <span class="eyebrow">COMPANY PORTAL</span>
+                <h1 id="loginTitle">Welcome back</h1>
+                <p>Sign in to manage your BlipLink professional profile.</p>
+            </div>
+            <div id="setupNotice" class="notice notice-info" role="status" hidden></div>
+            <form id="loginForm" class="form-stack">
+                <label for="loginEmail">Work email</label>
+                <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="you@company.com" required>
+                <label for="loginPassword">Password</label>
+                <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+                <button id="loginButton" class="button button-primary button-full" type="submit">Sign in</button>
+                <p id="loginMessage" class="form-message" role="alert" aria-live="polite"></p>
+            </form>
+            <p class="login-footnote">Company accounts are created by BlipLink administrators.</p>
+            <a class="back-link" href="./">← Back to BlipLink</a>
+        </section>
+    </main>
+</body>
+</html>
