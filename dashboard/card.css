@@ -1,0 +1,515 @@
+:root {
+    color-scheme: light;
+    --ink: #132548;
+    --muted: #697991;
+    --blue: #087bff;
+    --border: #e4eaf2;
+    font-family: "DM Sans", sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background:
+        radial-gradient(ellipse at 15% 5%, rgba(0, 174, 239, 0.11), transparent 32%),
+        radial-gradient(ellipse at 90% 90%, rgba(8, 123, 255, 0.08), transparent 33%),
+        #f4f7fb;
+    color: var(--ink);
+}
+
+a {
+    color: inherit;
+}
+
+.public-card-shell {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    flex-direction: column;
+    padding: 28px 18px 22px;
+}
+
+.public-card-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 20px;
+    text-decoration: none;
+}
+
+.public-card-brand img:first-child {
+    object-fit: contain;
+}
+
+.public-card-brand img:last-child {
+    height: auto;
+}
+
+.card-status {
+    max-width: 520px;
+    margin: 30px 0;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.public-card {
+    width: min(100%, 440px);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgba(19, 37, 72, 0.12);
+    animation: card-enter 0.35s ease both;
+}
+
+.public-card-cover {
+    height: 148px;
+    background:
+        linear-gradient(125deg, rgba(11, 31, 94, 0.04), rgba(8, 123, 255, 0.08)),
+        url("../green-plant-in-a-white-pot-on-a-wooden-table-with-a-blurred-background-free-photo.jpeg") center 48% / cover,
+        linear-gradient(120deg, #0b1f5e, #087bff);
+}
+
+.public-card-body {
+    padding: 0 32px 30px;
+    text-align: center;
+}
+
+.public-card-avatar {
+    display: grid;
+    width: 110px;
+    height: 110px;
+    overflow: hidden;
+    place-items: center;
+    margin: -55px auto 14px;
+    border: 5px solid #fff;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e5f2ff, #cfe8ff);
+    box-shadow: 0 6px 19px rgba(19, 37, 72, 0.2);
+    color: var(--blue);
+    font-family: "Manrope", sans-serif;
+    font-size: 30px;
+    font-weight: 800;
+}
+
+.public-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.card-eyebrow {
+    margin: 0 0 7px;
+    color: #7690ad;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+}
+
+.public-card h1 {
+    overflow-wrap: anywhere;
+    margin: 0;
+    font-family: "Manrope", sans-serif;
+    font-size: clamp(25px, 7vw, 31px);
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.2;
+}
+
+.public-role,
+.public-company,
+.public-bio {
+    overflow-wrap: anywhere;
+    margin: 7px 0 0;
+    line-height: 1.6;
+}
+
+.public-role {
+    color: #596b84;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.public-company {
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.public-bio {
+    margin-top: 15px;
+    color: #68778c;
+    font-size: 13px;
+    white-space: pre-line;
+}
+
+.public-address {
+    overflow-wrap: anywhere;
+    margin: 12px 0 0;
+    color: #68778c;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.public-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 22px;
+}
+
+.public-action {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid #e6edf5;
+    border-radius: 13px;
+    background: #fff;
+    color: #314966;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.public-action:hover {
+    transform: translateY(-1px);
+    border-color: #bfdbff;
+    background: #f6faff;
+}
+
+.public-socials {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.public-social {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid #e2eaf4;
+    border-radius: 50%;
+    background: #f7faff;
+    color: #315b91;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.public-social:hover {
+    transform: translateY(-2px);
+    background: #eaf3ff;
+}
+
+.public-social svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+.card-qr-section {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    margin-top: 22px;
+    color: #738198;
+    font-size: 11px;
+}
+
+.card-qr-section img {
+    width: 136px;
+    height: 136px;
+    padding: 7px;
+    border: 1px solid #e7ebf1;
+    border-radius: 12px;
+    background: #fff;
+    image-rendering: pixelated;
+}
+
+.card-primary-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.save-contact-button {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 0;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(110deg, #0b1f5e, #087bff);
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.save-contact-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(8, 123, 255, 0.23);
+}
+
+.share-card-button {
+    min-height: 46px;
+    padding: 0 12px;
+    border: 1px solid #dfe8f3;
+    border-radius: 12px;
+    background: #f7faff;
+    color: #315b91;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.share-card-button:hover {
+    transform: translateY(-1px);
+    background: #eaf3ff;
+}
+
+.card-feedback {
+    min-height: 18px;
+    margin: 8px 0 0;
+    color: #356a45;
+    font-size: 11px;
+}
+
+.wallet-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.wallet-actions button {
+    min-height: 37px;
+    padding: 5px 7px;
+    border: 1px solid #dfe4eb;
+    border-radius: 8px;
+    background: #f4f5f7;
+    color: #7e8998;
+    font: inherit;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.wallet-card-note {
+    margin: 6px 0 0;
+    color: #929daf;
+    font-size: 9px;
+}
+
+.exchange-dialog {
+    width: min(calc(100% - 28px), 450px);
+    max-height: min(90vh, 760px);
+    overflow: auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 24px 80px rgba(19, 37, 72, 0.22);
+}
+
+.exchange-dialog::backdrop {
+    background: rgba(11, 31, 94, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.exchange-form {
+    display: grid;
+    gap: 9px;
+    padding: 28px;
+}
+
+.dialog-close {
+    justify-self: end;
+    width: 34px;
+    height: 34px;
+    margin: -8px -8px -22px 0;
+    border: 0;
+    border-radius: 50%;
+    background: #f2f5f9;
+    color: #566a84;
+    cursor: pointer;
+    font: inherit;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.exchange-form h2 {
+    margin: 0;
+    font-family: "Manrope", sans-serif;
+    font-size: 23px;
+    letter-spacing: -0.04em;
+}
+
+.exchange-description {
+    margin: -2px 0 7px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.exchange-form > label:not(.exchange-consent) {
+    color: #253b5d;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.exchange-form input:not([type="checkbox"]),
+.exchange-form textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 11px;
+    border: 1px solid #dce3ed;
+    border-radius: 9px;
+    outline: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+}
+
+.exchange-form textarea {
+    resize: vertical;
+}
+
+.exchange-form input:focus,
+.exchange-form textarea:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(8, 123, 255, 0.12);
+}
+
+.exchange-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 5px 0;
+    color: #697991;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.exchange-consent input {
+    flex: 0 0 auto;
+    margin-top: 2px;
+    accent-color: var(--blue);
+}
+
+.exchange-message {
+    min-height: 16px;
+    margin: 0;
+    color: #356a45;
+    font-size: 11px;
+}
+
+.exchange-form .save-contact-button {
+    width: 100%;
+}
+
+.public-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid #edf0f5;
+    background: #fcfdff;
+    color: #7c899a;
+    font-size: 10px;
+}
+
+.public-card-footer strong {
+    color: #315b91;
+}
+
+.public-card-footer a {
+    color: #256cc0;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.return-home {
+    margin: 18px 0 0;
+    color: #5f718b;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.return-home:hover,
+.public-card-footer a:hover {
+    text-decoration: underline;
+}
+
+@keyframes card-enter {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 440px) {
+    .public-card-shell {
+        padding: 20px 13px;
+    }
+
+    .public-card {
+        border-radius: 20px;
+    }
+
+    .public-card-cover {
+        height: 128px;
+    }
+
+    .public-card-body {
+        padding-right: 20px;
+        padding-left: 20px;
+    }
+
+    .exchange-form {
+        padding: 22px 18px;
+    }
+
+    .public-card-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 18px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}

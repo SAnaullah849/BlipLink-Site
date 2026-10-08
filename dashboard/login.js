@@ -69,7 +69,7 @@
     }
 
     function goToDashboard() {
-        window.location.assign(new URL('dashboard/', window.location.href).href);
+        window.location.assign(new URL('dashboard/index.html', window.location.href).href);
     }
 
     function showSetupNotice(message) {

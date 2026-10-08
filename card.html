@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b1f5e">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="A professional digital business card powered by BlipLink.">
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="BlipLink">
+    <meta property="og:title" content="Digital Business Card | BlipLink">
+    <meta property="og:description" content="Connect with this professional on BlipLink.">
+    <meta name="twitter:card" content="summary">
+    <title>Digital Business Card | BlipLink</title>
+    <link rel="icon" type="image/png" href="assets/logo-symbol.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard/card.css?v=2">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="dashboard/config.js"></script>
+    <script src="dashboard/card.js?v=3" defer></script>
+</head>
+<body>
+    <main class="public-card-shell">
+        <a class="public-card-brand" href="index.html" aria-label="BlipLink home">
+            <img src="assets/logo-symbol.png" alt="" width="36" height="36">
+            <img src="assets/logo-wordmark.png" alt="BlipLink" width="112">
+        </a>
+        <p id="cardStatus" class="card-status" role="status" aria-live="polite">Loading digital business card…</p>
+        <article id="publicCard" class="public-card" hidden>
+            <div class="public-card-cover"></div>
+            <div class="public-card-body">
+                <div class="public-card-avatar">
+                    <img id="publicPhoto" alt="" hidden>
+                    <span id="publicInitials">BL</span>
+                </div>
+                <p class="card-eyebrow">DIGITAL BUSINESS CARD</p>
+                <h1 id="publicName"></h1>
+                <p id="publicRole" class="public-role"></p>
+                <p id="publicCompany" class="public-company"></p>
+                <p id="publicBio" class="public-bio"></p>
+                <p id="publicAddress" class="public-address"></p>
+                <p id="cardFeedback" class="card-feedback" role="status" aria-live="polite"></p>
+                <div id="publicActions" class="public-actions"></div>
+                <nav id="publicSocials" class="public-socials" aria-label="Social profiles"></nav>
+                <section class="card-qr-section" aria-label="Share card QR code">
+                    <img id="cardQrCode" alt="QR code linking to this business card" width="136" height="136">
+                    <span>Scan to save and share this card</span>
+                </section>
+                <div class="card-primary-actions">
+                    <button id="saveContactButton" class="save-contact-button" type="button" hidden>Save contact</button>
+                    <button id="shareCardButton" class="share-card-button" type="button">Share card</button>
+                    <button id="exchangeContactButton" class="share-card-button" type="button">Exchange contact</button>
+                </div>
+                <div class="wallet-actions" aria-label="Digital wallet passes">
+                    <button type="button" disabled title="Wallet pass setup is required">Add to Apple Wallet</button>
+                    <button type="button" disabled title="Wallet pass setup is required">Add to Google Wallet</button>
+                </div>
+                <p class="wallet-card-note">Digital wallet passes are coming soon.</p>
+            </div>
+            <footer class="public-card-footer">
+                <span>Connected with <strong>BlipLink</strong></span>
+                <a href="index.html">Create your digital card <span aria-hidden="true">→</span></a>
+            </footer>
+        </article>
+        <a class="return-home" href="index.html">← Back to BlipLink</a>
+    </main>
+    <dialog id="exchangeDialog" class="exchange-dialog" aria-labelledby="exchangeTitle">
+        <form id="exchangeForm" class="exchange-form">
+            <button id="closeExchangeDialog" class="dialog-close" type="button" aria-label="Close">×</button>
+            <p class="card-eyebrow">LET'S CONNECT</p>
+            <h2 id="exchangeTitle">Exchange contact details</h2>
+            <p class="exchange-description">Share your details with this profile owner so they can get back to you.</p>
+            <label for="visitorName">Your name *</label>
+            <input id="visitorName" name="name" autocomplete="name" maxlength="100" required>
+            <label for="visitorPhone">Phone number *</label>
+            <input id="visitorPhone" name="phone" type="tel" autocomplete="tel" maxlength="40" required>
+            <label for="visitorEmail">Email</label>
+            <input id="visitorEmail" name="email" type="email" autocomplete="email" maxlength="254">
+            <label for="visitorCompany">Company</label>
+            <input id="visitorCompany" name="company" autocomplete="organization" maxlength="120">
+            <label for="visitorRole">Role</label>
+            <input id="visitorRole" name="role" autocomplete="organization-title" maxlength="120">
+            <label for="visitorMessage">Message</label>
+            <textarea id="visitorMessage" name="message" rows="3" maxlength="1000"></textarea>
+            <label class="exchange-consent">
+                <input id="visitorConsent" type="checkbox" required>
+                <span>I agree to share these details with the card owner so they can contact me.</span>
+            </label>
+            <p id="exchangeMessage" class="exchange-message" role="status" aria-live="polite"></p>
+            <button id="submitExchangeButton" class="save-contact-button" type="submit">Share my details</button>
+        </form>
+    </dialog>
+</body>
+</html>

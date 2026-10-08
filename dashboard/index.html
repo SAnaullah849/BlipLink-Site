@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=1">
+    <link rel="stylesheet" href="dashboard.css?v=3">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=1" defer></script>
+    <script src="dashboard.js?v=4" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -35,6 +35,10 @@
                 <a class="side-nav-link" href="#socialLinks" data-nav="social">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
                     Social links
+                </a>
+                <a class="side-nav-link" href="#cardLeads" data-nav="connections">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m-3-3h6"/></svg>
+                    Connections
                 </a>
             </nav>
             <div class="sidebar-bottom">
@@ -123,6 +127,10 @@
                                 <label for="phone">Phone</label>
                                 <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="40" placeholder="+1 555 000 0000">
                             </div>
+                            <div class="field field-full">
+                                <label for="address">Business address</label>
+                                <input id="address" name="address" autocomplete="street-address" maxlength="300" placeholder="Street, city, country">
+                            </div>
                             <div class="field">
                                 <label for="websiteUrl">Website</label>
                                 <input id="websiteUrl" name="website_url" type="url" inputmode="url" maxlength="500" placeholder="https://company.com">
@@ -177,13 +185,46 @@
                             <h2 id="previewName">Your name</h2>
                             <p id="previewRole">Your job title</p>
                             <span id="previewCompany" class="preview-company">Your company</span>
+                            <p id="previewAddress" class="preview-address" hidden></p>
                             <p id="previewBio" class="preview-bio">Your introduction will appear here.</p>
+                            <div id="previewContacts" class="preview-contacts"></div>
                             <div id="previewSocials" class="preview-socials"></div>
+                            <div class="preview-qr">
+                                <img id="previewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
+                                <span id="previewQrPlaceholder">Save your profile to create its QR code.</span>
+                                <span>Scan to open this card</span>
+                            </div>
                         </div>
                     </div>
+                    <div class="preview-actions">
+                        <a id="viewCardButton" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer">
+                            View card <span aria-hidden="true">↗</span>
+                        </a>
+                        <button id="shareCardButton" class="button button-secondary" type="button">Share</button>
+                        <button id="copyCardLinkButton" class="button button-secondary" type="button">Copy link</button>
+                    </div>
+                    <p id="cardLinkText" class="card-link-text" aria-live="polite">Save your profile to activate its card link.</p>
                     <p class="preview-hint">Your changes appear in this preview as you edit.</p>
+                    <div class="wallet-preview" aria-label="Digital wallet availability">
+                        <span>Add to Apple Wallet</span>
+                        <span>Add to Google Wallet</span>
+                    </div>
+                    <p class="wallet-setup-hint">Wallet passes become available after BlipLink configures your issuer accounts.</p>
                 </aside>
             </div>
+
+            <section id="cardLeads" class="panel leads-panel" aria-labelledby="leadsTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">CARD ACTIVITY</span>
+                        <h2 id="leadsTitle">Contact exchanges</h2>
+                        <p>People who shared their details with you from your card.</p>
+                    </div>
+                    <button id="refreshLeadsButton" class="button button-secondary button-small" type="button">Refresh</button>
+                </div>
+                <p id="leadsMessage" class="inline-message" role="status" aria-live="polite">Loading your connections…</p>
+                <div id="leadsList" class="leads-list"></div>
+            </section>
             <footer class="dashboard-footer">© 2026 BlipLink · Company dashboard</footer>
         </main>
     </div>
