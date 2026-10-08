@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlipLink — Digital Business Cards, NFC &amp; Design Catalogue</title>
+    <meta name="description" content="Create and share your professional identity with BlipLink digital business cards, NFC products, and customizable profile designs.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0B1F5E">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BlipLink">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:title" content="BlipLink — Digital Business Cards, NFC &amp; Design Catalogue">
+    <meta property="og:description" content="Create and share your professional identity with BlipLink digital business cards, NFC products, and customizable profile designs.">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="BlipLink — Digital Business Cards, NFC &amp; Design Catalogue">
+    <meta name="twitter:description" content="Create and share your professional identity with BlipLink digital business cards, NFC products, and customizable profile designs.">
+    <link rel="icon" type="image/png" href="assets/logo-symbol.png">
+    <link rel="apple-touch-icon" href="assets/logo-symbol.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=20261009-mobile-catalog">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <img src="assets/logo-symbol.png" alt="BlipLink" class="logo-img">
+                <img src="assets/logo-wordmark.png" alt="" class="logo-wordmark-img" aria-hidden="true">
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#products" data-i18n="nav.products">Products</a></li>
+                <li><a href="#business" data-i18n="nav.business">For Companies</a></li>
+                <li><a href="#catalogue" data-i18n="nav.catalogue">Design Catalogue</a></li>
+                <li><a href="#about" data-i18n="nav.about">About Us</a></li>
+                <li><a href="#faq" data-i18n="nav.faq">FAQs</a></li>
+            </ul>
+
+            <div class="nav-right">
+                <div class="lang-selector">
+                    <button type="button" onclick="changeLanguage('en')" class="lang-btn active" id="btn-en" data-language="en" aria-label="English" aria-pressed="true">EN</button>
+                    <button type="button" onclick="changeLanguage('ru')" class="lang-btn" id="btn-ru" data-language="ru" aria-label="Русский" aria-pressed="false">RU</button>
+                    <button type="button" onclick="changeLanguage('ar')" class="lang-btn" id="btn-ar" data-language="ar" aria-label="العربية" aria-pressed="false">AR</button>
+                </div>
+                <a href="#" class="login-link" data-i18n="nav.login">Log In</a>
+                <a href="#" class="btn-primary" data-i18n="nav.getStarted">Get Started</a>
+            </div>
+
+            <button type="button" class="mobile-toggle" onclick="toggleMenu()" aria-label="Toggle navigation menu" aria-controls="mobileMenu" aria-expanded="false">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <ul class="mobile-nav-links">
+                <li><a href="#products" data-i18n="nav.products" onclick="toggleMenu()">Products</a></li>
+                <li><a href="#business" data-i18n="nav.business" onclick="toggleMenu()">For Companies</a></li>
+                <li><a href="#catalogue" data-i18n="nav.catalogue" onclick="toggleMenu()">Design Catalogue</a></li>
+                <li><a href="#about" data-i18n="nav.about" onclick="toggleMenu()">About Us</a></li>
+                <li><a href="#faq" data-i18n="nav.faq" onclick="toggleMenu()">FAQs</a></li>
+            </ul>
+            <div class="lang-selector mobile-lang-selector" aria-label="Choose language">
+                <button type="button" onclick="changeLanguage('en')" class="lang-btn active" data-language="en" aria-label="English" aria-pressed="true">EN</button>
+                <button type="button" onclick="changeLanguage('ru')" class="lang-btn" data-language="ru" aria-label="Русский" aria-pressed="false">RU</button>
+                <button type="button" onclick="changeLanguage('ar')" class="lang-btn" data-language="ar" aria-label="العربية" aria-pressed="false">AR</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+    <section class="hero">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <div class="eyebrow" data-i18n="hero.eyebrow">THE SMARTER WAY TO CONNECT</div>
+                <h1 class="hero-title" data-i18n="hero.title">Your identity.<br>One tap away.</h1>
+                <p class="hero-desc" data-i18n="hero.description">Create, share, and manage your professional identity with BlipLink.</p>
+                <div class="hero-btns">
+                    <a href="#" class="btn-primary" data-i18n="hero.ctaPrimary">Create Your BlipLink</a>
+                    <a href="#business" class="btn-secondary" data-i18n="hero.ctaSecondary">For Companies</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <div class="profile-header" aria-hidden="true"></div>
+                        <div class="profile-body">
+                            <div class="profile-pic">
+                                <img src="images.jpg" alt="Oliver Bennett, CEO of BlipLink" width="451" height="679">
+                            </div>
+                            <h3 class="profile-name" data-i18n="hero.profileName">Oliver Bennett</h3>
+                            <p class="profile-role" data-i18n="hero.profileRole">Chief Executive Officer (CEO)</p>
+                            <div class="profile-links">
+                                <div class="link-item" data-i18n="hero.email">Email</div>
+                                <div class="link-item" data-i18n="hero.phone">Phone</div>
+                                <div class="link-item" data-i18n="hero.linkedin">LinkedIn</div>
+                                <div class="link-item" data-i18n="hero.website">Website</div>
+                            </div>
+                            <div class="qr-area">
+                                <img class="qr-code" data-page-qr alt="QR code linking to this page" width="72" height="72">
+                                <span class="qr-text" data-i18n="hero.scanToConnect">Scan to Connect</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="floating-card card-1" data-i18n="hero.contactSaved">Contact Saved</div>
+                <div class="floating-card card-2" data-i18n="hero.newConnection">New Connection</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="products" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-i18n="products.title">Everything you need to connect smarter.</h2>
+                <p data-i18n="products.subtitle">BlipLink combines digital identity with physical products.</p>
+            </div>
+            <div class="product-grid" id="product-grid">
+                <!-- Dynamic content injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <section id="business" class="section bg-light">
+        <div class="container business-grid">
+            <div class="business-content">
+                <h2 data-i18n="business.title">Power your team's professional identity.</h2>
+                <p data-i18n="business.description">BlipLink helps businesses create and manage digital identities for their teams.</p>
+                <ul class="feature-list" id="business-features">
+                    <!-- Dynamic content injected by JS -->
+                </ul>
+                <a href="#" class="btn-primary" data-i18n="business.cta">Talk to BlipLink</a>
+            </div>
+            <div class="business-visual">
+                <div class="dashboard-mockup">
+                    <div class="dash-header" data-i18n="business.dashboard">Admin Dashboard</div>
+                    <div class="dash-stats">
+                        <div class="stat-box"><span>1,240</span><small data-i18n="business.staff">Staff</small></div>
+                        <div class="stat-box"><span>84k</span><small data-i18n="business.views">Views</small></div>
+                    </div>
+                    <div class="dash-table">
+                        <div class="table-row"><span>Sarah J.</span><span class="status active" data-i18n="business.active">Active</span></div>
+                        <div class="table-row"><span>Marcus T.</span><span class="status active" data-i18n="business.active">Active</span></div>
+                        <div class="table-row"><span>Elena R.</span><span class="status pending" data-i18n="business.pending">Pending</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="section">
+        <div class="container section-header">
+            <h2 data-i18n="about.title">Connecting people, one Blip at a time.</h2>
+            <p data-i18n="about.mission">Our mission is to make professional networking simpler, smarter, and more digital.</p>
+        </div>
+    </section>
+
+    <section id="catalogue" class="section bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-i18n="catalogue.title">Design Catalogue</h2>
+                <p data-i18n="catalogue.subtitle">Choose a style that fits your professional brand.</p>
+            </div>
+            <div class="catalogue-grid" id="catalogue-grid">
+                <div class="catalogue-item">
+                    <div class="cat-image cat-image--minimal" aria-hidden="true"><span>BLIP</span></div>
+                    <div class="cat-info">
+                        <h3 data-i18n="catalogue.items.0.name">Modern Minimal</h3>
+                        <p data-i18n="catalogue.items.0.description">A clean, understated look for a confident first impression.</p>
+                        <a href="https://wa.me/77770665790?text=Hello%20BlipLink%2C%20I%20would%20like%20to%20request%20a%20quote%20for%20Modern%20Minimal." class="btn-outline" data-i18n="common.requestQuote">Request a Quote</a>
+                    </div>
+                </div>
+                <div class="catalogue-item">
+                    <div class="cat-image cat-image--executive" aria-hidden="true"><span>BLIP</span></div>
+                    <div class="cat-info">
+                        <h3 data-i18n="catalogue.items.1.name">Executive Gold</h3>
+                        <p data-i18n="catalogue.items.1.description">A polished, premium style with a refined gold accent.</p>
+                        <a href="https://wa.me/77770665790?text=Hello%20BlipLink%2C%20I%20would%20like%20to%20request%20a%20quote%20for%20Executive%20Gold." class="btn-outline" data-i18n="common.requestQuote">Request a Quote</a>
+                    </div>
+                </div>
+                <div class="catalogue-item">
+                    <div class="cat-image cat-image--creative" aria-hidden="true"><span>BLIP</span></div>
+                    <div class="cat-info">
+                        <h3 data-i18n="catalogue.items.2.name">Creative Pulse</h3>
+                        <p data-i18n="catalogue.items.2.description">A bold, colorful design for distinctive personal brands.</p>
+                        <a href="https://wa.me/77770665790?text=Hello%20BlipLink%2C%20I%20would%20like%20to%20request%20a%20quote%20for%20Creative%20Pulse." class="btn-outline" data-i18n="common.requestQuote">Request a Quote</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-i18n="faq.title">Frequently Asked Questions</h2>
+            </div>
+            <div class="faq-container" id="faq-container">
+                <!-- Dynamic content injected by JS -->
+            </div>
+        </div>
+    </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <img src="assets/logo-symbol.png" alt="BlipLink" class="logo-img">
+                    <img src="assets/logo-wordmark.png" alt="" class="logo-wordmark-img" aria-hidden="true">
+                </a>
+                <p data-i18n="footer.tagline">Connect smarter. Share instantly.</p>
+            </div>
+            <div class="footer-links">
+                <h4 data-i18n="footer.products">Products</h4>
+                <ul>
+                    <li><a href="#products" data-i18n="footer.digitalCard">Digital Card</a></li>
+                    <li><a href="#products" data-i18n="footer.nfcCard">NFC Card</a></li>
+                    <li><a href="#products" data-i18n="footer.reviewCard">Review Card</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4 data-i18n="footer.company">Company</h4>
+                <ul>
+                    <li><a href="#about" data-i18n="footer.about">About</a></li>
+                    <li><a href="#business" data-i18n="footer.business">Business</a></li>
+                    <li><a href="#faq" data-i18n="nav.faq">FAQs</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h4 data-i18n="footer.legal">Legal</h4>
+                <ul>
+                    <li><a href="#" data-i18n="footer.privacy">Privacy</a></li>
+                    <li><a href="#" data-i18n="footer.terms">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="container footer-connect">
+            <div class="footer-page-qr">
+                <a id="pageQrLink" href="#" aria-label="Open this page">
+                    <img data-page-qr alt="QR code linking to this page" width="120" height="120" loading="lazy">
+                </a>
+                <span data-i18n="footer.scanPage">Scan to open this page</span>
+            </div>
+            <div class="footer-connect-actions">
+                <div class="wallet-links">
+                    <a class="wallet-link whatsapp-link" data-whatsapp-message="footer.appleWalletMessage" href="https://wa.me/77770665790?text=Apple%20Wallet" target="_blank" rel="noopener noreferrer" aria-label="Ask about Apple Wallet">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H20v14H6.5A2.5 2.5 0 0 1 4 16.5zM4 8h13m-1 4h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="12" r="1" fill="currentColor"/></svg>
+                        <span data-i18n="footer.appleWallet">Apple Wallet</span>
+                    </a>
+                    <a class="wallet-link whatsapp-link" data-whatsapp-message="footer.googleWalletMessage" href="https://wa.me/77770665790?text=Google%20Wallet" target="_blank" rel="noopener noreferrer" aria-label="Ask about Google Wallet">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H20v14H6.5A2.5 2.5 0 0 1 4 16.5zM4 8h13m-1 4h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="12" r="1" fill="currentColor"/></svg>
+                        <span data-i18n="footer.googleWallet">Google Wallet</span>
+                    </a>
+                </div>
+                <div class="social-links" aria-label="Contact BlipLink">
+                    <a class="social-link whatsapp-link" data-whatsapp-message="footer.linkedinMessage" href="https://wa.me/77770665790?text=LinkedIn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9v10M5 5v.1M10 19v-6a4 4 0 0 1 8 0v6m-8 0V9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+                        <span>LinkedIn</span>
+                    </a>
+                    <a class="social-link whatsapp-link" data-whatsapp-message="footer.emailMessage" href="https://wa.me/77770665790?text=Email" target="_blank" rel="noopener noreferrer" aria-label="Email">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span data-i18n="footer.email">Email</span>
+                    </a>
+                    <a class="social-link whatsapp-link" data-whatsapp-message="footer.xMessage" href="https://wa.me/77770665790?text=X" target="_blank" rel="noopener noreferrer" aria-label="X">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 4 14 16M19 4 5 20M6 4h4l8 16h-4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>X</span>
+                    </a>
+                    <a class="social-link whatsapp-link" data-whatsapp-message="footer.instagramMessage" href="https://wa.me/77770665790?text=Instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.8" r="1" fill="currentColor"/></svg>
+                        <span>Instagram</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p data-i18n="footer.copy">© 2026 BlipLink. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/translations.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
