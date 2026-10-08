@@ -195,17 +195,16 @@ a {
 }
 
 .public-contact-detail {
-    display: grid;
-    grid-template-columns: 76px minmax(0, 1fr);
-    gap: 12px;
+    display: block;
     margin: 0;
     color: #596b84;
     font-size: 14px;
     line-height: 1.55;
-    text-align: left;
+    text-align: center;
 }
 
 .public-contact-detail span {
+    margin-right: 12px;
     color: #8190a4;
     font-weight: 700;
 }
@@ -214,6 +213,7 @@ a {
     overflow-wrap: anywhere;
     color: #315b91;
     font-weight: 600;
+    text-align: center;
     text-decoration: none;
 }
 
@@ -236,7 +236,7 @@ a {
     height: 44px;
     place-items: center;
     border: 1px solid #e2eaf4;
-    border-radius: 50%;
+    border-radius: 12px;
     background: #f7faff;
     color: #315b91;
     transition: transform 0.15s ease, background 0.15s ease;
