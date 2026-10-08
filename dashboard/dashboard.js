@@ -467,8 +467,8 @@
         const socialEntries = [
             ['LinkedIn', byId('linkedinUrl').value.trim(), 'linkedin'],
             ['Instagram', byId('instagramUrl').value.trim(), 'instagram'],
-            ['X', byId('xUrl').value.trim(), 'x'],
             ['WhatsApp', byId('whatsappUrl').value.trim(), 'whatsapp'],
+            ['X', byId('xUrl').value.trim(), 'x'],
         ].filter(([, value]) => value);
         const socials = byId('previewSocials');
         socials.replaceChildren(...socialEntries.map(([label, url]) => {

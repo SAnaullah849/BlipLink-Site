@@ -79,7 +79,7 @@
 
         const actions = [
             ['Email', cardProfile.contact_email, 'email'],
-            ['Call', cardProfile.phone, 'phone'],
+            ['Phone', cardProfile.phone, 'phone'],
             ['Website', cardProfile.website_url, 'website'],
         ].filter(([, value]) => value);
         byId('publicActions').replaceChildren(...actions.map(([label, value, type]) => {
@@ -103,8 +103,8 @@
         const socialEntries = [
             ['LinkedIn', cardProfile.linkedin_url, 'linkedin'],
             ['Instagram', cardProfile.instagram_url, 'instagram'],
-            ['X', cardProfile.x_url, 'x'],
             ['WhatsApp', cardProfile.whatsapp_url, 'whatsapp'],
+            ['X', cardProfile.x_url, 'x'],
         ].filter(([, url]) => url);
         byId('publicSocials').replaceChildren(...socialEntries.map(([label, url, icon]) => {
             const link = document.createElement('a');
