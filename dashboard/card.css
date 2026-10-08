@@ -14,6 +14,10 @@
     box-sizing: border-box;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 body {
     min-width: 320px;
     min-height: 100vh;
@@ -73,11 +77,20 @@ a {
 }
 
 .public-card-cover {
+    position: relative;
+    overflow: hidden;
     height: 148px;
     background:
         linear-gradient(125deg, rgba(11, 31, 94, 0.04), rgba(8, 123, 255, 0.08)),
         url("../green-plant-in-a-white-pot-on-a-wooden-table-with-a-blurred-background-free-photo.jpeg") center 48% / cover,
         linear-gradient(120deg, #0b1f5e, #087bff);
+}
+
+.public-card-cover img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .public-card-body {
@@ -161,34 +174,37 @@ a {
     line-height: 1.6;
 }
 
-.public-actions {
+.public-contact-details {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 9px;
-    margin-top: 22px;
-}
-
-.public-action {
-    display: inline-flex;
-    min-height: 46px;
-    align-items: center;
-    justify-content: center;
     gap: 8px;
-    padding: 8px 10px;
-    border: 1px solid #e6edf5;
-    border-radius: 13px;
-    background: #fff;
-    color: #314966;
-    font-size: 12px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+    margin-top: 18px;
 }
 
-.public-action:hover {
-    transform: translateY(-1px);
-    border-color: #bfdbff;
-    background: #f6faff;
+.public-contact-detail {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 10px;
+    margin: 0;
+    color: #596b84;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.public-contact-detail span {
+    color: #8190a4;
+    font-weight: 600;
+}
+
+.public-contact-detail a {
+    overflow-wrap: anywhere;
+    color: #315b91;
+    text-decoration: none;
+}
+
+.public-contact-detail a:hover {
+    color: var(--blue);
+    text-decoration: underline;
 }
 
 .public-socials {
@@ -305,22 +321,29 @@ a {
     margin-top: 13px;
 }
 
-.wallet-actions button {
+.wallet-actions a {
+    display: grid;
     min-height: 37px;
+    place-items: center;
     padding: 5px 7px;
-    border: 1px solid #dfe4eb;
+    border: 1px solid #d7e3f2;
     border-radius: 8px;
-    background: #f4f5f7;
-    color: #7e8998;
-    font: inherit;
+    background: #f7faff;
+    color: #315b91;
     font-size: 9px;
     font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.wallet-card-note {
-    margin: 6px 0 0;
-    color: #929daf;
-    font-size: 9px;
+.wallet-actions a:hover {
+    border-color: #b7d7ff;
+    background: #eaf3ff;
+}
+
+.wallet-actions:empty {
+    display: none;
 }
 
 .exchange-dialog {

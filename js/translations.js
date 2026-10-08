@@ -1,8 +1,8 @@
 const translations = {
   en: {
     seo: {
-      title: "BlipLink — Digital Business Cards, NFC & Design Catalogue",
-      description: "Create and share your professional identity with BlipLink digital business cards, NFC products, and customizable profile designs.",
+      title: "BlipLink | The Smarter Way to Connect",
+      description: "BlipLink is a professional networking platform for sharing your identity, making meaningful connections, and growing your network with digital profiles and NFC.",
     },
     nav: {
       products: "Products",
@@ -136,8 +136,8 @@ const translations = {
   },
   ru: {
     seo: {
-      title: "BlipLink — цифровые визитки, NFC и каталог дизайнов",
-      description: "Создайте и делитесь профессиональным профилем с цифровыми визитками BlipLink, NFC-продуктами и персонализированными дизайнами.",
+      title: "BlipLink | Умный способ быть на связи",
+      description: "BlipLink — платформа для профессионального общения, обмена профилями и развития деловых связей с помощью цифровых профилей и NFC.",
     },
     nav: {
       products: "Продукты",
@@ -271,8 +271,8 @@ const translations = {
   },
   ar: {
     seo: {
-      title: "BlipLink — بطاقات أعمال رقمية وNFC وكتالوج التصاميم",
-      description: "أنشئ هويتك المهنية وشاركها مع بطاقات BlipLink الرقمية ومنتجات NFC وتصاميم الملفات الشخصية القابلة للتخصيص.",
+      title: "BlipLink | الطريقة الأذكى للتواصل",
+      description: "BlipLink منصة للتواصل المهني ومشاركة الهوية وبناء علاقات عمل أقوى عبر الملفات الشخصية الرقمية وتقنية NFC.",
     },
     nav: {
       products: "المنتجات",

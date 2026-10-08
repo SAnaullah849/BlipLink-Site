@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=3">
+    <link rel="stylesheet" href="dashboard.css?v=4">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=4" defer></script>
+    <script src="dashboard.js?v=5" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -105,6 +105,19 @@
                                 <p id="photoMessage" class="inline-message" aria-live="polite"></p>
                             </div>
                         </div>
+                        <div class="photo-editor banner-editor">
+                            <div id="bannerPhotoPreview" class="banner-photo-preview" role="img" aria-label="Card banner preview"></div>
+                            <div class="photo-controls">
+                                <strong>Card banner</strong>
+                                <span>JPG, PNG, WebP or GIF · up to 5 MB</span>
+                                <div class="photo-actions">
+                                    <label class="button button-secondary button-small" for="bannerInput">Upload banner</label>
+                                    <button id="removeBannerButton" class="text-button" type="button" hidden>Remove</button>
+                                </div>
+                                <input id="bannerInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                                <p id="bannerMessage" class="inline-message" aria-live="polite"></p>
+                            </div>
+                        </div>
 
                         <div class="form-grid">
                             <div class="field">
@@ -160,6 +173,18 @@
                                     <label for="xUrl">X</label>
                                     <input id="xUrl" name="x_url" type="url" inputmode="url" maxlength="500" placeholder="https://x.com/yourname">
                                 </div>
+                                <div class="field">
+                                    <label for="whatsappUrl">WhatsApp</label>
+                                    <input id="whatsappUrl" name="whatsapp_url" type="url" inputmode="url" maxlength="500" placeholder="https://wa.me/15551234567">
+                                </div>
+                                <div class="field">
+                                    <label for="appleWalletUrl">Apple Wallet pass link</label>
+                                    <input id="appleWalletUrl" name="apple_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
+                                </div>
+                                <div class="field">
+                                    <label for="googleWalletUrl">Google Wallet pass link</label>
+                                    <input id="googleWalletUrl" name="google_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
+                                </div>
                             </div>
                         </div>
 
@@ -176,7 +201,7 @@
                         <span class="preview-status"><i></i> Your profile</span>
                     </div>
                     <div class="preview-card">
-                        <div class="preview-cover"></div>
+                        <div class="preview-cover"><img id="previewBanner" alt="" hidden></div>
                         <div class="preview-content">
                             <div class="preview-photo-frame">
                                 <img id="previewPhoto" alt="" hidden>
@@ -200,16 +225,16 @@
                         <a id="viewCardButton" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer">
                             View card <span aria-hidden="true">↗</span>
                         </a>
-                        <button id="shareCardButton" class="button button-secondary" type="button">Share</button>
                         <button id="copyCardLinkButton" class="button button-secondary" type="button">Copy link</button>
                     </div>
                     <p id="cardLinkText" class="card-link-text" aria-live="polite">Save your profile to activate its card link.</p>
                     <p class="preview-hint">Your changes appear in this preview as you edit.</p>
-                    <div class="wallet-preview" aria-label="Digital wallet availability">
-                        <span>Add to Apple Wallet</span>
-                        <span>Add to Google Wallet</span>
+                    <div id="walletPreview" class="wallet-preview" aria-label="Digital wallet passes" hidden>
+                        <a id="previewAppleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Apple Wallet</a>
+                        <a id="previewGoogleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Google Wallet</a>
+                        <span id="previewWalletPlaceholder">Add wallet pass links to show wallet buttons on your card.</span>
                     </div>
-                    <p class="wallet-setup-hint">Wallet passes become available after BlipLink configures your issuer accounts.</p>
+                    <p class="wallet-setup-hint">Paste pass links from your Apple or Google Wallet issuer.</p>
                 </aside>
             </div>
 

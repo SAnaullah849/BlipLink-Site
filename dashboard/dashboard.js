@@ -10,10 +10,13 @@
         'phone',
         'address',
         'website_url',
+        'whatsapp_url',
         'bio',
         'linkedin_url',
         'instagram_url',
         'x_url',
+        'apple_wallet_url',
+        'google_wallet_url',
     ];
 
     let supabaseClient;
@@ -21,6 +24,8 @@
     let profile = {};
     let selectedPhoto = null;
     let removePhoto = false;
+    let selectedBanner = null;
+    let removeBanner = false;
 
     const byId = id => document.getElementById(id);
 
@@ -30,10 +35,11 @@
         byId('signOutButton').addEventListener('click', handleSignOut);
         byId('profileForm').addEventListener('submit', handleProfileSave);
         byId('copyCardLinkButton').addEventListener('click', handleCopyCardLink);
-        byId('shareCardButton').addEventListener('click', handleShareCard);
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
         byId('photoInput').addEventListener('change', handlePhotoSelection);
         byId('removePhotoButton').addEventListener('click', handlePhotoRemoval);
+        byId('bannerInput').addEventListener('change', handleBannerSelection);
+        byId('removeBannerButton').addEventListener('click', handleBannerRemoval);
         byId('bio').addEventListener('input', updateBioCount);
         document.querySelectorAll('.side-nav-link[data-nav]').forEach(link => {
             link.addEventListener('click', () => setActiveNavigation(link.dataset.nav));
@@ -113,7 +119,7 @@
 
         const { data, error } = await supabaseClient
             .from('company_profiles')
-            .select(PROFILE_FIELDS.concat('avatar_path').join(','))
+            .select(PROFILE_FIELDS.concat(['avatar_path', 'banner_path']).join(','))
             .eq('user_id', currentUser.id)
             .maybeSingle();
 
@@ -136,12 +142,16 @@
                 field === 'website_url' ? 'websiteUrl' :
                 field === 'linkedin_url' ? 'linkedinUrl' :
                 field === 'instagram_url' ? 'instagramUrl' :
+                field === 'whatsapp_url' ? 'whatsappUrl' :
+                field === 'apple_wallet_url' ? 'appleWalletUrl' :
+                field === 'google_wallet_url' ? 'googleWalletUrl' :
                 field === 'x_url' ? 'xUrl' : field).value = profile[field] || '';
         });
 
         byId('bioCount').textContent = String((profile.bio || '').length);
         updatePreview();
         await updatePhotoPreview(profile.avatar_path);
+        await updateBannerPreview(profile.banner_path);
         showDashboard();
         showDashboardMessage(data ? 'Your profile is up to date.' : 'Add your details, then save your profile.', 'success');
     }
@@ -170,16 +180,19 @@
                     website_url: 'websiteUrl',
                     linkedin_url: 'linkedinUrl',
                     instagram_url: 'instagramUrl',
+                    whatsapp_url: 'whatsappUrl',
                     x_url: 'xUrl',
+                    apple_wallet_url: 'appleWalletUrl',
+                    google_wallet_url: 'googleWalletUrl',
                 }[field] || field;
                 const value = byId(inputId).value.trim();
                 return [field, field.endsWith('_url') ? normalizeOptionalUrl(value, inputId) : (value || null)];
             }));
 
             let newAvatarPath = profile.avatar_path || null;
+            let newBannerPath = profile.banner_path || null;
             if (selectedPhoto) {
-                const extension = selectedPhoto.name.split('.').pop().toLowerCase();
-                newAvatarPath = `${currentUser.id}/${crypto.randomUUID()}.${extension}`;
+                newAvatarPath = `${currentUser.id}/${crypto.randomUUID()}.${getImageExtension(selectedPhoto)}`;
                 const { error: uploadError } = await supabaseClient.storage
                     .from(PHOTO_BUCKET)
                     .upload(newAvatarPath, selectedPhoto, {
@@ -192,30 +205,53 @@
                 newAvatarPath = null;
             }
 
+            if (selectedBanner) {
+                newBannerPath = `${currentUser.id}/${crypto.randomUUID()}.${getImageExtension(selectedBanner)}`;
+                const { error: uploadError } = await supabaseClient.storage
+                    .from(PHOTO_BUCKET)
+                    .upload(newBannerPath, selectedBanner, {
+                        cacheControl: '3600',
+                        contentType: selectedBanner.type,
+                        upsert: false,
+                    });
+                if (uploadError) throw new Error(`Banner upload failed: ${uploadError.message}`);
+            } else if (removeBanner) {
+                newBannerPath = null;
+            }
+
             const nextProfile = {
                 user_id: currentUser.id,
                 ...values,
                 avatar_path: newAvatarPath,
+                banner_path: newBannerPath,
                 updated_at: new Date().toISOString(),
             };
             const { data, error } = await supabaseClient
                 .from('company_profiles')
                 .upsert(nextProfile, { onConflict: 'user_id' })
-                .select(PROFILE_FIELDS.concat('avatar_path').join(','))
+                .select(PROFILE_FIELDS.concat(['avatar_path', 'banner_path']).join(','))
                 .single();
 
             if (error) throw new Error(`Profile save failed: ${error.message}`);
 
             const previousAvatarPath = profile.avatar_path;
+            const previousBannerPath = profile.banner_path;
             profile = data;
             selectedPhoto = null;
             removePhoto = false;
+            selectedBanner = null;
+            removeBanner = false;
             byId('photoInput').value = '';
+            byId('bannerInput').value = '';
             await updatePhotoPreview(profile.avatar_path);
+            await updateBannerPreview(profile.banner_path);
 
-            if (previousAvatarPath && previousAvatarPath !== profile.avatar_path) {
-                const { error: deleteError } = await supabaseClient.storage.from(PHOTO_BUCKET).remove([previousAvatarPath]);
-                if (deleteError) console.warn('The old profile photo could not be removed:', deleteError.message);
+            const oldImagePaths = [previousAvatarPath, previousBannerPath].filter(Boolean);
+            const currentImagePaths = [profile.avatar_path, profile.banner_path];
+            const unusedImagePaths = oldImagePaths.filter(path => !currentImagePaths.includes(path));
+            if (unusedImagePaths.length) {
+                const { error: deleteError } = await supabaseClient.storage.from(PHOTO_BUCKET).remove(unusedImagePaths);
+                if (deleteError) console.warn('Old profile images could not be removed:', deleteError.message);
             }
 
             updatePreview();
@@ -281,6 +317,51 @@
         byId('photoMessage').textContent = 'Photo will be removed when you save changes.';
     }
 
+    function handleBannerSelection(event) {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        if (!validateImage(file, byId('bannerMessage'))) {
+            event.target.value = '';
+            return;
+        }
+
+        selectedBanner = file;
+        removeBanner = false;
+        setBannerImage(URL.createObjectURL(file));
+        byId('removeBannerButton').hidden = false;
+        byId('bannerMessage').textContent = 'Banner ready. Save changes to upload it.';
+    }
+
+    function handleBannerRemoval() {
+        selectedBanner = null;
+        removeBanner = true;
+        byId('bannerInput').value = '';
+        setBannerImage('');
+        byId('removeBannerButton').hidden = true;
+        byId('bannerMessage').textContent = 'Banner will be removed when you save changes.';
+    }
+
+    function validateImage(file, message) {
+        if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
+            message.textContent = 'Choose a JPG, PNG, WebP, or GIF image.';
+            return false;
+        }
+        if (file.size > MAX_PHOTO_BYTES) {
+            message.textContent = 'Choose an image smaller than 5 MB.';
+            return false;
+        }
+        return true;
+    }
+
+    function getImageExtension(file) {
+        return {
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/webp': 'webp',
+            'image/gif': 'gif',
+        }[file.type];
+    }
+
     async function updatePhotoPreview(path) {
         if (!path) {
             setPhotoImages('');
@@ -300,6 +381,41 @@
 
         setPhotoImages(data.signedUrl);
         byId('removePhotoButton').hidden = false;
+    }
+
+    async function updateBannerPreview(path) {
+        if (!path) {
+            setBannerImage('');
+            byId('removeBannerButton').hidden = true;
+            return;
+        }
+
+        const { data, error } = await supabaseClient.storage
+            .from(PHOTO_BUCKET)
+            .createSignedUrl(path, 60 * 60);
+        if (error) {
+            byId('bannerMessage').textContent = `Unable to load your banner: ${error.message}`;
+            console.error('Profile banner preview failed:', error);
+            setBannerImage('');
+            return;
+        }
+
+        setBannerImage(data.signedUrl);
+        byId('removeBannerButton').hidden = false;
+    }
+
+    function setBannerImage(url) {
+        const image = byId('previewBanner');
+        const dashboardPreview = byId('bannerPhotoPreview');
+        if (!url) {
+            image.removeAttribute('src');
+            image.hidden = true;
+            dashboardPreview.style.backgroundImage = '';
+            return;
+        }
+        image.src = url;
+        image.hidden = false;
+        dashboardPreview.style.backgroundImage = `url("${url}")`;
     }
 
     function setPhotoImages(url) {
@@ -334,24 +450,15 @@
         byId('accountAvatar').textContent = getInitials(name);
 
         const contactEntries = [
-            ['Email', byId('contactEmail').value.trim(), 'email'],
-            ['Phone', byId('phone').value.trim(), 'phone'],
-            ['WhatsApp', byId('phone').value.trim(), 'whatsapp'],
-            ['Website', byId('websiteUrl').value.trim(), 'website'],
+            ['Email', byId('contactEmail').value.trim()],
+            ['Phone', byId('phone').value.trim()],
+            ['Website', byId('websiteUrl').value.trim()],
         ].filter(([, value]) => value);
-        byId('previewContacts').replaceChildren(...contactEntries.map(([label, value, kind]) => {
-            const link = document.createElement('a');
-            link.className = 'preview-contact';
-            link.href = kind === 'email' ? `mailto:${value}` :
-                kind === 'phone' ? `tel:${value}` :
-                kind === 'whatsapp' ? `https://wa.me/${value.replace(/\D/g, '')}` : value;
-            if (kind === 'website') link.href = safePreviewUrl(value);
-            if (kind === 'website') {
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-            }
-            link.textContent = label;
-            return link;
+        byId('previewContacts').replaceChildren(...contactEntries.map(([label, value]) => {
+            const detail = document.createElement('p');
+            detail.className = 'preview-contact';
+            detail.textContent = `${label}: ${value}`;
+            return detail;
         }));
         const address = byId('address').value.trim();
         byId('previewAddress').textContent = address;
@@ -361,6 +468,7 @@
             ['LinkedIn', byId('linkedinUrl').value.trim(), 'linkedin'],
             ['Instagram', byId('instagramUrl').value.trim(), 'instagram'],
             ['X', byId('xUrl').value.trim(), 'x'],
+            ['WhatsApp', byId('whatsappUrl').value.trim(), 'whatsapp'],
         ].filter(([, value]) => value);
         const socials = byId('previewSocials');
         socials.replaceChildren(...socialEntries.map(([label, url]) => {
@@ -374,7 +482,20 @@
             link.append(createBrandIcon(label.toLowerCase()));
             return link;
         }));
+        const appleWalletAvailable = updateWalletPreview('previewAppleWallet', byId('appleWalletUrl').value.trim());
+        const googleWalletAvailable = updateWalletPreview('previewGoogleWallet', byId('googleWalletUrl').value.trim());
+        const hasWalletLink = appleWalletAvailable || googleWalletAvailable;
+        byId('previewWalletPlaceholder').hidden = Boolean(hasWalletLink);
+        byId('walletPreview').hidden = !hasWalletLink;
         updateCardLink();
+    }
+
+    function updateWalletPreview(id, value) {
+        const link = byId(id);
+        const url = value ? safePreviewUrl(value) : '';
+        link.href = url || '#';
+        link.hidden = !url || url === '#';
+        return !link.hidden;
     }
 
     function safePreviewUrl(value) {
@@ -436,33 +557,6 @@
         } catch (error) {
             byId('cardLinkText').textContent = 'Could not copy the link. Select and copy it from the link above.';
             console.error('Card link copy failed:', error);
-        }
-    }
-
-    async function handleShareCard() {
-        const cardUrl = updateCardLink();
-        if (!currentUser || !profile.full_name) {
-            byId('cardLinkText').textContent = 'Add your name and save your profile before sharing your card.';
-            return;
-        }
-
-        const shareData = {
-            title: `${profile.full_name} | BlipLink`,
-            text: `Connect with ${profile.full_name} on BlipLink.`,
-            url: cardUrl,
-        };
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-                byId('cardLinkText').textContent = 'Card shared.';
-                return;
-            }
-            await navigator.clipboard.writeText(cardUrl);
-            byId('cardLinkText').textContent = 'Sharing is unavailable here; card link copied instead.';
-        } catch (error) {
-            if (error.name === 'AbortError') return;
-            byId('cardLinkText').textContent = 'Unable to share the card. You can copy its link instead.';
-            console.error('Card share failed:', error);
         }
     }
 
@@ -550,6 +644,7 @@
             linkedin: ['M5 3.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3ZM3.8 9h2.4v11H3.8zM10 9h2.3v1.5h.1a3.4 3.4 0 0 1 3.1-1.7c3.3 0 3.9 2.1 3.9 4.8V20H17v-5.7c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V20h-2.4z'],
             instagram: ['M7 2.8h10A4.2 4.2 0 0 1 21.2 7v10a4.2 4.2 0 0 1-4.2 4.2H7A4.2 4.2 0 0 1 2.8 17V7A4.2 4.2 0 0 1 7 2.8Zm0 2A2.2 2.2 0 0 0 4.8 7v10A2.2 2.2 0 0 0 7 19.2h10a2.2 2.2 0 0 0 2.2-2.2V7A2.2 2.2 0 0 0 17 4.8Zm5 2.1a5.1 5.1 0 1 1 0 10.2 5.1 5.1 0 0 1 0-10.2Zm0 2a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Zm5.4-3.1a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z'],
             x: ['M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.7 5.6 22H2.4l7.3-8.4L1.8 2h6.5l4.4 6.8L18.9 2Zm-1.1 18h1.7L7.2 3.9H5.4L17.8 20Z'],
+            whatsapp: ['M20.5 11.7a8.6 8.6 0 0 1-12.7 7.6L3 20.5l1.3-4.6a8.6 8.6 0 1 1 16.2-4.2Z', 'M8 7.7c.2-.5.4-.5.7-.5h.5c.2 0 .4 0 .5.4l.8 1.9c.1.3.1.5-.1.7l-.6.7c-.2.2-.2.4 0 .6.7 1.2 1.8 2.2 3 2.8.2.1.4.1.6-.1l.9-1c.2-.2.4-.2.7-.1l1.8.9c.3.1.4.3.4.5 0 .3-.2 1.3-.8 1.8-.5.5-1.2.8-1.9.8-.5 0-1.1-.1-1.8-.4-1.1-.4-2.5-1.2-4-2.6-1.2-1.1-2-2.4-2.3-3.3-.3-.8-.3-1.6.1-2.3.4-.6.9-.8 1.2-.8Z'],
         };
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 24 24');

@@ -13,7 +13,6 @@
         byId('exchangeForm').addEventListener('submit', event => submitExchange(event, userId));
         byId('exchangeContactButton').addEventListener('click', () => byId('exchangeDialog').showModal());
         byId('closeExchangeDialog').addEventListener('click', () => byId('exchangeDialog').close());
-        byId('shareCardButton').addEventListener('click', shareCard);
 
         const config = window.BLIPLINK_SUPABASE_CONFIG;
         if (!window.supabase?.createClient || !config?.url || !config?.anonKey) {
@@ -35,7 +34,7 @@
 
             cardProfile = Array.isArray(data) ? data[0] : data;
             if (!cardProfile?.full_name) {
-                showStatus('This digital business card is not available.');
+                showStatus('This profile is not available.');
                 return;
             }
 
@@ -68,34 +67,44 @@
             }, { once: true });
         }
 
+        if (cardProfile.banner_path) {
+            const { data } = client.storage.from('profile-photos').getPublicUrl(cardProfile.banner_path);
+            const banner = byId('publicBanner');
+            banner.src = data.publicUrl;
+            banner.hidden = false;
+            banner.addEventListener('error', () => {
+                banner.hidden = true;
+            }, { once: true });
+        }
+
         const actions = [
             ['Email', cardProfile.contact_email, 'email'],
             ['Call', cardProfile.phone, 'phone'],
-            ['WhatsApp', cardProfile.phone, 'whatsapp'],
             ['Website', cardProfile.website_url, 'website'],
         ].filter(([, value]) => value);
         byId('publicActions').replaceChildren(...actions.map(([label, value, type]) => {
+            const item = document.createElement('p');
+            item.className = 'public-contact-detail';
+            const name = document.createElement('span');
+            name.textContent = label;
             const link = document.createElement('a');
-            link.className = 'public-action';
             link.href = type === 'email' ? `mailto:${value}` :
-                type === 'phone' ? `tel:${value}` :
-                type === 'whatsapp' ? `https://wa.me/${value.replace(/\D/g, '')}` : safeWebUrl(value);
-            if (type === 'whatsapp') {
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-            }
+                type === 'phone' ? `tel:${value}` : safeWebUrl(value);
             if (type === 'website') {
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
             }
-            link.textContent = label;
-            return link;
+            link.textContent = value;
+            item.append(name, link);
+            return item;
         }));
+        byId('publicActions').hidden = actions.length === 0;
 
         const socialEntries = [
             ['LinkedIn', cardProfile.linkedin_url, 'linkedin'],
             ['Instagram', cardProfile.instagram_url, 'instagram'],
             ['X', cardProfile.x_url, 'x'],
+            ['WhatsApp', cardProfile.whatsapp_url, 'whatsapp'],
         ].filter(([, url]) => url);
         byId('publicSocials').replaceChildren(...socialEntries.map(([label, url, icon]) => {
             const link = document.createElement('a');
@@ -109,13 +118,18 @@
             return link;
         }));
 
-        const title = `${cardProfile.full_name} | Digital Business Card`;
+        const title = `${cardProfile.full_name} | BlipLink`;
         document.title = title;
         document.querySelector('meta[property="og:title"]').content = title;
         document.querySelector('meta[property="og:description"]').content =
             cardProfile.job_title || `Connect with ${cardProfile.full_name} on BlipLink.`;
         document.querySelector('meta[name="description"]').content =
-            cardProfile.bio || `View ${cardProfile.full_name}'s professional digital business card on BlipLink.`;
+            cardProfile.bio || `View ${cardProfile.full_name}'s professional profile on BlipLink.`;
+
+        setWalletLink('appleWalletLink', cardProfile.apple_wallet_url);
+        setWalletLink('googleWalletLink', cardProfile.google_wallet_url);
+        byId('walletActions').hidden =
+            byId('appleWalletLink').hidden && byId('googleWalletLink').hidden;
 
         if (cardProfile.contact_email || cardProfile.phone || cardProfile.website_url) {
             byId('saveContactButton').hidden = false;
@@ -147,27 +161,6 @@
         link.click();
         link.remove();
         URL.revokeObjectURL(blobUrl);
-    }
-
-    async function shareCard() {
-        const shareData = {
-            title: `${cardProfile.full_name} | BlipLink`,
-            text: `Connect with ${cardProfile.full_name} on BlipLink.`,
-            url: window.location.href,
-        };
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-                return;
-            }
-            await navigator.clipboard.writeText(shareData.url);
-            byId('cardFeedback').textContent = 'Card link copied to clipboard.';
-        } catch (error) {
-            if (error.name !== 'AbortError') {
-                byId('cardFeedback').textContent = 'Unable to share the card. Please copy its address from your browser.';
-                console.error('Card share failed:', error);
-            }
-        }
     }
 
     async function submitExchange(event, userId) {
@@ -224,6 +217,13 @@
         }
     }
 
+    function setWalletLink(id, value) {
+        const link = byId(id);
+        const url = value ? safeWebUrl(value) : '';
+        link.href = url || '#';
+        link.hidden = !url || url === '#';
+    }
+
     function setOptionalText(id, value) {
         const element = byId(id);
         element.textContent = value || '';
@@ -239,6 +239,7 @@
             linkedin: ['M5 3.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3ZM3.8 9h2.4v11H3.8zM10 9h2.3v1.5h.1a3.4 3.4 0 0 1 3.1-1.7c3.3 0 3.9 2.1 3.9 4.8V20H17v-5.7c0-1.4 0-3.1-1.9-3.1s-2.2 1.5-2.2 3V20h-2.4z'],
             instagram: ['M7 2.8h10A4.2 4.2 0 0 1 21.2 7v10a4.2 4.2 0 0 1-4.2 4.2H7A4.2 4.2 0 0 1 2.8 17V7A4.2 4.2 0 0 1 7 2.8Zm0 2A2.2 2.2 0 0 0 4.8 7v10A2.2 2.2 0 0 0 7 19.2h10a2.2 2.2 0 0 0 2.2-2.2V7A2.2 2.2 0 0 0 17 4.8Zm5 2.1a5.1 5.1 0 1 1 0 10.2 5.1 5.1 0 0 1 0-10.2Zm0 2a3.1 3.1 0 1 0 0 6.2 3.1 3.1 0 0 0 0-6.2Zm5.4-3.1a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4Z'],
             x: ['M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.7 5.6 22H2.4l7.3-8.4L1.8 2h6.5l4.4 6.8L18.9 2Zm-1.1 18h1.7L7.2 3.9H5.4L17.8 20Z'],
+            whatsapp: ['M20.5 11.7a8.6 8.6 0 0 1-12.7 7.6L3 20.5l1.3-4.6a8.6 8.6 0 1 1 16.2-4.2Z', 'M8 7.7c.2-.5.4-.5.7-.5h.5c.2 0 .4 0 .5.4l.8 1.9c.1.3.1.5-.1.7l-.6.7c-.2.2-.2.4 0 .6.7 1.2 1.8 2.2 3 2.8.2.1.4.1.6-.1l.9-1c.2-.2.4-.2.7-.1l1.8.9c.3.1.4.3.4.5 0 .3-.2 1.3-.8 1.8-.5.5-1.2.8-1.9.8-.5 0-1.1-.1-1.8-.4-1.1-.4-2.5-1.2-4-2.6-1.2-1.1-2-2.4-2.3-3.3-.3-.8-.3-1.6.1-2.3.4-.6.9-.8 1.2-.8Z'],
         };
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('viewBox', '0 0 24 24');

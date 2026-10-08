@@ -11,17 +11,26 @@ create table if not exists public.company_profiles (
     phone text check (phone is null or char_length(phone) <= 40),
     address text check (address is null or char_length(address) <= 300),
     website_url text check (website_url is null or char_length(website_url) <= 500),
+    whatsapp_url text check (whatsapp_url is null or char_length(whatsapp_url) <= 500),
     bio text check (bio is null or char_length(bio) <= 500),
     linkedin_url text check (linkedin_url is null or char_length(linkedin_url) <= 500),
     instagram_url text check (instagram_url is null or char_length(instagram_url) <= 500),
     x_url text check (x_url is null or char_length(x_url) <= 500),
+    apple_wallet_url text check (apple_wallet_url is null or char_length(apple_wallet_url) <= 500),
+    google_wallet_url text check (google_wallet_url is null or char_length(google_wallet_url) <= 500),
     avatar_path text,
+    banner_path text,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
 
 alter table public.company_profiles
     add column if not exists address text check (address is null or char_length(address) <= 300);
+alter table public.company_profiles
+    add column if not exists whatsapp_url text check (whatsapp_url is null or char_length(whatsapp_url) <= 500),
+    add column if not exists apple_wallet_url text check (apple_wallet_url is null or char_length(apple_wallet_url) <= 500),
+    add column if not exists google_wallet_url text check (google_wallet_url is null or char_length(google_wallet_url) <= 500),
+    add column if not exists banner_path text;
 
 alter table public.company_profiles enable row level security;
 
@@ -104,12 +113,16 @@ returns table (
     contact_email text,
     phone text,
     address text,
+    whatsapp_url text,
     website_url text,
     bio text,
     linkedin_url text,
     instagram_url text,
     x_url text,
-    avatar_path text
+    apple_wallet_url text,
+    google_wallet_url text,
+    avatar_path text,
+    banner_path text
 )
 language sql
 stable
@@ -123,12 +136,16 @@ as $$
         profile.contact_email,
         profile.phone,
         profile.address,
+        profile.whatsapp_url,
         profile.website_url,
         profile.bio,
         profile.linkedin_url,
         profile.instagram_url,
         profile.x_url,
-        profile.avatar_path
+        profile.apple_wallet_url,
+        profile.google_wallet_url,
+        profile.avatar_path,
+        profile.banner_path
     from public.company_profiles as profile
     where profile.user_id = requested_user_id
     limit 1
