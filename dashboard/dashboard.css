@@ -830,10 +830,18 @@ textarea:focus {
 
 .preview-address {
     overflow-wrap: anywhere;
-    margin: 8px 0 0;
-    color: #69768a;
+    display: block;
+    margin: 12px 0 0;
+    color: #315b91;
     font-size: 10px;
+    font-weight: 600;
     line-height: 1.5;
+    text-decoration: none;
+}
+
+.preview-address:hover {
+    color: #086bd5;
+    text-decoration: underline;
 }
 
 .preview-contacts {

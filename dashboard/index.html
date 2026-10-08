@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=5">
+    <link rel="stylesheet" href="dashboard.css?v=6">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=6" defer></script>
+    <script src="dashboard.js?v=7" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -174,8 +174,9 @@
                                     <input id="xUrl" name="x_url" type="url" inputmode="url" maxlength="500" placeholder="https://x.com/yourname">
                                 </div>
                                 <div class="field">
-                                    <label for="whatsappUrl">WhatsApp</label>
-                                    <input id="whatsappUrl" name="whatsapp_url" type="url" inputmode="url" maxlength="500" placeholder="https://wa.me/15551234567">
+                                    <label for="whatsappNumber">WhatsApp number</label>
+                                    <input id="whatsappNumber" name="whatsapp_url" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+1 555 123 4567">
+                                    <span class="field-hint">Include your country code. Your card will open a WhatsApp chat for this number.</span>
                                 </div>
                                 <div class="field">
                                     <label for="appleWalletUrl">Apple Wallet pass link</label>
@@ -210,7 +211,6 @@
                             <h2 id="previewName">Your name</h2>
                             <p id="previewRole">Your job title</p>
                             <span id="previewCompany" class="preview-company">Your company</span>
-                            <p id="previewAddress" class="preview-address" hidden></p>
                             <p id="previewBio" class="preview-bio">Your introduction will appear here.</p>
                             <div id="previewContacts" class="preview-contacts"></div>
                             <div id="previewSocials" class="preview-socials"></div>
@@ -219,6 +219,7 @@
                                 <span id="previewQrPlaceholder">Save your profile to create its QR code.</span>
                                 <span>Scan to open this card</span>
                             </div>
+                            <a id="previewAddress" class="preview-address" target="_blank" rel="noopener noreferrer" hidden></a>
                         </div>
                     </div>
                     <div class="preview-actions">

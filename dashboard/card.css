@@ -173,10 +173,18 @@ a {
 
 .public-address {
     overflow-wrap: anywhere;
-    margin: 12px 0 0;
-    color: #68778c;
-    font-size: 12px;
+    display: block;
+    margin: 18px 0 0;
+    color: #315b91;
+    font-size: 13px;
+    font-weight: 600;
     line-height: 1.6;
+    text-decoration: none;
+}
+
+.public-address:hover {
+    color: var(--blue);
+    text-decoration: underline;
 }
 
 .public-contact-details {

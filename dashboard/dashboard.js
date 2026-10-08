@@ -142,10 +142,11 @@
                 field === 'website_url' ? 'websiteUrl' :
                 field === 'linkedin_url' ? 'linkedinUrl' :
                 field === 'instagram_url' ? 'instagramUrl' :
-                field === 'whatsapp_url' ? 'whatsappUrl' :
+                field === 'whatsapp_url' ? 'whatsappNumber' :
                 field === 'apple_wallet_url' ? 'appleWalletUrl' :
                 field === 'google_wallet_url' ? 'googleWalletUrl' :
-                field === 'x_url' ? 'xUrl' : field).value = profile[field] || '';
+                field === 'x_url' ? 'xUrl' : field).value =
+                    field === 'whatsapp_url' ? getWhatsAppNumber(profile[field]) : (profile[field] || '');
         });
 
         byId('bioCount').textContent = String((profile.bio || '').length);
@@ -180,12 +181,15 @@
                     website_url: 'websiteUrl',
                     linkedin_url: 'linkedinUrl',
                     instagram_url: 'instagramUrl',
-                    whatsapp_url: 'whatsappUrl',
+                    whatsapp_url: 'whatsappNumber',
                     x_url: 'xUrl',
                     apple_wallet_url: 'appleWalletUrl',
                     google_wallet_url: 'googleWalletUrl',
                 }[field] || field;
                 const value = byId(inputId).value.trim();
+                if (field === 'whatsapp_url') {
+                    return [field, value ? createWhatsAppLink(value, inputId) : null];
+                }
                 return [field, field.endsWith('_url') ? normalizeOptionalUrl(value, inputId) : (value || null)];
             }));
 
@@ -284,6 +288,36 @@
             throw new Error('Profile links must use https://.');
         }
         return parsed.href;
+    }
+
+    function createWhatsAppLink(value, inputId) {
+        let digits = /^https?:\/\//i.test(value) ? getWhatsAppNumber(value) : value.replace(/\D/g, '');
+        if (digits.startsWith('00')) digits = digits.slice(2);
+        if (digits.length < 7 || digits.length > 15) {
+            byId(inputId).focus();
+            throw new Error('Enter a valid WhatsApp number with country code (7–15 digits).');
+        }
+        return `https://wa.me/${digits}`;
+    }
+
+    function getWhatsAppNumber(value) {
+        if (!value) return '';
+        try {
+            const url = new URL(value);
+            if (url.hostname === 'wa.me') return normalizeWhatsAppDigits(url.pathname);
+            if (url.hostname === 'api.whatsapp.com' || url.hostname === 'www.whatsapp.com') {
+                return normalizeWhatsAppDigits(url.searchParams.get('phone') || '');
+            }
+        } catch {
+            return normalizeWhatsAppDigits(value);
+        }
+        return '';
+    }
+
+    function normalizeWhatsAppDigits(value) {
+        let digits = value.replace(/\D/g, '');
+        if (digits.startsWith('00')) digits = digits.slice(2);
+        return digits;
     }
 
     function handlePhotoSelection(event) {
@@ -463,25 +497,33 @@
         const address = byId('address').value.trim();
         byId('previewAddress').textContent = address;
         byId('previewAddress').hidden = !address;
+        if (address) {
+            byId('previewAddress').href =
+                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+        } else {
+            byId('previewAddress').removeAttribute('href');
+        }
 
         const socialEntries = [
             ['LinkedIn', byId('linkedinUrl').value.trim(), 'linkedin'],
             ['Instagram', byId('instagramUrl').value.trim(), 'instagram'],
-            ['WhatsApp', byId('whatsappUrl').value.trim(), 'whatsapp'],
+            ['WhatsApp', getWhatsAppNumber(byId('whatsappNumber').value), 'whatsapp'],
             ['X', byId('xUrl').value.trim(), 'x'],
-        ].filter(([, value]) => value);
-        const socials = byId('previewSocials');
-        socials.replaceChildren(...socialEntries.map(([label, url]) => {
+        ].filter(([, value, icon]) =>
+            value && (icon !== 'whatsapp' || /^\d{7,15}$/.test(value)));
+        const links = socialEntries.map(([label, value, icon]) => {
             const link = document.createElement('a');
             link.className = 'preview-social';
-            link.href = safePreviewUrl(url);
+            link.href = icon === 'whatsapp' ? `https://wa.me/${value}` : safePreviewUrl(value);
             link.target = '_blank';
             link.rel = 'noopener noreferrer';
             link.setAttribute('aria-label', label);
             link.title = label;
-            link.append(createBrandIcon(label.toLowerCase()));
+            link.append(createBrandIcon(icon));
             return link;
-        }));
+        });
+        const socials = byId('previewSocials');
+        socials.replaceChildren(...links);
         const appleWalletAvailable = updateWalletPreview('previewAppleWallet', byId('appleWalletUrl').value.trim());
         const googleWalletAvailable = updateWalletPreview('previewGoogleWallet', byId('googleWalletUrl').value.trim());
         const hasWalletLink = appleWalletAvailable || googleWalletAvailable;

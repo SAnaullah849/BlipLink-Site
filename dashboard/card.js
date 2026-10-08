@@ -50,7 +50,7 @@
         setOptionalText('publicRole', cardProfile.job_title);
         setOptionalText('publicCompany', cardProfile.company_name);
         setOptionalText('publicBio', cardProfile.bio);
-        setOptionalText('publicAddress', cardProfile.address);
+        setAddressLink('publicAddress', cardProfile.address);
         byId('publicInitials').textContent = getInitials(cardProfile.full_name);
         byId('cardQrCode').src =
             `https://api.qrserver.com/v1/create-qr-code/?size=272x272&margin=2&data=${encodeURIComponent(window.location.href)}`;
@@ -228,6 +228,17 @@
         const element = byId(id);
         element.textContent = value || '';
         element.hidden = !value;
+    }
+
+    function setAddressLink(id, address) {
+        const link = byId(id);
+        link.textContent = address || '';
+        link.hidden = !address;
+        if (address) {
+            link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+        } else {
+            link.removeAttribute('href');
+        }
     }
 
     function getInitials(value) {
