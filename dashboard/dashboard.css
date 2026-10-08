@@ -772,6 +772,8 @@ textarea:focus {
 }
 
 .preview-photo-frame {
+    position: relative;
+    z-index: 1;
     display: grid;
     width: 82px;
     height: 82px;

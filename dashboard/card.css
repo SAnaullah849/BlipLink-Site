@@ -102,6 +102,8 @@ a {
 }
 
 .public-card-avatar {
+    position: relative;
+    z-index: 1;
     display: grid;
     width: 110px;
     height: 110px;
