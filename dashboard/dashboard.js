@@ -25,6 +25,7 @@
     let currentUser;
     let profile = {};
     let profiles = [];
+    let leadsCache = null;
     let profileDirty = false;
     let selectedPhoto = null;
     let removePhoto = false;
@@ -131,6 +132,9 @@
         byId('accountEmail').textContent = currentUser?.email || 'Company account';
         byId('accountMenuEmail').textContent = currentUser?.email || 'Company account';
         byId('accountAvatar').textContent = getInitials(profile.full_name || currentUser?.email || 'BlipLink');
+        byId('overviewName').textContent =
+            (profile.full_name || currentUser?.email || 'there').split(/\s+/)[0];
+        renderOverviewProfile();
     }
 
     function toggleMobileNavigation() {
@@ -258,6 +262,7 @@
             profiles.push(data);
             await loadProfile(data);
             renderCompanyProfiles();
+            await loadAnalytics();
             showPage('profile');
             window.location.hash = 'profile';
         } catch (error) {
@@ -422,6 +427,7 @@
             setSaveState('Saved just now');
             showDashboardMessage('Profile saved successfully.', 'success');
             await loadLeads();
+            await loadAnalytics();
         } catch (error) {
             message.textContent = error.message || 'Unable to save your profile.';
             setSaveState('Save failed');
@@ -810,10 +816,14 @@
             const savedIds = new Set((saved || []).map(item => String(item.source_exchange_id)));
 
             if (!data.length) {
+                leadsCache = [];
+                renderRecentLeads();
                 message.textContent = 'No leads yet. Contact details shared from any of your cards will appear here.';
                 return;
             }
 
+            leadsCache = data;
+            renderRecentLeads();
             message.textContent = `${data.length} recent ${data.length === 1 ? 'lead' : 'leads'}`;
             list.replaceChildren(...data.map(lead => createLeadCard(lead, savedIds.has(String(lead.id)))));
         } catch (error) {
@@ -993,30 +1003,133 @@
 
     async function loadAnalytics() {
         const message = byId('analyticsMessage');
-        const list = byId('analyticsProfiles');
         try {
-            const { data, error } = await supabaseClient.rpc('get_company_card_analytics');
+            const { data, error } = await supabaseClient.rpc('get_company_dashboard_stats');
             if (error) throw new Error(error.message);
             const rows = data || [];
             const totalViews = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
-            const totalTaps = rows.reduce((sum, row) => sum + Number(row.taps || 0), 0);
+            const totalLeads = rows.reduce((sum, row) => sum + Number(row.leads || 0), 0);
+            byId('totalProfiles').textContent = String(profiles.length);
             byId('totalCardViews').textContent = totalViews.toLocaleString();
-            byId('totalCardTaps').textContent = totalTaps.toLocaleString();
-            message.textContent = 'Views count profile openings; taps count interactions with card links and actions. Only totals are stored—no visitor IP or location.';
-            list.replaceChildren(...rows.map(row => {
-                const item = document.createElement('div');
-                item.className = 'analytics-profile-row';
-                const name = document.createElement('strong');
-                name.textContent = row.full_name || 'Untitled profile';
-                const values = document.createElement('span');
-                values.textContent = `${Number(row.views).toLocaleString()} views · ${Number(row.taps).toLocaleString()} taps`;
-                item.append(name, values);
-                return item;
-            }));
+            byId('totalNewLeads').textContent = totalLeads.toLocaleString();
+            message.textContent = 'Taps count interactions with links and actions. Only aggregate totals are stored; visitor IP addresses and locations are not collected.';
+            renderAnalyticsChart(rows);
+            renderRecentLeads();
         } catch (error) {
             message.textContent = `Unable to load analytics: ${error.message}`;
             console.error('Card analytics load failed:', error);
         }
+    }
+
+    function renderAnalyticsChart(rows) {
+        const chart = byId('analyticsChart');
+        if (!rows.length) {
+            chart.replaceChildren();
+            const empty = document.createElement('p');
+            empty.className = 'chart-empty';
+            empty.textContent = 'Your profile activity will appear here after people visit your cards.';
+            chart.append(empty);
+            return;
+        }
+
+        const maxValue = Math.max(1, ...rows.flatMap(row => [Number(row.taps || 0), Number(row.leads || 0)]));
+        chart.replaceChildren(...rows.map(row => {
+            const group = document.createElement('div');
+            group.className = 'chart-profile';
+            const bars = document.createElement('div');
+            bars.className = 'chart-bars';
+            for (const [className, value, label] of [
+                ['chart-bar-taps', Number(row.taps || 0), 'taps'],
+                ['chart-bar-leads', Number(row.leads || 0), 'leads'],
+            ]) {
+                const column = document.createElement('div');
+                column.className = `chart-bar ${className}`;
+                column.style.height = `${Math.max(value ? 4 : 0, (value / maxValue) * 100)}%`;
+                column.title = `${value.toLocaleString()} ${label}`;
+                column.setAttribute('aria-label', `${value.toLocaleString()} ${label}`);
+                bars.append(column);
+            }
+            const label = document.createElement('span');
+            label.className = 'chart-profile-label';
+            label.textContent = row.full_name || 'Untitled';
+            group.append(bars, label);
+            return group;
+        }));
+    }
+
+    function renderRecentLeads() {
+        const container = byId('overviewRecentLeads');
+        if (!container || !leadsCache) return;
+        if (!leadsCache.length) {
+            const empty = document.createElement('p');
+            empty.className = 'inline-message';
+            empty.textContent = 'New contact requests from your cards will appear here.';
+            container.replaceChildren(empty);
+            return;
+        }
+        container.replaceChildren(...leadsCache.slice(0, 3).map(lead => {
+            const item = document.createElement('article');
+            item.className = 'overview-recent-lead';
+            const marker = document.createElement('span');
+            marker.className = 'recent-lead-marker';
+            marker.setAttribute('aria-hidden', 'true');
+            const details = document.createElement('div');
+            const name = document.createElement('strong');
+            name.textContent = lead.visitor_name;
+            const when = document.createElement('span');
+            when.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' })
+                .format(new Date(lead.created_at));
+            details.append(name, when);
+            item.append(marker, details);
+            return item;
+        }));
+    }
+
+    function renderOverviewProfile() {
+        if (!byId('overviewCardTitle')) return;
+        const name = profile.full_name || profile.company_name || 'Your company';
+        byId('overviewCardTitle').textContent = profile.company_name || name;
+        byId('overviewCardRole').textContent = profile.job_title || '';
+        byId('overviewCardRole').hidden = !profile.job_title;
+        byId('overviewInitials').textContent = getInitials(name);
+        setOverviewImage('overviewPhoto', profile.avatar_path);
+        setOverviewImage('overviewBanner', profile.banner_path);
+        setOverviewContact('overviewWebsite', profile.website_url, profile.website_url);
+        setOverviewContact('overviewEmail', profile.contact_email, profile.contact_email ? `mailto:${profile.contact_email}` : '');
+        setOverviewContact('overviewPhone', profile.phone, profile.phone ? `tel:${profile.phone}` : '');
+        const address = byId('overviewAddress');
+        address.textContent = profile.address || '';
+        address.hidden = !profile.address;
+        const view = byId('overviewViewCard');
+        view.href = profile.id ? `../card.html?id=${encodeURIComponent(profile.id)}` : '#';
+        view.hidden = !profile.full_name;
+    }
+
+    function setOverviewImage(id, path) {
+        const image = byId(id);
+        const fallback = id === 'overviewPhoto' ? byId('overviewInitials') : null;
+        if (!path) {
+            image.removeAttribute('src');
+            image.hidden = true;
+            if (fallback) fallback.hidden = false;
+            return;
+        }
+        const { data } = supabaseClient.storage.from(PHOTO_BUCKET).getPublicUrl(path);
+        image.src = data.publicUrl;
+        image.hidden = false;
+        image.onerror = () => {
+            image.hidden = true;
+            if (fallback) fallback.hidden = false;
+        };
+        if (fallback) fallback.hidden = true;
+    }
+
+    function setOverviewContact(id, text, href) {
+        const link = byId(id);
+        link.textContent = text || '';
+        link.hidden = !text || !href;
+        if (href) link.href = href;
+        else link.removeAttribute('href');
     }
 
     function appendLeadText(parent, className, value) {

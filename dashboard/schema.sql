@@ -312,6 +312,39 @@ create policy "Card owners can read their contact exchanges"
     on public.card_contact_exchanges for select to authenticated
     using ((select auth.uid()) = card_owner_id);
 
+create or replace function public.get_company_dashboard_stats()
+returns table (
+    profile_id uuid,
+    full_name text,
+    views bigint,
+    taps bigint,
+    leads bigint
+)
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+    select
+        profile.id,
+        profile.full_name,
+        coalesce(analytics.views, 0),
+        coalesce(analytics.taps, 0),
+        (
+            select count(*)
+            from public.card_contact_exchanges as exchange
+            where exchange.profile_id = profile.id
+              and exchange.card_owner_id = (select auth.uid())
+        )
+    from public.company_profiles as profile
+    left join public.card_analytics as analytics on analytics.profile_id = profile.id
+    where profile.user_id = (select auth.uid())
+    order by profile.full_name
+$$;
+
+revoke all on function public.get_company_dashboard_stats() from public;
+grant execute on function public.get_company_dashboard_stats() to authenticated;
+
 drop function if exists public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean);
 create function public.submit_public_card_exchange(
     requested_profile_id uuid,
