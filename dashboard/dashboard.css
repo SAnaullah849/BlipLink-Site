@@ -1562,14 +1562,6 @@ textarea:focus {
     gap: 5px;
 }
 
-.analytics-city-value {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
 .analytics-stat .eyebrow {
     letter-spacing: 0.07em;
     font-size: 9px;
@@ -2105,7 +2097,6 @@ textarea:focus {
     visibility: hidden;
 }
 
-.my-profiles-list,
 .company-profiles-list {
     display: grid;
     gap: 12px;

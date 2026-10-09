@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=14">
+    <link rel="stylesheet" href="dashboard.css?v=15">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=14" defer></script>
+    <script src="dashboard.js?v=15" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -32,10 +32,6 @@
                 <a class="side-nav-link" href="#profile" data-nav="profile">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
                     My profile
-                </a>
-                <a class="side-nav-link" href="#profiles" data-nav="profiles">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
-                    My profiles
                 </a>
                 <a class="side-nav-link" href="#social" data-nav="social">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
@@ -120,7 +116,7 @@
                                 <h2>Welcome back, <strong id="overviewName">there</strong></h2>
                                 <p>Here’s how your digital profiles are performing.</p>
                             </div>
-                            <a class="button button-primary" href="#profiles">Manage profiles <span aria-hidden="true">→</span></a>
+                            <a class="button button-primary" href="#company">Manage profiles <span aria-hidden="true">→</span></a>
                         </div>
                         <div class="analytics-summary">
                             <article class="panel analytics-stat">
@@ -130,7 +126,7 @@
                                 <div><span class="eyebrow">LAST 30 DAYS</span><strong id="last30Views">0</strong></div>
                             </article>
                             <article class="panel analytics-stat">
-                                <div><span class="eyebrow">TOP CITY</span><strong id="topCity" class="analytics-city-value">—</strong></div>
+                                <div><span class="eyebrow">TOTAL LEADS</span><strong id="totalLeads">0</strong></div>
                             </article>
                         </div>
                         <section class="panel analytics-panel" aria-labelledby="analyticsTitle">
@@ -165,6 +161,7 @@
                     </div>
                     <aside class="overview-aside">
                         <section class="panel overview-profile-card" aria-labelledby="overviewCardTitle">
+                            <span class="eyebrow">MY PROFILE OVERVIEW</span>
                             <div class="overview-card-banner">
                                 <img id="overviewBanner" alt="" hidden>
                             </div>
@@ -196,14 +193,6 @@
                         </section>
                     </aside>
                 </div>
-            </section>
-
-            <section id="profiles" class="panel profile-panel dashboard-page" data-dashboard-page="profiles" aria-labelledby="profilesTitle">
-                <div class="panel-heading">
-                    <div><span class="eyebrow">COMPANY WORKSPACE</span><h2 id="profilesTitle">My profiles</h2><p>Manage public cards for everyone on your team. Locked cards are hidden from visitors.</p></div>
-                    <button id="addProfileButton" class="button button-primary" type="button">Add profile</button>
-                </div>
-                <div id="myProfilesList" class="my-profiles-list"></div>
             </section>
 
             <div class="dashboard-grid dashboard-page" data-dashboard-page="profile">
@@ -431,9 +420,9 @@
                     <div>
                         <span class="eyebrow">COMPANY WORKSPACE</span>
                         <h2 id="companyTitle">Company profiles</h2>
-                        <p>Manage multiple employee cards from this company account.</p>
+                        <p>Manage multiple employee cards, edit their details, and control whether each card is public.</p>
                     </div>
-                    <a class="button button-primary button-small" href="#profiles">Manage profiles</a>
+                    <button id="addProfileButton" class="button button-primary button-small" type="button">Add profile</button>
                 </div>
                 <div id="companyProfilesList" class="company-profiles-list"></div>
             </section>

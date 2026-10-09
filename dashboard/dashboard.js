@@ -230,7 +230,6 @@
         const activeProfile = profiles.find(item => item.id === selectedProfileId) || profiles[0];
         await loadProfile(activeProfile);
         renderCompanyProfiles();
-        renderMyProfiles();
     }
 
     async function loadProfile(nextProfile) {
@@ -283,7 +282,6 @@
             refreshAnalyticsProfileOptions();
             await loadProfile(data);
             renderCompanyProfiles();
-            renderMyProfiles();
             await loadAnalytics();
             showPage('profile');
             window.location.hash = 'profile';
@@ -298,10 +296,6 @@
 
     function renderCompanyProfiles() {
         renderProfileRows(byId('companyProfilesList'));
-    }
-
-    function renderMyProfiles() {
-        renderProfileRows(byId('myProfilesList'));
     }
 
     function renderProfileRows(list) {
@@ -337,7 +331,6 @@
                 if (profileDirty && !window.confirm('Discard unsaved changes to this profile?')) return;
                 await loadProfile(item);
                 renderCompanyProfiles();
-                renderMyProfiles();
                 showPage('profile');
                 window.location.hash = 'profile';
             });
@@ -382,7 +375,6 @@
             updateCardLink();
         }
         renderCompanyProfiles();
-        renderMyProfiles();
         showDashboardMessage(nextLocked ? 'Profile locked. Its public card is now hidden.' : 'Profile unlocked and visible again.', 'success');
     }
 
@@ -415,7 +407,6 @@
         refreshAnalyticsProfileOptions();
         if (profile.id === item.id) await loadProfile(profiles[0]);
         renderCompanyProfiles();
-        renderMyProfiles();
         await loadAnalytics();
         showDashboardMessage('Profile deleted.', 'success');
     }
@@ -533,7 +524,6 @@
             updatePreview();
             showDashboard();
             renderCompanyProfiles();
-            renderMyProfiles();
             updateCardLink();
             message.textContent = 'Your profile has been saved.';
             setSaveState('Saved just now');
@@ -1141,27 +1131,22 @@
         button.disabled = true;
         message.textContent = 'Loading your analytics…';
         try {
-            const [statsResult, seriesResult, recentResult, locationsResult] = await Promise.all([
+            const [statsResult, seriesResult, recentResult] = await Promise.all([
                 supabaseClient.rpc('get_company_dashboard_stats'),
                 getAnalyticsTimeseries(profileId, range.start, range.end),
                 getAnalyticsTimeseries(profileId, lastThirtyDays.start, lastThirtyDays.end),
-                supabaseClient.rpc('get_company_location_summary', {
-                    requested_profile_id: profileId,
-                }),
             ]);
             if (statsResult.error) throw new Error(`Unable to load totals: ${statsResult.error.message}`);
             if (seriesResult.error) throw new Error(`Unable to load daily stats: ${seriesResult.error.message}`);
             if (recentResult.error) throw new Error(`Unable to load last-30-day views: ${recentResult.error.message}`);
-            if (locationsResult.error) throw new Error(`Unable to load top city: ${locationsResult.error.message}`);
 
             const stats = (statsResult.data || []).filter(row => !profileId || row.profile_id === profileId);
             const totalViews = stats.reduce((sum, row) => sum + Number(row.views || 0), 0);
+            const totalLeads = stats.reduce((sum, row) => sum + Number(row.leads || 0), 0);
             const recentViews = (recentResult.data || []).reduce((sum, row) => sum + Number(row.views || 0), 0);
-            const location = Array.isArray(locationsResult.data) ? locationsResult.data[0] : locationsResult.data;
             byId('totalCardViews').textContent = totalViews.toLocaleString();
+            byId('totalLeads').textContent = totalLeads.toLocaleString();
             byId('last30Views').textContent = recentViews.toLocaleString();
-            byId('topCity').textContent = location?.top_city || '—';
-            byId('topCity').title = location?.top_city || 'City analytics will appear after visitors arrive through a supported hosting region.';
             byId('analyticsPeriod').textContent = formatAnalyticsPeriod(range.start, range.end);
             message.textContent = 'Daily taps and leads are shown for the selected dates. Daily history begins after the analytics schema is applied; existing all-time view totals are retained.';
             renderAnalyticsChart(seriesResult.data || []);
@@ -1508,7 +1493,7 @@
     }
 
     function showPage(section) {
-        const validPages = new Set(['overview', 'profile', 'profiles', 'social', 'leads', 'crm', 'company', 'subscription', 'help']);
+        const validPages = new Set(['overview', 'profile', 'social', 'leads', 'crm', 'company', 'subscription', 'help']);
         const page = validPages.has(section) ? section : 'overview';
         document.querySelectorAll('[data-dashboard-page]').forEach(element => {
             element.hidden = element.dataset.dashboardPage !== page;
@@ -1521,7 +1506,6 @@
         const titles = {
             overview: 'Overview',
             profile: 'Profile',
-            profiles: 'My profiles',
             social: 'Social links',
             leads: 'Leads',
             crm: 'CRM',
