@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=10">
+    <link rel="stylesheet" href="dashboard.css?v=11">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=10" defer></script>
+    <script src="dashboard.js?v=11" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -29,17 +29,25 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="11" width="7" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/></svg>
                     Overview
                 </a>
-                <a class="side-nav-link" href="#profileEditor" data-nav="profile">
+                <a class="side-nav-link" href="#profile" data-nav="profile">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
                     My profile
                 </a>
-                <a class="side-nav-link" href="#socialLinks" data-nav="social">
+                <a class="side-nav-link" href="#social" data-nav="social">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
                     Social links
                 </a>
-                <a class="side-nav-link" href="#cardLeads" data-nav="connections">
+                <a class="side-nav-link" href="#leads" data-nav="leads">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m-3-3h6"/></svg>
-                    Connections
+                    Leads
+                </a>
+                <a class="side-nav-link" href="#crm" data-nav="crm">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h5M7 16h7"/></svg>
+                    CRM
+                </a>
+                <a class="side-nav-link" href="#company" data-nav="company">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V5l7-3 7 3v16M9 9h.01M15 9h.01M9 13h.01M15 13h.01M10 21v-4h4v4"/></svg>
+                    Company
                 </a>
             </nav>
             <div class="sidebar-bottom">
@@ -62,7 +70,7 @@
                     </button>
                     <div>
                         <p class="topbar-kicker">BLIPLINK COMPANY PORTAL</p>
-                        <h1>Profile dashboard</h1>
+                        <h1 id="dashboardPageTitle">Overview</h1>
                     </div>
                 </div>
                 <div class="account-menu-container">
@@ -80,17 +88,41 @@
 
             <div id="dashboardMessage" class="notice" role="status" aria-live="polite" hidden></div>
 
-            <section id="overview" class="welcome-panel">
+            <section id="overview" class="dashboard-page" data-dashboard-page="overview">
+                <div class="welcome-panel">
                 <div>
                     <span class="eyebrow">YOUR DIGITAL PRESENCE</span>
                     <h2>Make every connection count.</h2>
-                    <p>Keep your professional profile current and ready to share.</p>
+                    <p>See how people discover and interact with your company cards.</p>
                 </div>
-                <a class="button button-white" href="#profileEditor">Edit your profile <span aria-hidden="true">→</span></a>
+                <a class="button button-white" href="#profile">Edit your profile <span aria-hidden="true">→</span></a>
                 <div class="welcome-decoration" aria-hidden="true"></div>
+                </div>
+                <div class="analytics-summary">
+                    <article class="panel analytics-stat">
+                        <span class="eyebrow">PROFILE VIEWS</span>
+                        <strong id="totalCardViews">0</strong>
+                        <span>Times your public cards were opened</span>
+                    </article>
+                    <article class="panel analytics-stat">
+                        <span class="eyebrow">CARD TAPS</span>
+                        <strong id="totalCardTaps">0</strong>
+                        <span>Interactions with contact links and actions</span>
+                    </article>
+                </div>
+                <section class="panel analytics-panel" aria-labelledby="analyticsTitle">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="eyebrow">CARD PERFORMANCE</span>
+                            <h2 id="analyticsTitle">Views and taps by profile</h2>
+                        </div>
+                    </div>
+                    <p id="analyticsMessage" class="inline-message" role="status" aria-live="polite">Loading analytics…</p>
+                    <div id="analyticsProfiles" class="analytics-profiles"></div>
+                </section>
             </section>
 
-            <div class="dashboard-grid">
+            <div class="dashboard-grid dashboard-page" data-dashboard-page="profile">
                 <section id="profileEditor" class="panel profile-panel">
                     <div class="panel-heading">
                         <div>
@@ -168,40 +200,6 @@
                             </div>
                         </div>
 
-                        <div id="socialLinks" class="social-section">
-                            <div class="section-divider"></div>
-                            <span class="eyebrow">STAY CONNECTED</span>
-                            <h3>Social links</h3>
-                            <p>Add public links so people can find and connect with you.</p>
-                            <div class="form-grid social-grid">
-                                <div class="field">
-                                    <label for="linkedinUrl">LinkedIn</label>
-                                    <input id="linkedinUrl" name="linkedin_url" type="url" inputmode="url" maxlength="500" placeholder="https://linkedin.com/in/yourname">
-                                </div>
-                                <div class="field">
-                                    <label for="instagramUrl">Instagram</label>
-                                    <input id="instagramUrl" name="instagram_url" type="url" inputmode="url" maxlength="500" placeholder="https://instagram.com/yourname">
-                                </div>
-                                <div class="field">
-                                    <label for="xUrl">X</label>
-                                    <input id="xUrl" name="x_url" type="url" inputmode="url" maxlength="500" placeholder="https://x.com/yourname">
-                                </div>
-                                <div class="field">
-                                    <label for="whatsappNumber">WhatsApp number</label>
-                                    <input id="whatsappNumber" name="whatsapp_url" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+1 555 123 4567">
-                                    <span class="field-hint">Include your country code. Your card will open a WhatsApp chat for this number.</span>
-                                </div>
-                                <div class="field">
-                                    <label for="appleWalletUrl">Apple Wallet pass link</label>
-                                    <input id="appleWalletUrl" name="apple_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
-                                </div>
-                                <div class="field">
-                                    <label for="googleWalletUrl">Google Wallet pass link</label>
-                                    <input id="googleWalletUrl" name="google_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="form-footer">
                             <p id="profileMessage" class="form-message" role="alert" aria-live="polite"></p>
                             <button id="saveProfileButton" class="button button-primary" type="submit">Save changes</button>
@@ -252,17 +250,89 @@
                 </aside>
             </div>
 
-            <section id="cardLeads" class="panel leads-panel" aria-labelledby="leadsTitle">
+            <section id="socialLinks" class="panel profile-panel dashboard-page" data-dashboard-page="social" aria-labelledby="socialLinksTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">STAY CONNECTED</span>
+                        <h2 id="socialLinksTitle">Social links and passes</h2>
+                        <p>These links appear on the selected public profile.</p>
+                    </div>
+                </div>
+                <div class="form-grid social-grid">
+                    <div class="field">
+                        <label for="linkedinUrl">LinkedIn</label>
+                        <input id="linkedinUrl" form="profileForm" name="linkedin_url" type="url" inputmode="url" maxlength="500" placeholder="https://linkedin.com/in/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="instagramUrl">Instagram</label>
+                        <input id="instagramUrl" form="profileForm" name="instagram_url" type="url" inputmode="url" maxlength="500" placeholder="https://instagram.com/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="xUrl">X</label>
+                        <input id="xUrl" form="profileForm" name="x_url" type="url" inputmode="url" maxlength="500" placeholder="https://x.com/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="facebookUrl">Facebook</label>
+                        <input id="facebookUrl" form="profileForm" name="facebook_url" type="url" inputmode="url" maxlength="500" placeholder="https://facebook.com/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="tiktokUrl">TikTok</label>
+                        <input id="tiktokUrl" form="profileForm" name="tiktok_url" type="url" inputmode="url" maxlength="500" placeholder="https://tiktok.com/@yourname">
+                    </div>
+                    <div class="field">
+                        <label for="whatsappNumber">WhatsApp number</label>
+                        <input id="whatsappNumber" form="profileForm" name="whatsapp_url" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+1 555 123 4567">
+                        <span class="field-hint">Include your country code. Your card will open a WhatsApp chat for this number.</span>
+                    </div>
+                    <div class="field">
+                        <label for="appleWalletUrl">Apple Wallet pass link</label>
+                        <input id="appleWalletUrl" form="profileForm" name="apple_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
+                    </div>
+                    <div class="field">
+                        <label for="googleWalletUrl">Google Wallet pass link</label>
+                        <input id="googleWalletUrl" form="profileForm" name="google_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <p class="field-hint">Social links are saved together with the selected profile.</p>
+                    <button class="button button-primary" type="submit" form="profileForm">Save social links</button>
+                </div>
+            </section>
+
+            <section id="cardLeads" class="panel leads-panel dashboard-page" data-dashboard-page="leads" aria-labelledby="leadsTitle">
                 <div class="panel-heading">
                     <div>
                         <span class="eyebrow">CARD ACTIVITY</span>
-                        <h2 id="leadsTitle">Contact exchanges</h2>
-                        <p>People who shared their details with you from your card.</p>
+                        <h2 id="leadsTitle">Leads</h2>
+                        <p>Contacts shared by visitors from any of your public cards.</p>
                     </div>
                     <button id="refreshLeadsButton" class="button button-secondary button-small" type="button">Refresh</button>
                 </div>
-                <p id="leadsMessage" class="inline-message" role="status" aria-live="polite">Loading your connections…</p>
+                <p id="leadsMessage" class="inline-message" role="status" aria-live="polite">Loading your leads…</p>
                 <div id="leadsList" class="leads-list"></div>
+            </section>
+            <section id="crmPage" class="panel leads-panel dashboard-page" data-dashboard-page="crm" aria-labelledby="crmTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">SALES PIPELINE</span>
+                        <h2 id="crmTitle">CRM</h2>
+                        <p>Track each saved lead, its stage, notes, and next follow-up.</p>
+                    </div>
+                    <button id="refreshCrmButton" class="button button-secondary button-small" type="button">Refresh</button>
+                </div>
+                <p id="crmMessage" class="inline-message" role="status" aria-live="polite">Loading your CRM…</p>
+                <div id="crmList" class="crm-list"></div>
+            </section>
+            <section id="companyPage" class="panel leads-panel dashboard-page" data-dashboard-page="company" aria-labelledby="companyTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">COMPANY WORKSPACE</span>
+                        <h2 id="companyTitle">Company profiles</h2>
+                        <p>Manage multiple employee cards from this company account.</p>
+                    </div>
+                    <button id="addProfileButton" class="button button-primary button-small" type="button">Add profile</button>
+                </div>
+                <div id="companyProfilesList" class="company-profiles-list"></div>
             </section>
             <footer class="dashboard-footer">© 2026 BlipLink · Company dashboard</footer>
         </main>

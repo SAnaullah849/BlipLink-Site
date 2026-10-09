@@ -6,14 +6,16 @@ The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL
 
 The dashboard frontend is configured for the BlipLink Supabase project in [`config.js`](./config.js). Its `sb_publishable_...` key is intended for browser use; never put a Supabase secret/service-role key in this file.
 
-Run the current [`schema.sql`](./schema.sql) in the Supabase SQL Editor before using the dashboard. If you already ran an earlier version, run the updated file again to enable public business cards, banner images, WhatsApp and wallet links, business addresses, and contact exchanges. Before inviting companies:
+Run the current [`schema.sql`](./schema.sql) in the Supabase SQL Editor before using the dashboard. It creates a company profile for newly invited Auth users and backfills profiles for existing Auth users. Re-running the updated script preserves existing card URLs while enabling multiple cards per company account, Facebook and TikTok links, card view/tap analytics, leads, and the CRM pipeline. Before inviting companies:
 
-1. In **Authentication → Settings → General**, disable public sign-ups. Invitations are still sent by an authorized project administrator; visitors cannot register themselves.
-2. In **Authentication → URL Configuration**, set **Site URL** to `https://bliplink.vercel.app/login.html`. Add `https://bliplink.vercel.app/login.html` to **Redirect URLs** and remove any obsolete development URLs. The Site URL must point directly to `login.html`, because invitations sent from the Supabase Users screen use it as the default return destination.
-3. Before moving the site to its custom domain, add `https://bliplink.pro/login.html` to **Redirect URLs**. When the domain is live, change **Site URL** to `https://bliplink.pro/login.html`; keep the Vercel URL in the allowlist while it remains in use.
-4. Ensure the Supabase invitation email template uses its standard confirmation link (`{{ .ConfirmationURL }}`), so Supabase verifies the invite token before returning the invitee to the configured login page.
-5. Under **Authentication → Users**, select **Add user → Send invitation**, enter the company email, and send it. The invitee opens the Supabase email link and returns to `login.html`, where the same page switches to an invitation password form with the invited email prefilled and read-only. They set and confirm their password, then continue to the dashboard. No separate registration page or public sign-up flow is used.
-6. Deploy the site with the `dashboard/` directory and `login.html` included. The homepage sends visitors to `/login.html`; after sign-in, they are redirected to `/dashboard/index.html`. Opening the dashboard while signed out returns visitors to the sign-in page. The login screen includes a link back to the public homepage.
+1. In **Authentication → Settings → General**, disable public sign-ups. Invitations are sent by an authorized project administrator; visitors cannot register themselves.
+2. In **Authentication → URL Configuration**, set **Site URL** to `https://bliplink.vercel.app/login.html`. Add that exact URL under **Redirect URLs** and remove old localhost/development entries. Supabase uses the Site URL as the return destination when an invitation is sent from its Users screen; the deployed login page handles the invite and password setup. This project-level Auth URL setting cannot be changed by `schema.sql`.
+3. Keep the email template’s standard confirmation link, `{{ .ConfirmationURL }}`, so Supabase verifies the invitation before redirecting to the Site URL. Do not replace it with a localhost URL.
+4. When the custom domain is live, add `https://bliplink.pro/login.html` to **Redirect URLs** and then change **Site URL** to `https://bliplink.pro/login.html`.
+5. Under **Authentication → Users**, choose **Add user → Send invitation**, enter the company email, and send it. When the invitee clicks the email link, they return to the existing `login.html`; it displays the invited email and password/confirmation fields, then sends them to the dashboard. There is no separate registration page or public sign-up flow.
+6. Deploy the site with the `dashboard/` directory and `login.html` included. The homepage sends visitors to `/login.html`; after sign-in, they go to `/dashboard/index.html`. Opening the dashboard while signed out returns visitors to the sign-in page.
+
+Note: the invitation redirect is configured in the Supabase dashboard, not in this static site. If Supabase reports **email rate limit exceeded** while sending an invite, that is a separate Supabase email-delivery limit; changing this site’s redirect code cannot increase that limit.
 
 The `profile-photos` bucket is limited to 5 MB image uploads. Profile images are public so they can load on shared digital cards; upload, update, and delete access remains restricted to the owner’s folder.
 
@@ -21,7 +23,7 @@ The `profile-photos` bucket is limited to 5 MB image uploads. Profile images are
 
 Each saved profile gets a URL in the form `card.html?id=<account-id>`. The dashboard’s **View card** button opens it in a new tab, and **Copy link** copies its address. Public cards include a customizable banner and profile photo, plain email/phone/website details, social icons (including WhatsApp), a QR code, and a downloadable contact file. A saved business address appears at the bottom of the card, above optional wallet links, and opens a Google Maps search when selected. Companies enter a WhatsApp number with country code; BlipLink turns it into a `wa.me` chat link. Companies can paste their issuer-generated Apple Wallet and Google Wallet pass URLs into their profile; the corresponding links appear on the public card only when provided.
 
-Visitors can submit a contact exchange after explicitly consenting. Those contact details are stored in `card_contact_exchanges`; only the associated company account can read them in its dashboard. The QR image is generated by the QR Server image API from the public card URL. BlipLink displays wallet pass links from the company’s existing issuer; it does not generate wallet passes.
+Visitors can submit a contact exchange after explicitly consenting. Those contact details are stored in `card_contact_exchanges`; only the associated company account can read them in its dashboard. A company can save those submissions to `crm_leads`, track pipeline stage, notes, and follow-up date, and manage multiple employee cards from one login. Public cards record aggregate view and tap counts only; analytics do not store visitor IP addresses or country data. The QR image is generated by the QR Server image API from the public card URL. BlipLink displays wallet pass links from the company’s existing issuer; it does not generate wallet passes.
 
 ## Included
 
@@ -29,7 +31,9 @@ Visitors can submit a contact exchange after explicitly consenting. Those contac
 - A clean `/login.html` sign-in route; the dashboard app remains separate and requires an active session.
 - Responsive dashboard with profile editing and a live preview.
 - Public, responsive profile cards with plain contact details, social icons, and downloadable vCard contacts.
-- QR codes, card sharing, consent-based contact exchange, and an owner-only connections inbox.
+- QR codes, card sharing, consent-based lead capture, an owner-only Leads inbox, and a CRM pipeline.
+- Multiple employee profiles per company login, with Facebook and TikTok links on public cards.
+- Aggregate card views and taps by profile; visitor IP addresses and locations are not collected.
 - Per-account card link with one-click preview and copy actions.
 - Profile photo upload and removal.
 - Website, LinkedIn, Instagram, and X link editing, plus WhatsApp number-to-chat-link support.

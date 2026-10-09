@@ -52,6 +52,16 @@ textarea {
     font: inherit;
 }
 
+select {
+    min-height: 40px;
+    padding: 0 10px;
+    border: 1px solid #dce3ed;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+}
+
 button,
 a,
 input,
@@ -785,7 +795,7 @@ textarea:focus {
 }
 
 .social-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .form-footer {
@@ -1483,5 +1493,151 @@ textarea:focus {
     *::after {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
+    }
+
+    .analytics-summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 18px;
+    }
+
+    .analytics-stat {
+        display: grid;
+        gap: 6px;
+        padding: 21px 23px;
+    }
+
+    .analytics-stat strong {
+        color: #0b1f5e;
+        font-family: "Manrope", sans-serif;
+        font-size: 32px;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+
+    .analytics-stat > span:last-child {
+        color: var(--muted);
+        font-size: 11px;
+    }
+
+    .analytics-panel {
+        padding: 22px 24px;
+    }
+
+    .analytics-profiles,
+    .company-profiles-list {
+        display: grid;
+        gap: 9px;
+    }
+
+    .analytics-profile-row,
+    .company-profile-row {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 12px 14px;
+        border: 1px solid #e8edf4;
+        border-radius: 10px;
+        background: #fbfcfe;
+    }
+
+    .analytics-profile-row strong,
+    .company-profile-row strong {
+        overflow-wrap: anywhere;
+        color: #253b5d;
+        font-size: 12px;
+    }
+
+    .analytics-profile-row span,
+    .company-profile-row > div:first-child > span {
+        color: var(--muted);
+        font-size: 11px;
+        text-align: right;
+    }
+
+    .company-profile-actions {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 8px;
+    }
+
+    .company-profile-row > div:first-child {
+        display: grid;
+        gap: 3px;
+    }
+
+    .crm-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+        gap: 12px;
+    }
+
+    .crm-card {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+        min-width: 0;
+        padding: 15px;
+        border: 1px solid #e8edf4;
+        border-radius: 12px;
+        background: #fbfcfe;
+    }
+
+    .crm-status {
+        max-width: 130px;
+        min-height: 34px;
+        font-size: 11px;
+    }
+
+    .crm-notes-field,
+    .crm-follow-up-field {
+        gap: 6px;
+    }
+
+    .crm-notes-field textarea {
+        min-height: 72px;
+        font-size: 12px;
+    }
+
+    .crm-follow-up-field input {
+        min-height: 38px;
+        font-size: 12px;
+    }
+
+    @media (max-width: 640px) {
+        .analytics-summary {
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .analytics-stat,
+        .analytics-panel {
+            padding: 16px;
+        }
+
+        .analytics-stat strong {
+            font-size: 27px;
+        }
+
+        .analytics-profile-row,
+        .company-profile-row {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .analytics-profile-row span {
+            text-align: left;
+        }
+
+        .company-profile-actions {
+            width: 100%;
+        }
+
+        .company-profile-actions .button {
+            flex: 1 1 auto;
+        }
     }
 }

@@ -1,9 +1,11 @@
 -- Run this file in the Supabase SQL Editor before using the company dashboard.
--- Create company accounts manually in Supabase Authentication. Public sign-ups
--- must remain disabled in the Supabase Auth settings.
+-- Create company accounts by invitation in Supabase Authentication. Public
+-- sign-ups must remain disabled in the Supabase Auth settings. The trigger
+-- below creates a company profile for invited users when Auth creates them.
 
 create table if not exists public.company_profiles (
-    user_id uuid primary key references auth.users (id) on delete cascade,
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users (id) on delete cascade,
     full_name text not null default '' check (char_length(full_name) <= 100),
     job_title text not null default '' check (char_length(job_title) <= 100),
     company_name text not null default '' check (char_length(company_name) <= 120),
@@ -16,6 +18,8 @@ create table if not exists public.company_profiles (
     linkedin_url text check (linkedin_url is null or char_length(linkedin_url) <= 500),
     instagram_url text check (instagram_url is null or char_length(instagram_url) <= 500),
     x_url text check (x_url is null or char_length(x_url) <= 500),
+    facebook_url text check (facebook_url is null or char_length(facebook_url) <= 500),
+    tiktok_url text check (tiktok_url is null or char_length(tiktok_url) <= 500),
     apple_wallet_url text check (apple_wallet_url is null or char_length(apple_wallet_url) <= 500),
     google_wallet_url text check (google_wallet_url is null or char_length(google_wallet_url) <= 500),
     avatar_path text,
@@ -24,13 +28,40 @@ create table if not exists public.company_profiles (
     updated_at timestamptz not null default now()
 );
 
+-- Existing cards keep their original URL (the Auth user ID); new cards get
+-- independent IDs while remaining owned by the same company login.
+alter table public.company_profiles add column if not exists id uuid;
+update public.company_profiles set id = user_id where id is null;
+alter table public.company_profiles alter column id set default gen_random_uuid();
+alter table public.company_profiles alter column id set not null;
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint as constraint_row
+        join pg_attribute as column_row
+          on column_row.attrelid = constraint_row.conrelid
+         and column_row.attnum = any (constraint_row.conkey)
+        where constraint_row.conrelid = 'public.company_profiles'::regclass
+          and constraint_row.contype = 'p'
+          and column_row.attname = 'id'
+    ) then
+        alter table public.company_profiles drop constraint if exists company_profiles_pkey;
+        alter table public.company_profiles add constraint company_profiles_pkey primary key (id);
+    end if;
+end;
+$$;
+create index if not exists company_profiles_user_id_idx on public.company_profiles (user_id);
+
 alter table public.company_profiles
     add column if not exists address text check (address is null or char_length(address) <= 300);
 alter table public.company_profiles
     add column if not exists whatsapp_url text check (whatsapp_url is null or char_length(whatsapp_url) <= 500),
     add column if not exists apple_wallet_url text check (apple_wallet_url is null or char_length(apple_wallet_url) <= 500),
     add column if not exists google_wallet_url text check (google_wallet_url is null or char_length(google_wallet_url) <= 500),
-    add column if not exists banner_path text;
+    add column if not exists banner_path text,
+    add column if not exists facebook_url text check (facebook_url is null or char_length(facebook_url) <= 500),
+    add column if not exists tiktok_url text check (tiktok_url is null or char_length(tiktok_url) <= 500);
 
 alter table public.company_profiles enable row level security;
 
@@ -78,7 +109,7 @@ as $$
 begin
     insert into public.company_profiles (user_id, contact_email)
     values (new.id, new.email)
-    on conflict (user_id) do nothing;
+    on conflict (id) do nothing;
     return new;
 end;
 $$;
@@ -87,6 +118,14 @@ drop trigger if exists on_auth_user_created_company_profile on auth.users;
 create trigger on_auth_user_created_company_profile
     after insert on auth.users
     for each row execute function public.create_company_profile_for_new_user();
+
+-- Backfill profiles for Auth users created before this trigger was installed.
+insert into public.company_profiles (user_id, contact_email)
+select users.id, users.email
+from auth.users as users
+where not exists (
+    select 1 from public.company_profiles as profile where profile.user_id = users.id
+);
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
@@ -107,6 +146,7 @@ on conflict (id) do update set
 drop function if exists public.get_public_company_card(uuid);
 create function public.get_public_company_card(requested_user_id uuid)
 returns table (
+    profile_id uuid,
     full_name text,
     job_title text,
     company_name text,
@@ -119,6 +159,8 @@ returns table (
     linkedin_url text,
     instagram_url text,
     x_url text,
+    facebook_url text,
+    tiktok_url text,
     apple_wallet_url text,
     google_wallet_url text,
     avatar_path text,
@@ -130,6 +172,7 @@ security definer
 set search_path = ''
 as $$
     select
+        profile.id,
         profile.full_name,
         profile.job_title,
         profile.company_name,
@@ -142,21 +185,103 @@ as $$
         profile.linkedin_url,
         profile.instagram_url,
         profile.x_url,
+        profile.facebook_url,
+        profile.tiktok_url,
         profile.apple_wallet_url,
         profile.google_wallet_url,
         profile.avatar_path,
         profile.banner_path
     from public.company_profiles as profile
-    where profile.user_id = requested_user_id
+    where profile.id = requested_user_id
     limit 1
 $$;
 
 revoke all on function public.get_public_company_card(uuid) from public;
 grant execute on function public.get_public_company_card(uuid) to anon, authenticated;
 
+create table if not exists public.card_analytics (
+    profile_id uuid primary key references public.company_profiles (id) on delete cascade,
+    views bigint not null default 0 check (views >= 0),
+    taps bigint not null default 0 check (taps >= 0),
+    updated_at timestamptz not null default now()
+);
+
+alter table public.card_analytics enable row level security;
+revoke all on public.card_analytics from anon, public;
+grant select on public.card_analytics to authenticated;
+
+drop policy if exists "Company users can read their card analytics" on public.card_analytics;
+create policy "Company users can read their card analytics"
+    on public.card_analytics for select to authenticated
+    using (
+        exists (
+            select 1 from public.company_profiles as profile
+            where profile.id = card_analytics.profile_id
+              and profile.user_id = (select auth.uid())
+        )
+    );
+
+create or replace function public.record_public_card_event(
+    requested_profile_id uuid,
+    requested_event_type text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+    if requested_event_type not in ('view', 'tap') then
+        raise exception 'Unsupported card analytics event.';
+    end if;
+    if not exists (
+        select 1 from public.company_profiles as profile
+        where profile.id = requested_profile_id
+          and char_length(btrim(profile.full_name)) > 0
+    ) then
+        raise exception 'This business card is unavailable.';
+    end if;
+    insert into public.card_analytics (profile_id, views, taps)
+    values (
+        requested_profile_id,
+        case when requested_event_type = 'view' then 1 else 0 end,
+        case when requested_event_type = 'tap' then 1 else 0 end
+    )
+    on conflict (profile_id) do update set
+        views = public.card_analytics.views + excluded.views,
+        taps = public.card_analytics.taps + excluded.taps,
+        updated_at = now();
+end;
+$$;
+
+revoke all on function public.record_public_card_event(uuid, text) from public;
+grant execute on function public.record_public_card_event(uuid, text) to anon, authenticated;
+
+create or replace function public.get_company_card_analytics()
+returns table (profile_id uuid, full_name text, views bigint, taps bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+    select
+        profile.id,
+        profile.full_name,
+        coalesce(analytics.views, 0),
+        coalesce(analytics.taps, 0)
+    from public.company_profiles as profile
+    left join public.card_analytics as analytics on analytics.profile_id = profile.id
+    where profile.user_id = (select auth.uid())
+    order by profile.full_name
+$$;
+
+revoke all on function public.get_company_card_analytics() from public;
+grant execute on function public.get_company_card_analytics() to authenticated;
+
 create table if not exists public.card_contact_exchanges (
     id bigint generated by default as identity primary key,
     card_owner_id uuid not null references auth.users (id) on delete cascade,
+    profile_id uuid references public.company_profiles (id) on delete set null,
     visitor_name text not null check (char_length(visitor_name) between 1 and 100),
     visitor_phone text not null check (char_length(visitor_phone) between 3 and 40),
     visitor_email text check (visitor_email is null or char_length(visitor_email) <= 254),
@@ -167,6 +292,17 @@ create table if not exists public.card_contact_exchanges (
     created_at timestamptz not null default now()
 );
 
+alter table public.card_contact_exchanges
+    add column if not exists profile_id uuid references public.company_profiles (id) on delete set null;
+update public.card_contact_exchanges as exchange
+set profile_id = profile.id
+from public.company_profiles as profile
+where exchange.profile_id is null
+  and profile.user_id = exchange.card_owner_id
+  and profile.id = profile.user_id;
+create index if not exists card_contact_exchanges_owner_created_idx
+    on public.card_contact_exchanges (card_owner_id, created_at desc);
+
 alter table public.card_contact_exchanges enable row level security;
 revoke all on public.card_contact_exchanges from anon, public;
 grant select on public.card_contact_exchanges to authenticated;
@@ -176,8 +312,9 @@ create policy "Card owners can read their contact exchanges"
     on public.card_contact_exchanges for select to authenticated
     using ((select auth.uid()) = card_owner_id);
 
-create or replace function public.submit_public_card_exchange(
-    requested_card_owner_id uuid,
+drop function if exists public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean);
+create function public.submit_public_card_exchange(
+    requested_profile_id uuid,
     submitted_name text,
     submitted_phone text,
     submitted_email text,
@@ -191,6 +328,8 @@ language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+    resolved_card_owner_id uuid;
 begin
     if submitted_name is null or char_length(btrim(submitted_name)) not between 1 and 100 then
         raise exception 'A name between 1 and 100 characters is required.';
@@ -216,14 +355,19 @@ begin
     if not exists (
         select 1
         from public.company_profiles as profile
-        where profile.user_id = requested_card_owner_id
+        where profile.id = requested_profile_id
           and char_length(btrim(profile.full_name)) > 0
     ) then
         raise exception 'This business card is unavailable.';
     end if;
 
+    select profile.user_id into resolved_card_owner_id
+    from public.company_profiles as profile
+    where profile.id = requested_profile_id;
+
     insert into public.card_contact_exchanges (
         card_owner_id,
+        profile_id,
         visitor_name,
         visitor_phone,
         visitor_email,
@@ -232,7 +376,8 @@ begin
         visitor_message
     )
     values (
-        requested_card_owner_id,
+        resolved_card_owner_id,
+        requested_profile_id,
         btrim(submitted_name),
         btrim(submitted_phone),
         nullif(btrim(submitted_email), ''),
@@ -245,6 +390,52 @@ $$;
 
 revoke all on function public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean) from public;
 grant execute on function public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean) to anon, authenticated;
+
+create table if not exists public.crm_leads (
+    id uuid primary key default gen_random_uuid(),
+    owner_id uuid not null references auth.users (id) on delete cascade,
+    source_exchange_id bigint unique references public.card_contact_exchanges (id) on delete set null,
+    full_name text not null check (char_length(full_name) between 1 and 100),
+    phone text check (phone is null or char_length(phone) <= 40),
+    email text check (email is null or char_length(email) <= 254),
+    company text check (company is null or char_length(company) <= 120),
+    role text check (role is null or char_length(role) <= 120),
+    message text check (message is null or char_length(message) <= 1000),
+    status text not null default 'new' check (status in ('new', 'contacted', 'qualified', 'won', 'lost')),
+    notes text not null default '' check (char_length(notes) <= 4000),
+    follow_up_at date,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create index if not exists crm_leads_owner_updated_idx
+    on public.crm_leads (owner_id, updated_at desc);
+
+alter table public.crm_leads enable row level security;
+revoke all on public.crm_leads from anon, public;
+grant select, insert, update, delete on public.crm_leads to authenticated;
+
+drop policy if exists "Company users can manage their CRM leads" on public.crm_leads;
+create policy "Company users can manage their CRM leads"
+    on public.crm_leads for all to authenticated
+    using ((select auth.uid()) = owner_id)
+    with check (
+        (select auth.uid()) = owner_id
+        and (
+            source_exchange_id is null
+            or exists (
+                select 1
+                from public.card_contact_exchanges as exchange
+                where exchange.id = source_exchange_id
+                  and exchange.card_owner_id = (select auth.uid())
+            )
+        )
+    );
+
+drop trigger if exists crm_leads_set_updated_at on public.crm_leads;
+create trigger crm_leads_set_updated_at
+    before update on public.crm_leads
+    for each row execute function public.set_company_profile_updated_at();
 
 drop policy if exists "Company users can read their own profile photos" on storage.objects;
 create policy "Company users can read their own profile photos"
