@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=15">
+    <link rel="stylesheet" href="dashboard.css?v=16">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=15" defer></script>
+    <script src="dashboard.js?v=16" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -161,7 +161,10 @@
                     </div>
                     <aside class="overview-aside">
                         <section class="panel overview-profile-card" aria-labelledby="overviewCardTitle">
-                            <span class="eyebrow">MY PROFILE OVERVIEW</span>
+                            <div class="overview-preview-heading">
+                                <span class="eyebrow">LIVE PREVIEW</span>
+                                <span id="overviewPreviewStatus" class="preview-status"><i></i>Your profile</span>
+                            </div>
                             <div class="overview-card-banner">
                                 <img id="overviewBanner" alt="" hidden>
                             </div>
@@ -172,14 +175,26 @@
                                 </div>
                                 <h2 id="overviewCardTitle">Your company</h2>
                                 <p id="overviewCardRole" class="overview-card-role" hidden></p>
-                                <a id="overviewWebsite" class="overview-contact" target="_blank" rel="noopener noreferrer" hidden></a>
-                                <a id="overviewEmail" class="overview-contact" hidden></a>
-                                <a id="overviewPhone" class="overview-contact" hidden></a>
-                                <p id="overviewAddress" class="overview-contact overview-address" hidden></p>
+                                <span id="overviewCompany" class="overview-company" hidden></span>
+                                <p id="overviewBio" class="overview-bio" hidden></p>
+                                <div class="overview-contacts">
+                                    <a id="overviewEmail" class="overview-contact" hidden></a>
+                                    <a id="overviewPhone" class="overview-contact" hidden></a>
+                                    <a id="overviewWebsite" class="overview-contact" target="_blank" rel="noopener noreferrer" hidden></a>
+                                </div>
+                                <div id="overviewSocials" class="preview-socials overview-socials"></div>
+                                <div class="preview-qr overview-qr">
+                                    <img id="overviewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
+                                    <span id="overviewQrPlaceholder">Save your profile to create its QR code.</span>
+                                    <span>Scan to open this card</span>
+                                </div>
+                                <a id="overviewAddress" class="preview-address overview-address" target="_blank" rel="noopener noreferrer" hidden></a>
                                 <div class="overview-profile-actions">
                                     <a id="overviewViewCard" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer">View card ↗</a>
-                                    <a class="button button-secondary" href="#profile">Edit profile</a>
+                                    <button id="overviewCopyCardLink" class="button button-secondary" type="button">Copy link</button>
                                 </div>
+                                <p id="overviewCardLinkText" class="overview-card-link" aria-live="polite"></p>
+                                <a class="overview-edit-link" href="#profile">Edit profile</a>
                             </div>
                         </section>
                         <section class="panel overview-leads-card">

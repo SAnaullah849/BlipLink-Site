@@ -55,6 +55,7 @@
         });
         byId('profileForm').addEventListener('submit', handleProfileSave);
         byId('copyCardLinkButton').addEventListener('click', handleCopyCardLink);
+        byId('overviewCopyCardLink').addEventListener('click', handleOverviewCopyCardLink);
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
         byId('refreshCrmButton').addEventListener('click', loadCrmLeads);
         byId('addProfileButton').addEventListener('click', createProfile);
@@ -1411,21 +1412,89 @@
     function renderOverviewProfile() {
         if (!byId('overviewCardTitle')) return;
         const name = profile.full_name || profile.company_name || 'Your company';
-        byId('overviewCardTitle').textContent = profile.company_name || name;
+        byId('overviewCardTitle').textContent = profile.full_name || name;
         byId('overviewCardRole').textContent = profile.job_title || '';
         byId('overviewCardRole').hidden = !profile.job_title;
+        byId('overviewCompany').textContent = profile.company_name || '';
+        byId('overviewCompany').hidden = !profile.company_name;
+        byId('overviewBio').textContent = profile.bio || '';
+        byId('overviewBio').hidden = !profile.bio;
         byId('overviewInitials').textContent = getInitials(name);
         setOverviewImage('overviewPhoto', profile.avatar_path);
         setOverviewImage('overviewBanner', profile.banner_path);
-        setOverviewContact('overviewWebsite', profile.website_url, profile.website_url);
-        setOverviewContact('overviewEmail', profile.contact_email, profile.contact_email ? `mailto:${profile.contact_email}` : '');
-        setOverviewContact('overviewPhone', profile.phone, profile.phone ? `tel:${profile.phone}` : '');
+        setOverviewContact('overviewWebsite', profile.website_url ? `Website: ${profile.website_url}` : '', profile.website_url);
+        setOverviewContact('overviewEmail', profile.contact_email ? `Email: ${profile.contact_email}` : '', profile.contact_email ? `mailto:${profile.contact_email}` : '');
+        setOverviewContact('overviewPhone', profile.phone ? `Phone: ${profile.phone}` : '', profile.phone ? `tel:${profile.phone}` : '');
         const address = byId('overviewAddress');
         address.textContent = profile.address || '';
         address.hidden = !profile.address;
+        address.href = profile.address
+            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`
+            : '#';
+        renderOverviewSocials();
+        const isPublic = Boolean(profile.full_name && !profile.is_locked);
+        const status = byId('overviewPreviewStatus');
+        status.classList.toggle('preview-status-locked', !isPublic);
+        const statusDot = document.createElement('i');
+        status.replaceChildren(statusDot, document.createTextNode(profile.is_locked ? 'Locked' : isPublic ? 'Your profile' : 'Draft'));
         const view = byId('overviewViewCard');
         view.href = profile.id ? `../card.html?id=${encodeURIComponent(profile.id)}` : '#';
-        view.hidden = !profile.full_name || Boolean(profile.is_locked);
+        view.hidden = !isPublic;
+        const cardUrl = isPublic
+            ? new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href
+            : '';
+        setOverviewQrCode(cardUrl);
+        byId('overviewCopyCardLink').disabled = !cardUrl;
+        byId('overviewCardLinkText').textContent = cardUrl;
+    }
+
+    function renderOverviewSocials() {
+        const entries = [
+            ['LinkedIn', profile.linkedin_url, 'linkedin'],
+            ['Instagram', profile.instagram_url, 'instagram'],
+            ['WhatsApp', getWhatsAppNumber(profile.whatsapp_url), 'whatsapp'],
+            ['X', profile.x_url, 'x'],
+            ['Facebook', profile.facebook_url, 'facebook'],
+            ['TikTok', profile.tiktok_url, 'tiktok'],
+            ['GitHub', profile.github_url, 'github'],
+            ['Telegram', profile.telegram_url, 'telegram'],
+            ['Discord', profile.discord_url, 'discord'],
+            ['Snapchat', profile.snapchat_url, 'snapchat'],
+        ].filter(([, value, icon]) => value && (icon !== 'whatsapp' || /^\d{7,15}$/.test(value)));
+        const links = entries.map(([label, value, icon]) => {
+            const link = document.createElement('a');
+            link.className = 'preview-social';
+            link.href = icon === 'whatsapp' ? `https://wa.me/${value}` : safePreviewUrl(value);
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.dataset.social = icon;
+            link.setAttribute('aria-label', label);
+            link.title = label;
+            link.append(createBrandIcon(icon));
+            return link;
+        });
+        byId('overviewSocials').replaceChildren(...links);
+    }
+
+    function setOverviewQrCode(cardUrl) {
+        const image = byId('overviewQrCode');
+        const placeholder = byId('overviewQrPlaceholder');
+        if (!cardUrl) {
+            image.hidden = true;
+            image.removeAttribute('src');
+            delete image.dataset.cardUrl;
+            placeholder.hidden = false;
+            placeholder.textContent = profile.is_locked
+                ? 'Unlock this profile to activate its QR code.'
+                : 'Save your profile to create its QR code.';
+            return;
+        }
+        if (image.dataset.cardUrl !== cardUrl) {
+            image.src = `https://api.qrserver.com/v1/create-qr-code/?size=176x176&margin=2&data=${encodeURIComponent(cardUrl)}`;
+            image.dataset.cardUrl = cardUrl;
+        }
+        image.hidden = false;
+        placeholder.hidden = true;
     }
 
     function setOverviewImage(id, path) {
@@ -1453,6 +1522,26 @@
         link.hidden = !text || !href;
         if (href) link.href = href;
         else link.removeAttribute('href');
+    }
+
+    async function handleOverviewCopyCardLink() {
+        const cardUrl = profile.id && profile.full_name && !profile.is_locked
+            ? new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href
+            : '';
+        const message = byId('overviewCardLinkText');
+        if (!cardUrl) {
+            message.textContent = profile.is_locked
+                ? 'Unlock this profile before sharing its card.'
+                : 'Add your name and save your profile before sharing its card.';
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(cardUrl);
+            message.textContent = 'Card link copied to clipboard.';
+        } catch (error) {
+            message.textContent = 'Could not copy the link. Select and copy it from the link above.';
+            console.error('Overview card link copy failed:', error);
+        }
     }
 
     function appendLeadText(parent, className, value) {
