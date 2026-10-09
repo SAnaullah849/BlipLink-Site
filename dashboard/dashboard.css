@@ -1550,6 +1550,7 @@ textarea:focus {
     align-items: center;
     gap: 12px;
     padding: 13px;
+    align-items: center;
     border: 0;
     border-radius: 17px;
     box-shadow: none;
@@ -1559,6 +1560,14 @@ textarea:focus {
     display: grid;
     min-width: 0;
     gap: 5px;
+}
+
+.analytics-city-value {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .analytics-stat .eyebrow {
@@ -1659,11 +1668,12 @@ textarea:focus {
 
 .analytics-chart {
     display: flex;
-    min-height: 260px;
-    align-items: stretch;
-    gap: 10px;
+    height: 340px;
+    min-height: 340px;
+    align-items: flex-end;
+    gap: 0;
     overflow-x: auto;
-    padding: 12px 6px 0;
+    padding: 12px 4px 0;
     border-bottom: 1px solid #e2e7ed;
     background-image: repeating-linear-gradient(
         to bottom,
@@ -1675,9 +1685,10 @@ textarea:focus {
 
 .chart-profile {
     display: grid;
-    min-width: 58px;
-    flex: 1 0 58px;
-    grid-template-rows: minmax(0, 1fr) 30px;
+    height: 100%;
+    min-width: 34px;
+    flex: 1 0 34px;
+    grid-template-rows: minmax(0, 1fr) 60px;
     align-items: end;
     text-align: center;
 }
@@ -1687,21 +1698,26 @@ textarea:focus {
     height: 100%;
     align-items: end;
     justify-content: center;
-    gap: 6px;
+    gap: 3px;
 }
 
 .chart-bar {
-    width: min(22px, 32%);
+    width: min(14px, 38%);
     min-height: 0;
     border-radius: 5px 5px 0 0;
 }
 
 .chart-profile-label {
-    overflow: hidden;
-    padding-top: 7px;
+    position: relative;
+    left: 11px;
+    width: 68px;
+    overflow: visible;
+    padding: 8px 0 0;
     color: #6f7b90;
-    font-size: 10px;
-    text-overflow: ellipsis;
+    font-size: 9px;
+    text-align: left;
+    transform: rotate(-45deg);
+    transform-origin: top left;
     white-space: nowrap;
 }
 
@@ -2011,7 +2027,8 @@ textarea:focus {
     }
 
     .analytics-chart {
-        min-height: 220px;
+        height: 300px;
+        min-height: 300px;
     }
 
     .overview-aside {
@@ -2031,40 +2048,61 @@ textarea:focus {
         flex: 1 1 auto;
     }
 }
-.country-analytics-panel {
-    margin-top: 18px;
-}
-
 .sidebar {
     overflow-y: auto;
 }
 
-.country-map {
-    z-index: 0;
-    height: 290px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: #eaf2f8;
-}
-
-.country-analytics-list {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px 14px;
-    margin-top: 14px;
-}
-
-.country-analytics-row {
+.analytics-filters {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 10px;
+}
+
+.analytics-filter-profile {
+    flex: 0 1 200px;
+}
+
+.analytics-filter-profile select {
+    width: 100%;
+}
+
+.analytics-date-range {
+    display: flex;
+    min-width: 0;
+    align-items: center;
     gap: 8px;
-    color: #52627a;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #fff;
+}
+
+.analytics-date-range label {
+    color: var(--muted);
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.analytics-date-range input {
+    min-width: 105px;
+    min-height: 39px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     font-size: 11px;
 }
 
-.country-analytics-row strong {
-    color: var(--ink);
+.analytics-filters > .button {
+    min-height: 40px;
+    flex: 0 0 auto;
+    padding-right: 20px;
+    padding-left: 20px;
+}
+
+.chart-profile-label[hidden] {
+    visibility: hidden;
 }
 
 .my-profiles-list,
@@ -2279,8 +2317,23 @@ textarea:focus {
 }
 
 @media (max-width: 640px) {
-    .country-analytics-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .analytics-filters {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .analytics-filter-profile {
+        flex-basis: auto;
+    }
+
+    .analytics-date-range {
+        justify-content: space-between;
+        gap: 5px;
+    }
+
+    .analytics-date-range input {
+        min-width: 0;
+        width: 36%;
     }
 
     .notification-container {

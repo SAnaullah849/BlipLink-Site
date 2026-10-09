@@ -240,6 +240,30 @@ create policy "Company users can read their card analytics"
         )
     );
 
+create table if not exists public.card_analytics_daily (
+    profile_id uuid not null references public.company_profiles (id) on delete cascade,
+    event_date date not null,
+    views bigint not null default 0 check (views >= 0),
+    taps bigint not null default 0 check (taps >= 0),
+    updated_at timestamptz not null default now(),
+    primary key (profile_id, event_date)
+);
+
+alter table public.card_analytics_daily enable row level security;
+revoke all on public.card_analytics_daily from anon, authenticated, public;
+grant select on public.card_analytics_daily to authenticated;
+
+drop policy if exists "Company users can read their daily card analytics" on public.card_analytics_daily;
+create policy "Company users can read their daily card analytics"
+    on public.card_analytics_daily for select to authenticated
+    using (
+        exists (
+            select 1 from public.company_profiles as profile
+            where profile.id = card_analytics_daily.profile_id
+              and profile.user_id = (select auth.uid())
+        )
+    );
+
 drop function if exists public.record_public_card_event(uuid, text);
 
 create table if not exists public.card_country_analytics (
@@ -266,12 +290,37 @@ using (
     )
 );
 
+create table if not exists public.card_city_analytics (
+profile_id uuid not null references public.company_profiles (id) on delete cascade,
+city_name text not null check (char_length(city_name) between 1 and 100),
+country_code text not null check (country_code ~ '^[A-Z]{2}$'),
+views bigint not null default 0 check (views >= 0),
+taps bigint not null default 0 check (taps >= 0),
+updated_at timestamptz not null default now(),
+primary key (profile_id, city_name, country_code)
+);
+
+alter table public.card_city_analytics enable row level security;
+revoke all on public.card_city_analytics from anon, authenticated, public;
+grant select on public.card_city_analytics to authenticated;
+
+drop policy if exists "Company users can read their city analytics" on public.card_city_analytics;
+create policy "Company users can read their city analytics"
+on public.card_city_analytics for select to authenticated
+using (
+    exists (
+        select 1 from public.company_profiles as profile
+        where profile.id = card_city_analytics.profile_id
+          and profile.user_id = (select auth.uid())
+    )
+);
+
 do $$
 declare
 target_table text;
 begin
 if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
-    foreach target_table in array array['card_analytics', 'card_country_analytics'] loop
+    foreach target_table in array array['card_analytics', 'card_analytics_daily', 'card_country_analytics', 'card_city_analytics'] loop
         if not exists (
             select 1 from pg_publication_tables
             where pubname = 'supabase_realtime'
@@ -377,10 +426,12 @@ $$;
 revoke all on function public.delete_company_profile(uuid) from public, anon;
 grant execute on function public.delete_company_profile(uuid) to authenticated;
 
+drop function if exists public.record_public_card_event(uuid, text, text);
 create or replace function public.record_public_card_event(
     requested_profile_id uuid,
     requested_event_type text,
-    requested_country_code text
+    requested_country_code text,
+    requested_city_name text
 )
 returns void
 language plpgsql
@@ -393,6 +444,12 @@ begin
     end if;
     if requested_country_code is not null and requested_country_code !~ '^[A-Z]{2}$' then
         raise exception 'Country must be a two-letter ISO code.';
+    end if;
+    if requested_city_name is not null and (
+        char_length(btrim(requested_city_name)) not between 1 and 100
+        or requested_city_name ~ '[[:cntrl:]]'
+    ) then
+        raise exception 'City name is invalid.';
     end if;
     if not exists (
         select 1 from public.company_profiles as profile
@@ -412,6 +469,17 @@ begin
         views = public.card_analytics.views + excluded.views,
         taps = public.card_analytics.taps + excluded.taps,
         updated_at = now();
+    insert into public.card_analytics_daily (profile_id, event_date, views, taps)
+    values (
+        requested_profile_id,
+        (now() at time zone 'UTC')::date,
+        case when requested_event_type = 'view' then 1 else 0 end,
+        case when requested_event_type = 'tap' then 1 else 0 end
+    )
+    on conflict (profile_id, event_date) do update set
+        views = public.card_analytics_daily.views + excluded.views,
+        taps = public.card_analytics_daily.taps + excluded.taps,
+        updated_at = now();
     if requested_country_code is not null then
         insert into public.card_country_analytics (profile_id, country_code, views, taps)
         values (
@@ -425,11 +493,25 @@ begin
             taps = public.card_country_analytics.taps + excluded.taps,
             updated_at = now();
     end if;
+    if requested_city_name is not null and requested_country_code is not null then
+        insert into public.card_city_analytics (profile_id, city_name, country_code, views, taps)
+        values (
+            requested_profile_id,
+            btrim(requested_city_name),
+            requested_country_code,
+            case when requested_event_type = 'view' then 1 else 0 end,
+            case when requested_event_type = 'tap' then 1 else 0 end
+        )
+        on conflict (profile_id, city_name, country_code) do update set
+            views = public.card_city_analytics.views + excluded.views,
+            taps = public.card_city_analytics.taps + excluded.taps,
+            updated_at = now();
+    end if;
 end;
 $$;
 
-revoke all on function public.record_public_card_event(uuid, text, text) from public, anon, authenticated;
-grant execute on function public.record_public_card_event(uuid, text, text) to service_role;
+revoke all on function public.record_public_card_event(uuid, text, text, text) from public, anon, authenticated;
+grant execute on function public.record_public_card_event(uuid, text, text, text) to service_role;
 
 create or replace function public.get_company_card_analytics()
 returns table (profile_id uuid, full_name text, views bigint, taps bigint)
@@ -532,6 +614,105 @@ $$;
 
 revoke all on function public.get_company_dashboard_stats() from public;
 grant execute on function public.get_company_dashboard_stats() to authenticated;
+
+create or replace function public.get_company_analytics_timeseries(
+    requested_profile_id uuid,
+    requested_start_date date,
+    requested_end_date date
+)
+returns table (
+    event_date date,
+    views bigint,
+    taps bigint,
+    leads bigint
+)
+language plpgsql
+stable
+security invoker
+set search_path = ''
+as $$
+begin
+    if requested_start_date is null or requested_end_date is null
+       or requested_end_date < requested_start_date
+       or requested_end_date - requested_start_date > 365 then
+        raise exception 'Choose a valid date range of 366 days or less.';
+    end if;
+
+    return query
+    with owned_profiles as (
+        select profile.id
+        from public.company_profiles as profile
+        where profile.user_id = (select auth.uid())
+          and (requested_profile_id is null or profile.id = requested_profile_id)
+    ),
+    date_range as (
+        select days.generated_day::date as day
+        from generate_series(
+            requested_start_date::timestamp,
+            requested_end_date::timestamp,
+            interval '1 day'
+        ) as days(generated_day)
+    ),
+    daily_events as (
+        select daily.event_date, sum(daily.views)::bigint as views, sum(daily.taps)::bigint as taps
+        from public.card_analytics_daily as daily
+        join owned_profiles on owned_profiles.id = daily.profile_id
+        where daily.event_date between requested_start_date and requested_end_date
+        group by daily.event_date
+    ),
+    daily_leads as (
+        select (exchange.created_at at time zone 'UTC')::date as day, count(*)::bigint as leads
+        from public.card_contact_exchanges as exchange
+        join owned_profiles on owned_profiles.id = exchange.profile_id
+        where exchange.created_at >= requested_start_date::timestamp at time zone 'UTC'
+          and exchange.created_at < (requested_end_date + 1)::timestamp at time zone 'UTC'
+        group by (exchange.created_at at time zone 'UTC')::date
+    )
+    select
+        date_range.day,
+        coalesce(daily_events.views, 0),
+        coalesce(daily_events.taps, 0),
+        coalesce(daily_leads.leads, 0)
+    from date_range
+    left join daily_events on daily_events.event_date = date_range.day
+    left join daily_leads on daily_leads.day = date_range.day
+    order by date_range.day;
+end;
+$$;
+
+revoke all on function public.get_company_analytics_timeseries(uuid, date, date) from public;
+grant execute on function public.get_company_analytics_timeseries(uuid, date, date) to authenticated;
+
+create or replace function public.get_company_location_summary(requested_profile_id uuid)
+returns table (top_city text, total_locations bigint, total_visits bigint)
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+    with owned_profiles as (
+        select profile.id
+        from public.company_profiles as profile
+        where profile.user_id = (select auth.uid())
+          and (requested_profile_id is null or profile.id = requested_profile_id)
+    ),
+    cities as (
+        select
+            locations.city_name,
+            locations.country_code,
+            sum(locations.views)::bigint as views
+        from public.card_city_analytics as locations
+        join owned_profiles on owned_profiles.id = locations.profile_id
+        group by locations.city_name, locations.country_code
+    )
+    select
+        (select city_name || ', ' || country_code from cities order by views desc, city_name limit 1),
+        (select count(*) from cities),
+        coalesce((select sum(views) from cities), 0)::bigint
+$$;
+
+revoke all on function public.get_company_location_summary(uuid) from public;
+grant execute on function public.get_company_location_summary(uuid) to authenticated;
 
 drop function if exists public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean);
 create function public.submit_public_card_exchange(

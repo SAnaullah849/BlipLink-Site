@@ -10,12 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="dashboard.css?v=13">
+    <link rel="stylesheet" href="dashboard.css?v=14">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    <script src="dashboard.js?v=13" defer></script>
+    <script src="dashboard.js?v=14" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -126,16 +124,13 @@
                         </div>
                         <div class="analytics-summary">
                             <article class="panel analytics-stat">
-                                <span class="analytics-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 5a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 5v1"/></svg></span>
-                                <div><span class="eyebrow">USED PROFILES</span><strong id="totalProfiles">0</strong></div>
+                                <div><span class="eyebrow">TOTAL VIEWS</span><strong id="totalCardViews">0</strong></div>
                             </article>
                             <article class="panel analytics-stat">
-                                <span class="analytics-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
-                                <div><span class="eyebrow">PROFILE VISITS</span><strong id="totalCardViews">0</strong></div>
+                                <div><span class="eyebrow">LAST 30 DAYS</span><strong id="last30Views">0</strong></div>
                             </article>
                             <article class="panel analytics-stat">
-                                <span class="analytics-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-9"/><path d="M15 6h6v6"/></svg></span>
-                                <div><span class="eyebrow">NEW LEADS</span><strong id="totalNewLeads">0</strong></div>
+                                <div><span class="eyebrow">TOP CITY</span><strong id="topCity" class="analytics-city-value">—</strong></div>
                             </article>
                         </div>
                         <section class="panel analytics-panel" aria-labelledby="analyticsTitle">
@@ -144,23 +139,28 @@
                                     <span class="eyebrow">PERFORMANCE</span>
                                     <h2 id="analyticsTitle">Stats</h2>
                                 </div>
-                                <span class="analytics-period">All time</span>
+                                <span id="analyticsPeriod" class="analytics-period">Last 30 days</span>
+                            </div>
+                            <div class="analytics-filters">
+                                <label class="analytics-filter-profile" for="analyticsProfileSelect">
+                                    <span class="visually-hidden">Profile</span>
+                                    <select id="analyticsProfileSelect"><option value="">All profiles</option></select>
+                                </label>
+                                <div class="analytics-date-range">
+                                    <label for="analyticsStartDate">From</label>
+                                    <input id="analyticsStartDate" type="date">
+                                    <span aria-hidden="true">—</span>
+                                    <label for="analyticsEndDate">To</label>
+                                    <input id="analyticsEndDate" type="date">
+                                </div>
+                                <button id="applyAnalyticsFilter" class="button button-primary" type="button">Apply</button>
                             </div>
                             <div class="chart-legend" aria-label="Chart legend">
                                 <span><i class="legend-taps"></i> Taps</span>
                                 <span><i class="legend-leads"></i> Leads</span>
                             </div>
                             <p id="analyticsMessage" class="inline-message" role="status" aria-live="polite">Loading analytics…</p>
-                            <div id="analyticsChart" class="analytics-chart" role="img" aria-label="Profile taps and leads chart"></div>
-                        </section>
-                        <section class="panel country-analytics-panel" aria-labelledby="countryAnalyticsTitle">
-                            <div class="panel-heading">
-                                <div><span class="eyebrow">AUDIENCE</span><h2 id="countryAnalyticsTitle">Visitors by country</h2></div>
-                                <span id="countryAnalyticsTotal" class="analytics-period">0 visits</span>
-                            </div>
-                            <p id="countryAnalyticsMessage" class="inline-message" role="status" aria-live="polite">Loading country analytics…</p>
-                            <div id="countryMap" class="country-map" role="img" aria-label="Visitor map by country"></div>
-                            <div id="countryAnalyticsList" class="country-analytics-list"></div>
+                            <div id="analyticsChart" class="analytics-chart" role="img" aria-label="Daily profile taps and leads chart"></div>
                         </section>
                     </div>
                     <aside class="overview-aside">

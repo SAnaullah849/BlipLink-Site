@@ -36,28 +36,7 @@
     let selectedBanner = null;
     let removeBanner = false;
     let realtimeChannel;
-    let countryMap;
     let notificationLeads = [];
-    const COUNTRY_CENTERS = {
-        US: [39.8, -98.6], CA: [56.1, -106.3], MX: [23.6, -102.5], BR: [-10.8, -52.9],
-        AR: [-38.4, -63.6], CL: [-35.7, -71.5], CO: [4.6, -74.1], PE: [-9.2, -75.0],
-        GB: [55.4, -3.4], IE: [53.4, -8.2], FR: [46.2, 2.2], DE: [51.2, 10.4],
-        ES: [40.5, -3.7], PT: [39.4, -8.2], IT: [41.9, 12.6], NL: [52.1, 5.3],
-        BE: [50.5, 4.5], CH: [46.8, 8.2], AT: [47.5, 14.6], PL: [52.0, 19.1],
-        UA: [48.4, 31.2], RU: [61.5, 105.3], TR: [38.9, 35.2], SA: [23.9, 45.1],
-        AE: [23.4, 53.8], IL: [31.0, 34.9], JO: [30.6, 36.2], IQ: [33.2, 43.7],
-        IR: [32.4, 53.7], EG: [26.8, 30.8], MA: [31.8, -7.1], ZA: [-29.0, 24.0],
-        NG: [9.1, 8.7], KE: [0.0, 37.9], ET: [9.1, 40.5], IN: [20.6, 78.9],
-        PK: [30.4, 69.3], BD: [23.7, 90.4], CN: [35.9, 104.2], JP: [36.2, 138.3],
-        KR: [36.5, 127.9], SG: [1.35, 103.8], ID: [-0.8, 113.9], TH: [15.9, 100.9],
-        VN: [16.2, 107.8], MY: [4.2, 102.0], PH: [12.9, 121.8], AU: [-25.3, 133.8],
-        NZ: [-40.9, 174.9], KZ: [48.0, 67.0], UZ: [41.4, 64.6], AZ: [40.1, 47.6],
-        GE: [42.3, 43.4], AM: [40.1, 45.0], SE: [60.1, 18.6], NO: [60.5, 8.5],
-        FI: [64.0, 26.0], DK: [56.3, 9.5], IS: [64.9, -19.0], GR: [39.1, 21.8],
-        CZ: [49.8, 15.5], RO: [45.9, 25.0], HU: [47.2, 19.5], HR: [45.1, 15.2],
-        RS: [44.0, 21.0], BG: [42.7, 25.5], TN: [34.0, 9.0], GH: [7.9, -1.0],
-        TZ: [-6.4, 34.9], UG: [1.4, 32.3], SN: [14.5, -14.5], CI: [7.5, -5.5],
-    };
 
     const byId = id => document.getElementById(id);
 
@@ -79,6 +58,7 @@
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
         byId('refreshCrmButton').addEventListener('click', loadCrmLeads);
         byId('addProfileButton').addEventListener('click', createProfile);
+        byId('applyAnalyticsFilter').addEventListener('click', loadAnalytics);
         byId('photoInput').addEventListener('change', handlePhotoSelection);
         byId('removePhotoButton').addEventListener('click', handlePhotoRemoval);
         byId('bannerInput').addEventListener('change', handleBannerSelection);
@@ -138,6 +118,7 @@
         currentUser = data.session.user;
         showDashboard();
         await loadProfiles();
+        initializeAnalyticsFilters();
         await loadLeads();
         await loadCrmLeads();
         await loadAnalytics();
@@ -245,6 +226,7 @@
             profiles = [createdProfile];
         }
 
+        refreshAnalyticsProfileOptions();
         const activeProfile = profiles.find(item => item.id === selectedProfileId) || profiles[0];
         await loadProfile(activeProfile);
         renderCompanyProfiles();
@@ -298,6 +280,7 @@
                 .single();
             if (error) throw new Error(`Unable to create profile: ${error.message}`);
             profiles.push(data);
+            refreshAnalyticsProfileOptions();
             await loadProfile(data);
             renderCompanyProfiles();
             renderMyProfiles();
@@ -429,6 +412,7 @@
             }
         }
         profiles = profiles.filter(profileItem => profileItem.id !== item.id);
+        refreshAnalyticsProfileOptions();
         if (profile.id === item.id) await loadProfile(profiles[0]);
         renderCompanyProfiles();
         renderMyProfiles();
@@ -1145,103 +1129,103 @@
 
     async function loadAnalytics() {
         const message = byId('analyticsMessage');
+        const button = byId('applyAnalyticsFilter');
+        const range = getAnalyticsDateRange();
+        if (!range) {
+            message.textContent = 'Choose valid start and end dates, no more than 366 days apart.';
+            return;
+        }
+
+        const profileId = byId('analyticsProfileSelect').value || null;
+        const lastThirtyDays = getLastThirtyDayRange();
+        button.disabled = true;
+        message.textContent = 'Loading your analytics…';
         try {
-            const { data, error } = await supabaseClient.rpc('get_company_dashboard_stats');
-            if (error) throw new Error(error.message);
-            const rows = data || [];
-            const totalViews = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
-            const totalLeads = rows.reduce((sum, row) => sum + Number(row.leads || 0), 0);
-            byId('totalProfiles').textContent = String(profiles.length);
+            const [statsResult, seriesResult, recentResult, locationsResult] = await Promise.all([
+                supabaseClient.rpc('get_company_dashboard_stats'),
+                getAnalyticsTimeseries(profileId, range.start, range.end),
+                getAnalyticsTimeseries(profileId, lastThirtyDays.start, lastThirtyDays.end),
+                supabaseClient.rpc('get_company_location_summary', {
+                    requested_profile_id: profileId,
+                }),
+            ]);
+            if (statsResult.error) throw new Error(`Unable to load totals: ${statsResult.error.message}`);
+            if (seriesResult.error) throw new Error(`Unable to load daily stats: ${seriesResult.error.message}`);
+            if (recentResult.error) throw new Error(`Unable to load last-30-day views: ${recentResult.error.message}`);
+            if (locationsResult.error) throw new Error(`Unable to load top city: ${locationsResult.error.message}`);
+
+            const stats = (statsResult.data || []).filter(row => !profileId || row.profile_id === profileId);
+            const totalViews = stats.reduce((sum, row) => sum + Number(row.views || 0), 0);
+            const recentViews = (recentResult.data || []).reduce((sum, row) => sum + Number(row.views || 0), 0);
+            const location = Array.isArray(locationsResult.data) ? locationsResult.data[0] : locationsResult.data;
             byId('totalCardViews').textContent = totalViews.toLocaleString();
-            byId('totalNewLeads').textContent = totalLeads.toLocaleString();
-            message.textContent = 'Taps count interactions with links and actions. Only aggregate totals and country codes are stored; no IP addresses or precise locations.';
-            renderAnalyticsChart(rows);
+            byId('last30Views').textContent = recentViews.toLocaleString();
+            byId('topCity').textContent = location?.top_city || '—';
+            byId('topCity').title = location?.top_city || 'City analytics will appear after visitors arrive through a supported hosting region.';
+            byId('analyticsPeriod').textContent = formatAnalyticsPeriod(range.start, range.end);
+            message.textContent = 'Daily taps and leads are shown for the selected dates. Daily history begins after the analytics schema is applied; existing all-time view totals are retained.';
+            renderAnalyticsChart(seriesResult.data || []);
             renderRecentLeads();
-            await loadCountryAnalytics();
         } catch (error) {
-            message.textContent = `Unable to load analytics: ${error.message}`;
+            const details = error.message || 'Unknown analytics error.';
+            message.textContent = /PGRST202|PGRST204|42883|42P01|42703|schema cache/i.test(details)
+                ? `Apply the latest dashboard/schema.sql in Supabase to enable daily analytics. Details: ${details}`
+                : `Unable to load analytics: ${details}`;
             console.error('Card analytics load failed:', error);
+        } finally {
+            button.disabled = false;
         }
     }
 
-    async function loadCountryAnalytics() {
-        const message = byId('countryAnalyticsMessage');
-        const list = byId('countryAnalyticsList');
-        if (!profiles.length) {
-            byId('countryAnalyticsTotal').textContent = '0 visits';
-            message.textContent = 'Create a profile to start collecting visitor analytics.';
-            renderCountryMap([]);
-            list.replaceChildren();
-            return;
-        }
-        try {
-            const { data, error } = await supabaseClient
-                .from('card_country_analytics')
-                .select('country_code, views, taps')
-                .in('profile_id', profiles.map(item => item.id));
-            if (error) throw new Error(error.message);
-            const rows = (data || []).sort((a, b) => Number(b.views) - Number(a.views));
-            const totalViews = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
-            byId('countryAnalyticsTotal').textContent = `${totalViews.toLocaleString()} ${totalViews === 1 ? 'visit' : 'visits'}`;
-            message.textContent = rows.length
-                ? 'Visitor locations are estimated from the hosting provider’s country header. No IP addresses are stored.'
-                : 'Country activity will appear after your cards receive visits on the deployed site.';
-            renderCountryMap(rows);
-            renderCountryList(rows);
-        } catch (error) {
-            message.textContent = `Unable to load country analytics: ${error.message}`;
-            list.replaceChildren();
-            console.error('Country analytics load failed:', error);
+    function initializeAnalyticsFilters() {
+        refreshAnalyticsProfileOptions();
+        const { start, end } = getLastThirtyDayRange();
+        byId('analyticsStartDate').value = start;
+        byId('analyticsEndDate').value = end;
+    }
+
+    function refreshAnalyticsProfileOptions() {
+        const select = byId('analyticsProfileSelect');
+        const selectedProfileId = select.value;
+        select.replaceChildren(new Option('All profiles', ''));
+        profiles.forEach(item => {
+            select.add(new Option(item.full_name || 'Untitled profile', item.id));
+        });
+        if (profiles.some(item => item.id === selectedProfileId)) {
+            select.value = selectedProfileId;
         }
     }
 
-    function renderCountryMap(rows) {
-        const element = byId('countryMap');
-        if (!window.L) {
-            element.textContent = 'The map could not load. Check your connection and refresh the dashboard.';
-            return;
-        }
-        if (!countryMap) {
-            countryMap = window.L.map(element, { worldCopyJump: true, scrollWheelZoom: false }).setView([22, 5], 2);
-            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-                maxZoom: 7,
-            }).addTo(countryMap);
-            countryMarkerLayer = window.L.layerGroup().addTo(countryMap);
-        }
-        countryMarkerLayer.clearLayers();
-        for (const row of rows) {
-            const center = COUNTRY_CENTERS[row.country_code];
-            if (!center) continue;
-            const views = Number(row.views || 0);
-            window.L.circleMarker(center, {
-                radius: Math.min(18, 6 + Math.log2(views + 1) * 2),
-                color: '#087bff',
-                weight: 1,
-                fillColor: '#087bff',
-                fillOpacity: 0.58,
-            }).bindPopup(`${getCountryName(row.country_code)}: ${views.toLocaleString()} visits`).addTo(countryMarkerLayer);
-        }
-        window.requestAnimationFrame(() => countryMap.invalidateSize());
+    function getAnalyticsDateRange() {
+        const start = byId('analyticsStartDate').value;
+        const end = byId('analyticsEndDate').value;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || end < start) return null;
+        const days = (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000;
+        return days > 365 ? null : { start, end };
     }
 
-    function renderCountryList(rows) {
-        const container = byId('countryAnalyticsList');
-        const displayNames = new Intl.DisplayNames(undefined, { type: 'region' });
-        container.replaceChildren(...rows.slice(0, 8).map(row => {
-            const item = document.createElement('div');
-            item.className = 'country-analytics-row';
-            const name = document.createElement('span');
-            name.textContent = getCountryName(row.country_code, displayNames);
-            const count = document.createElement('strong');
-            count.textContent = Number(row.views || 0).toLocaleString();
-            item.append(name, count);
-            return item;
-        }));
+    function getLastThirtyDayRange() {
+        const endDate = new Date();
+        const start = new Date(endDate);
+        start.setUTCDate(start.getUTCDate() - 29);
+        return {
+            start: start.toISOString().slice(0, 10),
+            end: endDate.toISOString().slice(0, 10),
+        };
     }
 
-    function getCountryName(code, displayNames = new Intl.DisplayNames(undefined, { type: 'region' })) {
-        return displayNames.of(code) || code;
+    async function getAnalyticsTimeseries(profileId, start, end) {
+        return supabaseClient.rpc('get_company_analytics_timeseries', {
+            requested_profile_id: profileId,
+            requested_start_date: start,
+            requested_end_date: end,
+        });
+    }
+
+    function formatAnalyticsPeriod(start, end) {
+        const format = value => new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeZone: 'UTC' })
+            .format(new Date(`${value}T12:00:00Z`));
+        return start === end ? format(start) : `${format(start)} – ${format(end)}`;
     }
 
     async function loadSubscription() {
@@ -1314,11 +1298,6 @@
                 schema: 'public',
                 table: 'card_analytics',
             }, () => void loadAnalytics())
-            .on('postgres_changes', {
-                event: '*',
-                schema: 'public',
-                table: 'card_country_analytics',
-            }, () => void loadAnalytics())
             .subscribe(status => {
                 if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
                     console.warn(`Lead notification realtime channel status: ${status}`);
@@ -1382,31 +1361,35 @@
             chart.replaceChildren();
             const empty = document.createElement('p');
             empty.className = 'chart-empty';
-            empty.textContent = 'Your profile activity will appear here after people visit your cards.';
+            empty.textContent = 'No activity in this date range yet. Views and taps will appear as people use your public cards.';
             chart.append(empty);
             return;
         }
 
         const maxValue = Math.max(1, ...rows.flatMap(row => [Number(row.taps || 0), Number(row.leads || 0)]));
-        chart.replaceChildren(...rows.map(row => {
+        chart.replaceChildren(...rows.map((row, index) => {
             const group = document.createElement('div');
             group.className = 'chart-profile';
             const bars = document.createElement('div');
             bars.className = 'chart-bars';
+            const labelText = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })
+                .format(new Date(`${row.event_date}T12:00:00Z`));
+            group.setAttribute('aria-label', `${labelText}: ${Number(row.taps || 0)} taps, ${Number(row.leads || 0)} leads`);
             for (const [className, value, label] of [
                 ['chart-bar-taps', Number(row.taps || 0), 'taps'],
                 ['chart-bar-leads', Number(row.leads || 0), 'leads'],
             ]) {
                 const column = document.createElement('div');
                 column.className = `chart-bar ${className}`;
-                column.style.height = `${Math.max(value ? 4 : 0, (value / maxValue) * 100)}%`;
-                column.title = `${value.toLocaleString()} ${label}`;
+                column.style.height = value ? `${Math.max(2, (value / maxValue) * 100)}%` : '0%';
+                column.title = `${labelText} · ${value.toLocaleString()} ${label}`;
                 column.setAttribute('aria-label', `${value.toLocaleString()} ${label}`);
                 bars.append(column);
             }
             const label = document.createElement('span');
             label.className = 'chart-profile-label';
-            label.textContent = row.full_name || 'Untitled';
+            label.textContent = labelText;
+            label.hidden = rows.length > 14 && index % Math.ceil(rows.length / 14) !== 0;
             group.append(bars, label);
             return group;
         }));
@@ -1548,9 +1531,6 @@
         };
         byId('dashboardPageTitle').textContent = titles[page];
         document.title = `${titles[page]} | BlipLink Company Dashboard`;
-        if (page === 'overview' && countryMap) {
-            window.setTimeout(() => countryMap.invalidateSize(), 100);
-        }
     }
 
     function getInitials(value) {

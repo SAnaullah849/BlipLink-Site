@@ -165,6 +165,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ profileId, eventType }),
+                keepalive: true,
             });
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));

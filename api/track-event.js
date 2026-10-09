@@ -37,6 +37,18 @@ module.exports = async function trackEvent(req, res) {
     const countryCode = /^[A-Z]{2}$/.test(countryHeader) && countryHeader !== 'XX'
         ? countryHeader
         : null;
+    const cityHeader = String(req.headers['x-vercel-ip-city'] || '').trim();
+    let cityName = null;
+    if (cityHeader && countryCode) {
+        try {
+            const decodedCity = decodeURIComponent(cityHeader.replace(/\+/g, ' ')).normalize('NFC').trim();
+            if (decodedCity.length > 0 && decodedCity.length <= 100 && !/[\u0000-\u001f\u007f]/.test(decodedCity)) {
+                cityName = decodedCity;
+            }
+        } catch {
+            cityName = null;
+        }
+    }
 
     try {
         const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/rpc/record_public_card_event`, {
@@ -50,6 +62,7 @@ module.exports = async function trackEvent(req, res) {
                 requested_profile_id: profileId,
                 requested_event_type: eventType,
                 requested_country_code: countryCode,
+                requested_city_name: cityName,
             }),
         });
         if (!response.ok) {

@@ -6,7 +6,7 @@ The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL
 
 The dashboard frontend is configured for the BlipLink Supabase project in [`config.js`](./config.js). Its `sb_publishable_...` key is intended for browser use; never put a Supabase secret/service-role key in this file.
 
-Run the current [`schema.sql`](./schema.sql) in the Supabase SQL Editor before using the dashboard. It creates a company profile and an inactive subscription row for new Auth users, backfills both for existing users, enables profile locking/deletion, country analytics, lead notifications, and the CRM pipeline. Re-running the script preserves existing card URLs. Before inviting companies:
+Run the current [`schema.sql`](./schema.sql) in the Supabase SQL Editor before using the dashboard. It creates a company profile and an inactive subscription row for new Auth users, backfills both for existing users, enables profile locking/deletion, daily analytics, lead notifications, and the CRM pipeline. Re-running the script preserves existing card URLs. Before inviting companies:
 
 1. In **Authentication → Settings → General**, disable public sign-ups. Invitations are sent by an authorized project administrator; visitors cannot register themselves.
 2. In **Authentication → URL Configuration**, set **Site URL** to `https://bliplink.vercel.app/login.html`. Add that exact URL under **Redirect URLs** and remove old localhost/development entries. Supabase uses the Site URL as the return destination when an invitation is sent from its Users screen; the deployed login page handles the invite and password setup. This project-level Auth URL setting cannot be changed by `schema.sql`.
@@ -19,16 +19,18 @@ Note: the invitation redirect is configured in the Supabase dashboard, not in th
 
 The `profile-photos` bucket is limited to 5 MB image uploads. Profile images are public so they can load on shared digital cards; upload, update, and delete access remains restricted to the owner’s folder.
 
-## Country analytics and server configuration
+## Analytics and server configuration
 
-Visitor country counts are derived server-side from Vercel’s `x-vercel-ip-country` request header (Cloudflare’s `cf-ipcountry` header is also recognized). The app stores only aggregate ISO country codes and view/tap counts; it never stores raw IP addresses or precise location. The dashboard uses Leaflet with OpenStreetMap tiles, so map tiles require an internet connection.
+The Overview shows all-time views, views during the latest 30 days, the top city, and a daily taps/leads chart that can be filtered by profile and date range. New view/tap events update all-time counters and daily aggregates; new leads are grouped by their UTC date. Daily chart history starts when the latest schema is installed; existing all-time totals are retained, but older daily buckets cannot be reconstructed from those totals.
+
+The top-city metric uses Vercel’s trusted `x-vercel-ip-city` and `x-vercel-ip-country` headers. Only city/country aggregate counts are stored—never visitor IP addresses or precise coordinates. The city metric remains empty when the hosting provider does not supply a supported city header. No map is included in the dashboard.
 
 The public card sends analytics to [`../api/track-event.js`](../api/track-event.js). In the Vercel project settings, configure these **server-side environment variables** for every deployed environment:
 
 - `SUPABASE_URL`: the project URL.
 - `SUPABASE_SERVICE_ROLE_KEY`: the Supabase service-role secret. Keep this only in Vercel server-side environment variables; never add it to `config.js`, browser code, or a committed file.
 
-Redeploy after setting the variables, then run the latest `schema.sql`. Without the server function and environment variables, public cards still render, but view/tap totals and country data will not be recorded. A static Live Server session does not run Vercel API functions; use `vercel dev` with the server-side variables to test analytics locally. Local requests usually have no trusted country header, so they will not be included in a country.
+Redeploy after setting the variables, then run the latest `schema.sql`. Without the server function and environment variables, public cards still render, but view/tap totals, daily chart data, and top-city counts will not be recorded. A static Live Server session does not run Vercel API functions; use `vercel dev` with the server-side variables to test analytics locally. Local requests usually have no trusted city header, so they will not contribute to top-city counts.
 
 ## Manual annual subscriptions
 
@@ -61,7 +63,7 @@ Visitors can submit a contact exchange after explicitly consenting. Those contac
 - Public, responsive profile cards with plain contact details, social icons, and downloadable vCard contacts.
 - QR codes, card sharing, consent-based lead capture, an owner-only Leads inbox, and a CRM pipeline.
 - Multiple employee profiles per company login, with view/edit/lock/unlock/delete actions and one-profile minimum.
-- Aggregate views, taps, and country-level visitor counts; no raw IP or precise location is stored.
+- Aggregate view/tap totals, daily chart history, and city-level visitor counts; no raw IP or precise coordinates are stored.
 - Real-time new-lead notifications, a mobile floating notification button, and refreshed visitor analytics.
 - Read-only subscription status at $6.99/year, manually activated by an administrator.
 - WhatsApp support at [`https://wa.me/77770665790`](https://wa.me/77770665790).
