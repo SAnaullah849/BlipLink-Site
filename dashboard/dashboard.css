@@ -1608,6 +1608,7 @@ textarea:focus {
     min-width: 0;
     min-height: 96px;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     padding: 13px;
     align-items: center;
@@ -1619,7 +1620,9 @@ textarea:focus {
 .analytics-stat > div {
     display: grid;
     min-width: 0;
+    justify-items: center;
     gap: 5px;
+    text-align: center;
 }
 
 .analytics-stat .eyebrow {

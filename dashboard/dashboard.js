@@ -1121,6 +1121,7 @@
         const message = byId('analyticsMessage');
         const button = byId('applyAnalyticsFilter');
         const range = getAnalyticsDateRange();
+        message.hidden = false;
         if (!range) {
             message.textContent = 'Choose valid start and end dates, no more than 366 days apart.';
             return;
@@ -1148,7 +1149,8 @@
             byId('totalLeads').textContent = totalLeads.toLocaleString();
             byId('last30Views').textContent = recentViews.toLocaleString();
             byId('analyticsPeriod').textContent = formatAnalyticsPeriod(range.start, range.end);
-            message.textContent = 'The chart shows recorded taps and leads for each date in the selected range. Daily view history starts after the latest analytics schema is applied; existing all-time totals are retained.';
+            message.hidden = true;
+            message.textContent = '';
             renderAnalyticsChart(seriesResult.data || []);
             renderRecentLeads();
         } catch (error) {
