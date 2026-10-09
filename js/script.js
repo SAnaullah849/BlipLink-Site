@@ -99,7 +99,7 @@ function renderDynamicContent() {
                 <div class="prod-icon">${getProdIcon(index)}</div>
                 <h3>${item.name}</h3>
                 <p>${item.desc}</p>
-                <a href="${getWhatsAppQuoteUrl(t, item.name)}" class="btn-outline">${t.common.requestQuote}</a>
+                <a href="${getQuoteEmailUrl(t, item.name)}" class="btn-outline">${t.common.requestQuote}</a>
             </div>
         `).join('');
     }
@@ -114,7 +114,7 @@ function renderDynamicContent() {
                 <div class="cat-info">
                     <h3>${item.name}</h3>
                     <p>${item.description}</p>
-                    <a href="${getWhatsAppQuoteUrl(t, item.name)}" class="btn-outline">${t.common.requestQuote}</a>
+                    <a href="${getQuoteEmailUrl(t, item.name)}" class="btn-outline">${t.common.requestQuote}</a>
                 </div>
             </article>
         `).join('');
@@ -132,9 +132,10 @@ function renderDynamicContent() {
     }
 }
 
-function getWhatsAppQuoteUrl(translationsForLanguage, product) {
+function getQuoteEmailUrl(translationsForLanguage, product) {
     const message = translationsForLanguage.common.quoteMessage.replace('{product}', product);
-    return getWhatsAppUrl(message);
+    const subject = `BlipLink quote request - ${product}`;
+    return `mailto:devops@shaunco.ai?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
 }
 
 function getWhatsAppUrl(message) {

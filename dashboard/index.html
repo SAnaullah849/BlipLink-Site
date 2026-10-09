@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=16">
+    <link rel="stylesheet" href="dashboard.css?v=18">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=16" defer></script>
+    <script src="dashboard.js?v=18" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -88,7 +88,10 @@
                             <span id="notificationBadge" class="notification-badge" aria-live="polite" aria-atomic="true" hidden>0</span>
                         </button>
                         <section id="notificationPanel" class="notification-panel" aria-label="Notifications" hidden>
-                            <div class="notification-panel-heading"><strong>Notifications</strong><span id="notificationCount">No new alerts</span></div>
+                            <div class="notification-panel-heading">
+                                <div><strong>Notifications</strong><span id="notificationCount">No new alerts</span></div>
+                                <button id="readAllNotifications" class="notification-read-all" type="button">Read all</button>
+                            </div>
                             <div id="notificationList" class="notification-list"><p class="inline-message">New leads will appear here.</p></div>
                             <a href="#leads" class="notification-view-all">View all leads</a>
                         </section>
@@ -123,7 +126,7 @@
                                 <div><span class="eyebrow">TOTAL VIEWS</span><strong id="totalCardViews">0</strong></div>
                             </article>
                             <article class="panel analytics-stat">
-                                <div><span class="eyebrow">LAST 30 DAYS</span><strong id="last30Views">0</strong></div>
+                                <div><span class="eyebrow">VIEWS · LAST 30 DAYS</span><strong id="last30Views" title="Total tracked card views during the most recent 30 UTC calendar days">0</strong></div>
                             </article>
                             <article class="panel analytics-stat">
                                 <div><span class="eyebrow">TOTAL LEADS</span><strong id="totalLeads">0</strong></div>
@@ -157,45 +160,52 @@
                             </div>
                             <p id="analyticsMessage" class="inline-message" role="status" aria-live="polite">Loading analytics…</p>
                             <div id="analyticsChart" class="analytics-chart" role="img" aria-label="Daily profile taps and leads chart"></div>
+                            <a class="analytics-support-link" href="mailto:devops@shaunco.ai?subject=BlipLink%20analytics%20support&amp;body=Hello%20BlipLink%20support%2C%0A%0AI%20need%20help%20with%20my%20analytics.%0A">Need help with analytics? Email support</a>
                         </section>
                     </div>
                     <aside class="overview-aside">
-                        <section class="panel overview-profile-card" aria-labelledby="overviewCardTitle">
-                            <div class="overview-preview-heading">
+                        <section class="panel preview-panel overview-profile-card" aria-label="Profile preview">
+                            <div class="preview-heading">
                                 <span class="eyebrow">LIVE PREVIEW</span>
                                 <span id="overviewPreviewStatus" class="preview-status"><i></i>Your profile</span>
                             </div>
-                            <div class="overview-card-banner">
-                                <img id="overviewBanner" alt="" hidden>
+                            <div class="preview-card">
+                                <div class="preview-cover">
+                                    <img id="overviewBanner" alt="" hidden>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-photo-frame">
+                                        <img id="overviewPhoto" alt="" hidden>
+                                        <span id="overviewPhotoFallback">BL</span>
+                                    </div>
+                                    <h2 id="overviewCardTitle">Your name</h2>
+                                    <p id="overviewCardRole">Your job title</p>
+                                    <span id="overviewCompany" class="preview-company" hidden>Your company</span>
+                                    <p id="overviewBio" class="preview-bio" hidden></p>
+                                    <div id="overviewContacts" class="preview-contacts"></div>
+                                    <div id="overviewSocials" class="preview-socials"></div>
+                                    <div class="preview-qr">
+                                        <img id="overviewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
+                                        <span id="overviewQrPlaceholder">Save your profile to create its QR code.</span>
+                                        <span>Scan to open this card</span>
+                                    </div>
+                                    <a id="overviewAddress" class="preview-address" target="_blank" rel="noopener noreferrer" hidden></a>
+                                </div>
                             </div>
-                            <div class="overview-card-content">
-                                <div class="overview-avatar">
-                                    <img id="overviewPhoto" alt="" hidden>
-                                    <span id="overviewInitials">BL</span>
-                                </div>
-                                <h2 id="overviewCardTitle">Your company</h2>
-                                <p id="overviewCardRole" class="overview-card-role" hidden></p>
-                                <span id="overviewCompany" class="overview-company" hidden></span>
-                                <p id="overviewBio" class="overview-bio" hidden></p>
-                                <div class="overview-contacts">
-                                    <a id="overviewEmail" class="overview-contact" hidden></a>
-                                    <a id="overviewPhone" class="overview-contact" hidden></a>
-                                    <a id="overviewWebsite" class="overview-contact" target="_blank" rel="noopener noreferrer" hidden></a>
-                                </div>
-                                <div id="overviewSocials" class="preview-socials overview-socials"></div>
-                                <div class="preview-qr overview-qr">
-                                    <img id="overviewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
-                                    <span id="overviewQrPlaceholder">Save your profile to create its QR code.</span>
-                                    <span>Scan to open this card</span>
-                                </div>
-                                <a id="overviewAddress" class="preview-address overview-address" target="_blank" rel="noopener noreferrer" hidden></a>
-                                <div class="overview-profile-actions">
-                                    <a id="overviewViewCard" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer">View card ↗</a>
-                                    <button id="overviewCopyCardLink" class="button button-secondary" type="button">Copy link</button>
-                                </div>
-                                <p id="overviewCardLinkText" class="overview-card-link" aria-live="polite"></p>
-                                <a class="overview-edit-link" href="#profile">Edit profile</a>
+                            <div class="preview-actions overview-preview-actions">
+                                <a id="overviewViewCard" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+                                    View card <span aria-hidden="true">↗</span>
+                                </a>
+                                <button id="overviewCopyCardLink" class="button button-secondary" type="button">Copy link</button>
                             </div>
+                            <p id="overviewCardLinkText" class="card-link-text" aria-live="polite"></p>
+                            <p class="preview-hint">Your saved profile appears here just as it does in the editor preview.</p>
+                            <div id="overviewWalletPreview" class="wallet-preview" aria-label="Digital wallet passes" hidden>
+                                <a id="overviewAppleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Apple Wallet</a>
+                                <a id="overviewGoogleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Google Wallet</a>
+                                <span id="overviewWalletPlaceholder">Add wallet pass links to show wallet buttons on your card.</span>
+                            </div>
+                            <p class="wallet-setup-hint">Paste pass links from your Apple or Google Wallet issuer.</p>
                         </section>
                         <section class="panel overview-leads-card">
                             <div class="overview-alert-heading">
@@ -326,6 +336,7 @@
                             View card <span aria-hidden="true">↗</span>
                         </a>
                         <button id="copyCardLinkButton" class="button button-secondary" type="button">Copy link</button>
+                        <button id="printCardButton" class="button button-secondary" type="button">Print card</button>
                     </div>
                     <p id="cardLinkText" class="card-link-text" aria-live="polite">Save your profile to activate its card link.</p>
                     <p class="preview-hint">Your changes appear in this preview as you edit.</p>
@@ -402,8 +413,9 @@
             </section>
 
             <section id="help" class="panel profile-panel dashboard-page" data-dashboard-page="help" aria-labelledby="helpTitle">
-                <div class="panel-heading"><div><span class="eyebrow">WE’RE HERE TO HELP</span><h2 id="helpTitle">Contact support</h2><p>Message our team on WhatsApp and we’ll help you with your BlipLink workspace.</p></div></div>
-                <a class="button button-primary" href="https://wa.me/77770665790" target="_blank" rel="noopener noreferrer">Chat with support on WhatsApp</a>
+                <div class="panel-heading"><div><span class="eyebrow">WE’RE HERE TO HELP</span><h2 id="helpTitle">Contact support</h2><p>Email our support team and your mail app will open a draft addressed to devops@shaunco.ai.</p></div></div>
+                <a class="button button-primary" href="mailto:devops@shaunco.ai?subject=BlipLink%20support%20request&amp;body=Hello%20BlipLink%20support%2C%0A%0AI%20need%20help%20with%20my%20account.%0A">Email support</a>
+                <a class="button button-secondary" href="https://wa.me/77770665790" target="_blank" rel="noopener noreferrer">Chat with support on WhatsApp</a>
             </section>
 
             <section id="cardLeads" class="panel leads-panel dashboard-page" data-dashboard-page="leads" aria-labelledby="leadsTitle">

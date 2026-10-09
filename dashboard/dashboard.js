@@ -49,12 +49,14 @@
         byId('drawerBackdrop').addEventListener('click', closeMobileNavigation);
         byId('accountMenuButton').addEventListener('click', toggleAccountMenu);
         byId('notificationButton').addEventListener('click', toggleNotifications);
+        byId('readAllNotifications').addEventListener('click', readAllNotifications);
         document.addEventListener('click', event => {
             if (!event.target.closest('.account-menu-container')) closeAccountMenu();
             if (!event.target.closest('.notification-container')) closeNotifications();
         });
         byId('profileForm').addEventListener('submit', handleProfileSave);
         byId('copyCardLinkButton').addEventListener('click', handleCopyCardLink);
+        byId('printCardButton').addEventListener('click', () => window.print());
         byId('overviewCopyCardLink').addEventListener('click', handleOverviewCopyCardLink);
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
         byId('refreshCrmButton').addEventListener('click', loadCrmLeads);
@@ -787,20 +789,8 @@
             ['Snapchat', byId('snapchatUrl').value.trim(), 'snapchat'],
         ].filter(([, value, icon]) =>
             value && (icon !== 'whatsapp' || /^\d{7,15}$/.test(value)));
-        const links = socialEntries.map(([label, value, icon]) => {
-            const link = document.createElement('a');
-            link.className = 'preview-social';
-            link.href = icon === 'whatsapp' ? `https://wa.me/${value}` : safePreviewUrl(value);
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.dataset.social = icon;
-            link.setAttribute('aria-label', label);
-            link.title = label;
-            link.append(createBrandIcon(icon));
-            return link;
-        });
         const socials = byId('previewSocials');
-        socials.replaceChildren(...links);
+        renderSocialLinks(socials, socialEntries);
         const appleWalletAvailable = updateWalletPreview('previewAppleWallet', byId('appleWalletUrl').value.trim());
         const googleWalletAvailable = updateWalletPreview('previewGoogleWallet', byId('googleWalletUrl').value.trim());
         const hasWalletLink = appleWalletAvailable || googleWalletAvailable;
@@ -934,12 +924,14 @@
 
             if (!data.length) {
                 leadsCache = [];
+                initializeNotificationReadState(leadsCache);
                 renderRecentLeads();
                 message.textContent = 'No leads yet. Contact details shared from any of your cards will appear here.';
                 return;
             }
 
             leadsCache = data;
+            initializeNotificationReadState(leadsCache);
             renderRecentLeads();
             message.textContent = `${data.length} recent ${data.length === 1 ? 'lead' : 'leads'}`;
             list.replaceChildren(...data.map(lead => createLeadCard(lead, savedIds.has(String(lead.id)))));
@@ -1149,7 +1141,7 @@
             byId('totalLeads').textContent = totalLeads.toLocaleString();
             byId('last30Views').textContent = recentViews.toLocaleString();
             byId('analyticsPeriod').textContent = formatAnalyticsPeriod(range.start, range.end);
-            message.textContent = 'Daily taps and leads are shown for the selected dates. Daily history begins after the analytics schema is applied; existing all-time view totals are retained.';
+            message.textContent = 'The chart shows recorded taps and leads for each date in the selected range. Daily view history starts after the latest analytics schema is applied; existing all-time totals are retained.';
             renderAnalyticsChart(seriesResult.data || []);
             renderRecentLeads();
         } catch (error) {
@@ -1191,12 +1183,12 @@
     }
 
     function getLastThirtyDayRange() {
-        const endDate = new Date();
-        const start = new Date(endDate);
+        const end = new Date().toISOString().slice(0, 10);
+        const start = new Date(`${end}T00:00:00.000Z`);
         start.setUTCDate(start.getUTCDate() - 29);
         return {
             start: start.toISOString().slice(0, 10),
-            end: endDate.toISOString().slice(0, 10),
+            end,
         };
     }
 
@@ -1296,12 +1288,16 @@
         const opening = panel.hidden;
         panel.hidden = !opening;
         byId('notificationButton').setAttribute('aria-expanded', String(opening));
-        if (opening) {
-            const latest = Math.max(0, ...(notificationLeads.concat(leadsCache || [])
-                .map(lead => new Date(lead.created_at).getTime())));
-            if (latest) localStorage.setItem(`bliplink-leads-read-${currentUser.id}`, String(latest));
-            renderNotifications();
+        if (opening) renderNotifications();
+    }
+
+    function readAllNotifications() {
+        const leads = getNotificationLeads();
+        const latest = Math.max(0, ...leads.map(lead => new Date(lead.created_at).getTime()));
+        if (latest) {
+            localStorage.setItem(`bliplink-leads-read-${currentUser.id}`, String(latest));
         }
+        renderNotifications();
     }
 
     function closeNotifications() {
@@ -1309,25 +1305,40 @@
         byId('notificationButton').setAttribute('aria-expanded', 'false');
     }
 
+    function getNotificationLeads() {
+        return [...notificationLeads, ...(leadsCache || [])]
+            .filter((lead, index, all) => all.findIndex(item => item.id === lead.id) === index)
+            .sort((left, right) => new Date(right.created_at) - new Date(left.created_at));
+    }
+
+    function initializeNotificationReadState(leads) {
+        const key = `bliplink-leads-read-${currentUser.id}`;
+        if (localStorage.getItem(key) !== null) return;
+        const latest = Math.max(0, ...leads.map(lead => new Date(lead.created_at).getTime()));
+        localStorage.setItem(key, String(latest || Date.now()));
+    }
+
     function renderNotifications() {
-        const leads = notificationLeads.length ? notificationLeads : (leadsCache || []);
-        const lastRead = Number(localStorage.getItem(`bliplink-leads-read-${currentUser.id}`) || Date.now());
-        const unreadCount = leads.filter(lead => new Date(lead.created_at).getTime() > lastRead).length;
+        const lastRead = Number(localStorage.getItem(`bliplink-leads-read-${currentUser.id}`) || 0);
+        const unreadLeads = getNotificationLeads()
+            .filter(lead => new Date(lead.created_at).getTime() > lastRead);
+        const unreadCount = unreadLeads.length;
         const badge = byId('notificationBadge');
         badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
         badge.hidden = unreadCount === 0;
+        byId('readAllNotifications').hidden = unreadCount === 0;
         byId('notificationCount').textContent = unreadCount
             ? `${unreadCount} new ${unreadCount === 1 ? 'lead' : 'leads'}`
             : 'No new alerts';
         const list = byId('notificationList');
-        if (!leads.length) {
+        if (!unreadLeads.length) {
             const empty = document.createElement('p');
             empty.className = 'inline-message';
-            empty.textContent = 'New leads will appear here as soon as someone shares their contact details.';
+            empty.textContent = 'No new notifications. Your leads are still saved on the Leads page.';
             list.replaceChildren(empty);
             return;
         }
-        list.replaceChildren(...leads.slice(0, 8).map(lead => {
+        list.replaceChildren(...unreadLeads.slice(0, 8).map(lead => {
             const item = document.createElement('article');
             item.className = 'notification-item';
             const name = document.createElement('strong');
@@ -1360,10 +1371,14 @@
             bars.className = 'chart-bars';
             const labelText = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })
                 .format(new Date(`${row.event_date}T12:00:00Z`));
-            group.setAttribute('aria-label', `${labelText}: ${Number(row.taps || 0)} taps, ${Number(row.leads || 0)} leads`);
+            const taps = Number(row.taps || 0);
+            const leads = Number(row.leads || 0);
+            group.dataset.date = row.event_date;
+            group.title = `${row.event_date}: ${taps.toLocaleString()} taps, ${leads.toLocaleString()} leads`;
+            group.setAttribute('aria-label', `${row.event_date}: ${taps.toLocaleString()} taps, ${leads.toLocaleString()} leads`);
             for (const [className, value, label] of [
-                ['chart-bar-taps', Number(row.taps || 0), 'taps'],
-                ['chart-bar-leads', Number(row.leads || 0), 'leads'],
+                ['chart-bar-taps', taps, 'taps'],
+                ['chart-bar-leads', leads, 'leads'],
             ]) {
                 const column = document.createElement('div');
                 column.className = `chart-bar ${className}`;
@@ -1375,7 +1390,7 @@
             const label = document.createElement('span');
             label.className = 'chart-profile-label';
             label.textContent = labelText;
-            label.hidden = rows.length > 14 && index % Math.ceil(rows.length / 14) !== 0;
+            label.hidden = rows.length > 45 && index % Math.ceil(rows.length / 14) !== 0;
             group.append(bars, label);
             return group;
         }));
@@ -1411,45 +1426,35 @@
 
     function renderOverviewProfile() {
         if (!byId('overviewCardTitle')) return;
-        const name = profile.full_name || profile.company_name || 'Your company';
-        byId('overviewCardTitle').textContent = profile.full_name || name;
-        byId('overviewCardRole').textContent = profile.job_title || '';
-        byId('overviewCardRole').hidden = !profile.job_title;
-        byId('overviewCompany').textContent = profile.company_name || '';
+        const name = profile.full_name || 'Your name';
+        byId('overviewCardTitle').textContent = name;
+        byId('overviewCardRole').textContent = profile.job_title || 'Your job title';
+        byId('overviewCardRole').hidden = false;
+        byId('overviewCompany').textContent = profile.company_name || 'Your company';
         byId('overviewCompany').hidden = !profile.company_name;
         byId('overviewBio').textContent = profile.bio || '';
         byId('overviewBio').hidden = !profile.bio;
-        byId('overviewInitials').textContent = getInitials(name);
+        byId('overviewPhotoFallback').textContent = getInitials(name);
         setOverviewImage('overviewPhoto', profile.avatar_path);
         setOverviewImage('overviewBanner', profile.banner_path);
-        setOverviewContact('overviewWebsite', profile.website_url ? `Website: ${profile.website_url}` : '', profile.website_url);
-        setOverviewContact('overviewEmail', profile.contact_email ? `Email: ${profile.contact_email}` : '', profile.contact_email ? `mailto:${profile.contact_email}` : '');
-        setOverviewContact('overviewPhone', profile.phone ? `Phone: ${profile.phone}` : '', profile.phone ? `tel:${profile.phone}` : '');
+        const contactEntries = [
+            ['Email', profile.contact_email],
+            ['Phone', profile.phone],
+            ['Website', profile.website_url],
+        ].filter(([, value]) => value);
+        byId('overviewContacts').replaceChildren(...contactEntries.map(([label, value]) => {
+            const detail = document.createElement('p');
+            detail.className = 'preview-contact';
+            detail.textContent = `${label}: ${value}`;
+            return detail;
+        }));
         const address = byId('overviewAddress');
         address.textContent = profile.address || '';
         address.hidden = !profile.address;
         address.href = profile.address
             ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`
             : '#';
-        renderOverviewSocials();
-        const isPublic = Boolean(profile.full_name && !profile.is_locked);
-        const status = byId('overviewPreviewStatus');
-        status.classList.toggle('preview-status-locked', !isPublic);
-        const statusDot = document.createElement('i');
-        status.replaceChildren(statusDot, document.createTextNode(profile.is_locked ? 'Locked' : isPublic ? 'Your profile' : 'Draft'));
-        const view = byId('overviewViewCard');
-        view.href = profile.id ? `../card.html?id=${encodeURIComponent(profile.id)}` : '#';
-        view.hidden = !isPublic;
-        const cardUrl = isPublic
-            ? new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href
-            : '';
-        setOverviewQrCode(cardUrl);
-        byId('overviewCopyCardLink').disabled = !cardUrl;
-        byId('overviewCardLinkText').textContent = cardUrl;
-    }
-
-    function renderOverviewSocials() {
-        const entries = [
+        const socialEntries = [
             ['LinkedIn', profile.linkedin_url, 'linkedin'],
             ['Instagram', profile.instagram_url, 'instagram'],
             ['WhatsApp', getWhatsAppNumber(profile.whatsapp_url), 'whatsapp'],
@@ -1461,6 +1466,29 @@
             ['Discord', profile.discord_url, 'discord'],
             ['Snapchat', profile.snapchat_url, 'snapchat'],
         ].filter(([, value, icon]) => value && (icon !== 'whatsapp' || /^\d{7,15}$/.test(value)));
+        renderSocialLinks(byId('overviewSocials'), socialEntries);
+        const isPublic = Boolean(profile.full_name && !profile.is_locked);
+        const status = byId('overviewPreviewStatus');
+        status.classList.toggle('preview-status-locked', !isPublic);
+        const statusDot = document.createElement('i');
+        status.replaceChildren(statusDot, document.createTextNode(profile.is_locked ? 'Locked' : isPublic ? 'Your profile' : 'Draft'));
+        const view = byId('overviewViewCard');
+        view.href = isPublic ? `../card.html?id=${encodeURIComponent(profile.id)}` : '#';
+        view.setAttribute('aria-disabled', String(!isPublic));
+        const cardUrl = isPublic
+            ? new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href
+            : '';
+        setOverviewQrCode(cardUrl);
+        byId('overviewCopyCardLink').disabled = !cardUrl;
+        byId('overviewCardLinkText').textContent = cardUrl;
+        const appleWalletAvailable = updateWalletPreview('overviewAppleWallet', profile.apple_wallet_url || '');
+        const googleWalletAvailable = updateWalletPreview('overviewGoogleWallet', profile.google_wallet_url || '');
+        const hasWalletLink = appleWalletAvailable || googleWalletAvailable;
+        byId('overviewWalletPlaceholder').hidden = Boolean(hasWalletLink);
+        byId('overviewWalletPreview').hidden = !hasWalletLink;
+    }
+
+    function renderSocialLinks(container, entries) {
         const links = entries.map(([label, value, icon]) => {
             const link = document.createElement('a');
             link.className = 'preview-social';
@@ -1473,7 +1501,7 @@
             link.append(createBrandIcon(icon));
             return link;
         });
-        byId('overviewSocials').replaceChildren(...links);
+        container.replaceChildren(...links);
     }
 
     function setOverviewQrCode(cardUrl) {
@@ -1499,7 +1527,7 @@
 
     function setOverviewImage(id, path) {
         const image = byId(id);
-        const fallback = id === 'overviewPhoto' ? byId('overviewInitials') : null;
+        const fallback = id === 'overviewPhoto' ? byId('overviewPhotoFallback') : null;
         if (!path) {
             image.removeAttribute('src');
             image.hidden = true;
@@ -1514,14 +1542,6 @@
             if (fallback) fallback.hidden = false;
         };
         if (fallback) fallback.hidden = true;
-    }
-
-    function setOverviewContact(id, text, href) {
-        const link = byId(id);
-        link.textContent = text || '';
-        link.hidden = !text || !href;
-        if (href) link.href = href;
-        else link.removeAttribute('href');
     }
 
     async function handleOverviewCopyCardLink() {
