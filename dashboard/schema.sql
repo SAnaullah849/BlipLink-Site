@@ -299,6 +299,14 @@ check (
 )
 );
 
+alter table public.company_subscriptions
+    add column if not exists status text not null default 'inactive',
+    add column if not exists price numeric(8, 2) not null default 6.99,
+    add column if not exists currency text not null default 'USD',
+    add column if not exists starts_at timestamptz,
+    add column if not exists expires_at timestamptz,
+    add column if not exists updated_at timestamptz not null default now();
+
 insert into public.company_subscriptions (user_id)
 select id from auth.users
 on conflict (user_id) do nothing;

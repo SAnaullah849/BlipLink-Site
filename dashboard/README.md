@@ -32,7 +32,7 @@ Redeploy after setting the variables, then run the latest `schema.sql`. Without 
 
 ## Manual annual subscriptions
 
-The dashboard displays a read-only `$6.99 USD / year` subscription status. There is no payment provider or automatic billing; an administrator confirms payment outside the app and sets dates directly in the Supabase SQL Editor. To activate an account for one year, replace the email below and run:
+The dashboard displays a read-only `$6.99 USD / year` subscription status, start date, expiry date, and remaining days while active. The `starts_at` and `expires_at` values are persisted in `public.company_subscriptions`. Re-running `schema.sql` adds either date column if the table already existed. There is no payment provider or automatic billing; an administrator confirms payment outside the app and sets dates directly in the Supabase SQL Editor. To activate an account for one year, replace the email below and run:
 
 ```sql
 update public.company_subscriptions

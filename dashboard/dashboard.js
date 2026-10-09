@@ -1264,10 +1264,12 @@
         const now = new Date();
         const startsAt = data.starts_at ? new Date(data.starts_at) : null;
         const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
-        const active = data.status === 'active' && startsAt <= now && expiresAt > now;
+        const hasPeriod = Boolean(startsAt && expiresAt);
+        const active = data.status === 'active' && hasPeriod && startsAt <= now && expiresAt > now;
         const statusText = active ? 'Active' :
             data.status !== 'active' ? 'Not active' :
-                startsAt > now ? 'Scheduled' : 'Expired';
+                !hasPeriod ? 'Dates not set' :
+                    startsAt > now ? 'Scheduled' : 'Expired';
         byId('subscriptionStatus').textContent = statusText;
         byId('subscriptionStatus').classList.toggle('subscription-active', Boolean(active));
         byId('subscriptionStarts').textContent = data.starts_at
@@ -1276,9 +1278,18 @@
         byId('subscriptionExpires').textContent = data.expires_at
             ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(data.expires_at))
             : '—';
-        message.textContent = active
-            ? `Your $${Number(data.price).toFixed(2)} ${data.currency} annual plan is active.`
-            : 'Subscription dates are managed manually by the BlipLink administrator.';
+        if (active) {
+            const remainingDays = Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+            message.textContent = `Your $${Number(data.price).toFixed(2)} ${data.currency} annual plan is active and expires in ${remainingDays} ${remainingDays === 1 ? 'day' : 'days'}.`;
+        } else if (statusText === 'Expired') {
+            message.textContent = `This subscription expired on ${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(expiresAt)}. Contact support to renew it.`;
+        } else if (statusText === 'Scheduled') {
+            message.textContent = `This subscription starts on ${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(startsAt)}.`;
+        } else if (statusText === 'Dates not set') {
+            message.textContent = 'The subscription is marked active, but its start and expiry dates are missing. Ask the administrator to add both dates.';
+        } else {
+            message.textContent = 'Subscription dates are managed manually by the BlipLink administrator.';
+        }
     }
 
     function subscribeToNewLeads() {
