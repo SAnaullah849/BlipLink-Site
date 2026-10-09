@@ -17,6 +17,10 @@
         'x_url',
         'facebook_url',
         'tiktok_url',
+        'github_url',
+        'telegram_url',
+        'discord_url',
+        'snapchat_url',
         'apple_wallet_url',
         'google_wallet_url',
     ];
@@ -31,6 +35,29 @@
     let removePhoto = false;
     let selectedBanner = null;
     let removeBanner = false;
+    let realtimeChannel;
+    let countryMap;
+    let notificationLeads = [];
+    const COUNTRY_CENTERS = {
+        US: [39.8, -98.6], CA: [56.1, -106.3], MX: [23.6, -102.5], BR: [-10.8, -52.9],
+        AR: [-38.4, -63.6], CL: [-35.7, -71.5], CO: [4.6, -74.1], PE: [-9.2, -75.0],
+        GB: [55.4, -3.4], IE: [53.4, -8.2], FR: [46.2, 2.2], DE: [51.2, 10.4],
+        ES: [40.5, -3.7], PT: [39.4, -8.2], IT: [41.9, 12.6], NL: [52.1, 5.3],
+        BE: [50.5, 4.5], CH: [46.8, 8.2], AT: [47.5, 14.6], PL: [52.0, 19.1],
+        UA: [48.4, 31.2], RU: [61.5, 105.3], TR: [38.9, 35.2], SA: [23.9, 45.1],
+        AE: [23.4, 53.8], IL: [31.0, 34.9], JO: [30.6, 36.2], IQ: [33.2, 43.7],
+        IR: [32.4, 53.7], EG: [26.8, 30.8], MA: [31.8, -7.1], ZA: [-29.0, 24.0],
+        NG: [9.1, 8.7], KE: [0.0, 37.9], ET: [9.1, 40.5], IN: [20.6, 78.9],
+        PK: [30.4, 69.3], BD: [23.7, 90.4], CN: [35.9, 104.2], JP: [36.2, 138.3],
+        KR: [36.5, 127.9], SG: [1.35, 103.8], ID: [-0.8, 113.9], TH: [15.9, 100.9],
+        VN: [16.2, 107.8], MY: [4.2, 102.0], PH: [12.9, 121.8], AU: [-25.3, 133.8],
+        NZ: [-40.9, 174.9], KZ: [48.0, 67.0], UZ: [41.4, 64.6], AZ: [40.1, 47.6],
+        GE: [42.3, 43.4], AM: [40.1, 45.0], SE: [60.1, 18.6], NO: [60.5, 8.5],
+        FI: [64.0, 26.0], DK: [56.3, 9.5], IS: [64.9, -19.0], GR: [39.1, 21.8],
+        CZ: [49.8, 15.5], RO: [45.9, 25.0], HU: [47.2, 19.5], HR: [45.1, 15.2],
+        RS: [44.0, 21.0], BG: [42.7, 25.5], TN: [34.0, 9.0], GH: [7.9, -1.0],
+        TZ: [-6.4, 34.9], UG: [1.4, 32.3], SN: [14.5, -14.5], CI: [7.5, -5.5],
+    };
 
     const byId = id => document.getElementById(id);
 
@@ -42,8 +69,10 @@
         byId('mobileNavigationToggle').addEventListener('click', toggleMobileNavigation);
         byId('drawerBackdrop').addEventListener('click', closeMobileNavigation);
         byId('accountMenuButton').addEventListener('click', toggleAccountMenu);
+        byId('notificationButton').addEventListener('click', toggleNotifications);
         document.addEventListener('click', event => {
             if (!event.target.closest('.account-menu-container')) closeAccountMenu();
+            if (!event.target.closest('.notification-container')) closeNotifications();
         });
         byId('profileForm').addEventListener('submit', handleProfileSave);
         byId('copyCardLinkButton').addEventListener('click', handleCopyCardLink);
@@ -66,6 +95,7 @@
             if (event.key === 'Escape') {
                 closeMobileNavigation();
                 closeAccountMenu();
+                closeNotifications();
             }
         });
         window.addEventListener('resize', () => {
@@ -111,6 +141,8 @@
         await loadLeads();
         await loadCrmLeads();
         await loadAnalytics();
+        await loadSubscription();
+        subscribeToNewLeads();
         showPage(window.location.hash.slice(1) || 'overview');
 
         supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -181,9 +213,10 @@
 
     async function loadProfiles(selectedProfileId) {
         if (!currentUser) return;
+        const selectedFields = ['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at', 'is_locked'].join(',');
         const { data, error } = await supabaseClient
             .from('company_profiles')
-            .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at'].join(','))
+            .select(selectedFields)
             .eq('user_id', currentUser.id)
             .order('created_at', { ascending: true });
 
@@ -202,7 +235,7 @@
                     full_name: currentUser.user_metadata?.full_name || '',
                     contact_email: currentUser.email || '',
                 })
-                .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at'].join(','))
+                .select(selectedFields)
                 .single();
             if (createError) {
                 showDashboardMessage(`Unable to initialize your company profile: ${createError.message}`, 'error');
@@ -215,6 +248,7 @@
         const activeProfile = profiles.find(item => item.id === selectedProfileId) || profiles[0];
         await loadProfile(activeProfile);
         renderCompanyProfiles();
+        renderMyProfiles();
     }
 
     async function loadProfile(nextProfile) {
@@ -233,7 +267,11 @@
                 field === 'google_wallet_url' ? 'googleWalletUrl' :
                 field === 'x_url' ? 'xUrl' :
                 field === 'facebook_url' ? 'facebookUrl' :
-                field === 'tiktok_url' ? 'tiktokUrl' : field).value =
+                field === 'tiktok_url' ? 'tiktokUrl' :
+                field === 'github_url' ? 'githubUrl' :
+                field === 'telegram_url' ? 'telegramUrl' :
+                field === 'discord_url' ? 'discordUrl' :
+                field === 'snapchat_url' ? 'snapchatUrl' : field).value =
                     field === 'whatsapp_url' ? getWhatsAppNumber(profile[field]) : (profile[field] || '');
         });
 
@@ -256,12 +294,13 @@
             const { data, error } = await supabaseClient
                 .from('company_profiles')
                 .insert({ user_id: currentUser.id, full_name: '', contact_email: currentUser.email || '' })
-                .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at'].join(','))
+                .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at', 'is_locked'].join(','))
                 .single();
             if (error) throw new Error(`Unable to create profile: ${error.message}`);
             profiles.push(data);
             await loadProfile(data);
             renderCompanyProfiles();
+            renderMyProfiles();
             await loadAnalytics();
             showPage('profile');
             window.location.hash = 'profile';
@@ -275,7 +314,14 @@
     }
 
     function renderCompanyProfiles() {
-        const list = byId('companyProfilesList');
+        renderProfileRows(byId('companyProfilesList'));
+    }
+
+    function renderMyProfiles() {
+        renderProfileRows(byId('myProfilesList'));
+    }
+
+    function renderProfileRows(list) {
         if (!list) return;
         list.replaceChildren(...profiles.map(item => {
             const row = document.createElement('article');
@@ -288,13 +334,17 @@
             details.append(name, company);
             const actions = document.createElement('div');
             actions.className = 'company-profile-actions';
+            const status = document.createElement('span');
+            const isPublic = !item.is_locked && Boolean(item.full_name.trim());
+            status.className = isPublic ? 'profile-state' : 'profile-state profile-state-locked';
+            status.textContent = item.is_locked ? 'Locked' : isPublic ? 'Public' : 'Draft';
             const card = document.createElement('a');
             card.className = 'button button-secondary button-small';
             card.href = `../card.html?id=${encodeURIComponent(item.id)}`;
             card.target = '_blank';
             card.rel = 'noopener noreferrer';
             card.textContent = 'View card';
-            card.hidden = !item.full_name;
+            card.hidden = !item.full_name || item.is_locked;
             const edit = document.createElement('button');
             edit.className = 'button button-primary button-small';
             edit.type = 'button';
@@ -304,13 +354,86 @@
                 if (profileDirty && !window.confirm('Discard unsaved changes to this profile?')) return;
                 await loadProfile(item);
                 renderCompanyProfiles();
+                renderMyProfiles();
                 showPage('profile');
                 window.location.hash = 'profile';
             });
-            actions.append(card, edit);
+            const lock = document.createElement('button');
+            lock.className = 'button button-secondary button-small';
+            lock.type = 'button';
+            lock.textContent = item.is_locked ? 'Unlock' : 'Lock';
+            lock.addEventListener('click', () => updateProfileLock(item));
+            const remove = document.createElement('button');
+            remove.className = 'button button-danger button-small';
+            remove.type = 'button';
+            remove.textContent = 'Delete';
+            remove.disabled = profiles.length <= 1;
+            remove.title = remove.disabled ? 'At least one profile must remain.' : 'Delete this profile';
+            remove.addEventListener('click', () => deleteProfile(item));
+            actions.append(status, card, edit, lock, remove);
             row.append(details, actions);
             return row;
         }));
+    }
+
+    async function updateProfileLock(item) {
+        const nextLocked = !item.is_locked;
+        const { data, error } = await supabaseClient
+            .from('company_profiles')
+            .update({ is_locked: nextLocked, updated_at: new Date().toISOString() })
+            .eq('id', item.id)
+            .eq('user_id', currentUser.id)
+            .select('id, is_locked')
+            .single();
+        if (error) {
+            showDashboardMessage(`Unable to ${nextLocked ? 'lock' : 'unlock'} profile: ${error.message}`, 'error');
+            console.error('Company profile lock update failed:', error);
+            return;
+        }
+        profiles = profiles.map(profileItem => profileItem.id === data.id
+            ? { ...profileItem, is_locked: data.is_locked }
+            : profileItem);
+        if (profile.id === data.id) {
+            profile = { ...profile, is_locked: data.is_locked };
+            renderOverviewProfile();
+            updateCardLink();
+        }
+        renderCompanyProfiles();
+        renderMyProfiles();
+        showDashboardMessage(nextLocked ? 'Profile locked. Its public card is now hidden.' : 'Profile unlocked and visible again.', 'success');
+    }
+
+    async function deleteProfile(item) {
+        if (profiles.length <= 1) {
+            showDashboardMessage('At least one company profile must remain.', 'error');
+            return;
+        }
+        if (item.id === profile.id && profileDirty &&
+            !window.confirm('This profile has unsaved changes. Discard them and delete the profile?')) return;
+        if (!window.confirm(`Permanently delete ${item.full_name || 'this profile'}? Its public card will stop working.`)) return;
+
+        const { error } = await supabaseClient.rpc('delete_company_profile', {
+            requested_profile_id: item.id,
+        });
+        if (error) {
+            showDashboardMessage(`Unable to delete profile: ${error.message}`, 'error');
+            console.error('Company profile delete failed:', error);
+            return;
+        }
+        const imagePaths = [item.avatar_path, item.banner_path].filter(Boolean);
+        if (imagePaths.length) {
+            const { error: storageError } = await supabaseClient.storage.from(PHOTO_BUCKET).remove(imagePaths);
+            if (storageError) {
+                console.error('Deleted profile images could not be removed:', storageError);
+                showDashboardMessage('Profile deleted, but its image files could not be removed. Contact support to clean them up.', 'error');
+            }
+        }
+        profiles = profiles.filter(profileItem => profileItem.id !== item.id);
+        if (profile.id === item.id) await loadProfile(profiles[0]);
+        renderCompanyProfiles();
+        renderMyProfiles();
+        await loadAnalytics();
+        showDashboardMessage('Profile deleted.', 'success');
     }
 
     async function handleProfileSave(event) {
@@ -341,6 +464,10 @@
                     x_url: 'xUrl',
                     facebook_url: 'facebookUrl',
                     tiktok_url: 'tiktokUrl',
+                    github_url: 'githubUrl',
+                    telegram_url: 'telegramUrl',
+                    discord_url: 'discordUrl',
+                    snapchat_url: 'snapchatUrl',
                     apple_wallet_url: 'appleWalletUrl',
                     google_wallet_url: 'googleWalletUrl',
                 }[field] || field;
@@ -392,7 +519,7 @@
             const { data, error } = await supabaseClient
                 .from('company_profiles')
                 .upsert(nextProfile, { onConflict: 'id' })
-                .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at'].join(','))
+                .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at', 'is_locked'].join(','))
                 .single();
 
             if (error) throw new Error(`Profile save failed: ${error.message}`);
@@ -422,6 +549,7 @@
             updatePreview();
             showDashboard();
             renderCompanyProfiles();
+            renderMyProfiles();
             updateCardLink();
             message.textContent = 'Your profile has been saved.';
             setSaveState('Saved just now');
@@ -678,6 +806,10 @@
             ['X', byId('xUrl').value.trim(), 'x'],
             ['Facebook', byId('facebookUrl').value.trim(), 'facebook'],
             ['TikTok', byId('tiktokUrl').value.trim(), 'tiktok'],
+            ['GitHub', byId('githubUrl').value.trim(), 'github'],
+            ['Telegram', byId('telegramUrl').value.trim(), 'telegram'],
+            ['Discord', byId('discordUrl').value.trim(), 'discord'],
+            ['Snapchat', byId('snapchatUrl').value.trim(), 'snapchat'],
         ].filter(([, value, icon]) =>
             value && (icon !== 'whatsapp' || /^\d{7,15}$/.test(value)));
         const links = socialEntries.map(([label, value, icon]) => {
@@ -736,6 +868,16 @@
             link.removeAttribute('href');
             link.setAttribute('aria-disabled', 'true');
             text.textContent = 'Save this profile to activate its card link.';
+            byId('previewQrCode').hidden = true;
+            byId('previewQrPlaceholder').hidden = false;
+            delete byId('previewQrCode').dataset.cardUrl;
+            return '';
+        }
+
+        if (profile.is_locked) {
+            link.removeAttribute('href');
+            link.setAttribute('aria-disabled', 'true');
+            text.textContent = 'This profile is locked. Unlock it from My profiles before sharing its card.';
             byId('previewQrCode').hidden = true;
             byId('previewQrPlaceholder').hidden = false;
             delete byId('previewQrCode').dataset.cardUrl;
@@ -1012,13 +1154,215 @@
             byId('totalProfiles').textContent = String(profiles.length);
             byId('totalCardViews').textContent = totalViews.toLocaleString();
             byId('totalNewLeads').textContent = totalLeads.toLocaleString();
-            message.textContent = 'Taps count interactions with links and actions. Only aggregate totals are stored; visitor IP addresses and locations are not collected.';
+            message.textContent = 'Taps count interactions with links and actions. Only aggregate totals and country codes are stored; no IP addresses or precise locations.';
             renderAnalyticsChart(rows);
             renderRecentLeads();
+            await loadCountryAnalytics();
         } catch (error) {
             message.textContent = `Unable to load analytics: ${error.message}`;
             console.error('Card analytics load failed:', error);
         }
+    }
+
+    async function loadCountryAnalytics() {
+        const message = byId('countryAnalyticsMessage');
+        const list = byId('countryAnalyticsList');
+        if (!profiles.length) {
+            byId('countryAnalyticsTotal').textContent = '0 visits';
+            message.textContent = 'Create a profile to start collecting visitor analytics.';
+            renderCountryMap([]);
+            list.replaceChildren();
+            return;
+        }
+        try {
+            const { data, error } = await supabaseClient
+                .from('card_country_analytics')
+                .select('country_code, views, taps')
+                .in('profile_id', profiles.map(item => item.id));
+            if (error) throw new Error(error.message);
+            const rows = (data || []).sort((a, b) => Number(b.views) - Number(a.views));
+            const totalViews = rows.reduce((sum, row) => sum + Number(row.views || 0), 0);
+            byId('countryAnalyticsTotal').textContent = `${totalViews.toLocaleString()} ${totalViews === 1 ? 'visit' : 'visits'}`;
+            message.textContent = rows.length
+                ? 'Visitor locations are estimated from the hosting provider’s country header. No IP addresses are stored.'
+                : 'Country activity will appear after your cards receive visits on the deployed site.';
+            renderCountryMap(rows);
+            renderCountryList(rows);
+        } catch (error) {
+            message.textContent = `Unable to load country analytics: ${error.message}`;
+            list.replaceChildren();
+            console.error('Country analytics load failed:', error);
+        }
+    }
+
+    function renderCountryMap(rows) {
+        const element = byId('countryMap');
+        if (!window.L) {
+            element.textContent = 'The map could not load. Check your connection and refresh the dashboard.';
+            return;
+        }
+        if (!countryMap) {
+            countryMap = window.L.map(element, { worldCopyJump: true, scrollWheelZoom: false }).setView([22, 5], 2);
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 7,
+            }).addTo(countryMap);
+            countryMarkerLayer = window.L.layerGroup().addTo(countryMap);
+        }
+        countryMarkerLayer.clearLayers();
+        for (const row of rows) {
+            const center = COUNTRY_CENTERS[row.country_code];
+            if (!center) continue;
+            const views = Number(row.views || 0);
+            window.L.circleMarker(center, {
+                radius: Math.min(18, 6 + Math.log2(views + 1) * 2),
+                color: '#087bff',
+                weight: 1,
+                fillColor: '#087bff',
+                fillOpacity: 0.58,
+            }).bindPopup(`${getCountryName(row.country_code)}: ${views.toLocaleString()} visits`).addTo(countryMarkerLayer);
+        }
+        window.requestAnimationFrame(() => countryMap.invalidateSize());
+    }
+
+    function renderCountryList(rows) {
+        const container = byId('countryAnalyticsList');
+        const displayNames = new Intl.DisplayNames(undefined, { type: 'region' });
+        container.replaceChildren(...rows.slice(0, 8).map(row => {
+            const item = document.createElement('div');
+            item.className = 'country-analytics-row';
+            const name = document.createElement('span');
+            name.textContent = getCountryName(row.country_code, displayNames);
+            const count = document.createElement('strong');
+            count.textContent = Number(row.views || 0).toLocaleString();
+            item.append(name, count);
+            return item;
+        }));
+    }
+
+    function getCountryName(code, displayNames = new Intl.DisplayNames(undefined, { type: 'region' })) {
+        return displayNames.of(code) || code;
+    }
+
+    async function loadSubscription() {
+        const message = byId('subscriptionMessage');
+        const { data, error } = await supabaseClient
+            .from('company_subscriptions')
+            .select('status, price, currency, starts_at, expires_at')
+            .eq('user_id', currentUser.id)
+            .maybeSingle();
+        if (error) {
+            message.textContent = `Unable to load subscription details: ${error.message}`;
+            console.error('Subscription load failed:', error);
+            return;
+        }
+        if (!data) {
+            byId('subscriptionStatus').textContent = 'Not active';
+            message.textContent = 'Your subscription has not been activated yet. Contact support for help.';
+            return;
+        }
+        const now = new Date();
+        const startsAt = data.starts_at ? new Date(data.starts_at) : null;
+        const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
+        const active = data.status === 'active' && startsAt <= now && expiresAt > now;
+        const statusText = active ? 'Active' :
+            data.status !== 'active' ? 'Not active' :
+                startsAt > now ? 'Scheduled' : 'Expired';
+        byId('subscriptionStatus').textContent = statusText;
+        byId('subscriptionStatus').classList.toggle('subscription-active', Boolean(active));
+        byId('subscriptionStarts').textContent = data.starts_at
+            ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(data.starts_at))
+            : '—';
+        byId('subscriptionExpires').textContent = data.expires_at
+            ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(data.expires_at))
+            : '—';
+        message.textContent = active
+            ? `Your $${Number(data.price).toFixed(2)} ${data.currency} annual plan is active.`
+            : 'Subscription dates are managed manually by the BlipLink administrator.';
+    }
+
+    function subscribeToNewLeads() {
+        if (realtimeChannel) void supabaseClient.removeChannel(realtimeChannel);
+        realtimeChannel = supabaseClient
+            .channel(`company-leads-${currentUser.id}`)
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'card_contact_exchanges',
+                filter: `card_owner_id=eq.${currentUser.id}`,
+            }, payload => {
+                if (!payload.new) return;
+                notificationLeads = [payload.new, ...(leadsCache || [])]
+                    .filter((lead, index, all) => all.findIndex(item => item.id === lead.id) === index)
+                    .slice(0, 100);
+                renderNotifications();
+                void Promise.all([loadLeads(), loadAnalytics()]);
+            })
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'card_analytics',
+            }, () => void loadAnalytics())
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'card_country_analytics',
+            }, () => void loadAnalytics())
+            .subscribe(status => {
+                if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    console.warn(`Lead notification realtime channel status: ${status}`);
+                }
+            });
+    }
+
+    function toggleNotifications() {
+        const panel = byId('notificationPanel');
+        const opening = panel.hidden;
+        panel.hidden = !opening;
+        byId('notificationButton').setAttribute('aria-expanded', String(opening));
+        if (opening) {
+            const latest = Math.max(0, ...(notificationLeads.concat(leadsCache || [])
+                .map(lead => new Date(lead.created_at).getTime())));
+            if (latest) localStorage.setItem(`bliplink-leads-read-${currentUser.id}`, String(latest));
+            renderNotifications();
+        }
+    }
+
+    function closeNotifications() {
+        byId('notificationPanel').hidden = true;
+        byId('notificationButton').setAttribute('aria-expanded', 'false');
+    }
+
+    function renderNotifications() {
+        const leads = notificationLeads.length ? notificationLeads : (leadsCache || []);
+        const lastRead = Number(localStorage.getItem(`bliplink-leads-read-${currentUser.id}`) || Date.now());
+        const unreadCount = leads.filter(lead => new Date(lead.created_at).getTime() > lastRead).length;
+        const badge = byId('notificationBadge');
+        badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+        badge.hidden = unreadCount === 0;
+        byId('notificationCount').textContent = unreadCount
+            ? `${unreadCount} new ${unreadCount === 1 ? 'lead' : 'leads'}`
+            : 'No new alerts';
+        const list = byId('notificationList');
+        if (!leads.length) {
+            const empty = document.createElement('p');
+            empty.className = 'inline-message';
+            empty.textContent = 'New leads will appear here as soon as someone shares their contact details.';
+            list.replaceChildren(empty);
+            return;
+        }
+        list.replaceChildren(...leads.slice(0, 8).map(lead => {
+            const item = document.createElement('article');
+            item.className = 'notification-item';
+            const name = document.createElement('strong');
+            name.textContent = lead.visitor_name;
+            const time = document.createElement('time');
+            time.dateTime = lead.created_at;
+            time.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+                .format(new Date(lead.created_at));
+            item.append(name, time);
+            return item;
+        }));
     }
 
     function renderAnalyticsChart(rows) {
@@ -1102,7 +1446,7 @@
         address.hidden = !profile.address;
         const view = byId('overviewViewCard');
         view.href = profile.id ? `../card.html?id=${encodeURIComponent(profile.id)}` : '#';
-        view.hidden = !profile.full_name;
+        view.hidden = !profile.full_name || Boolean(profile.is_locked);
     }
 
     function setOverviewImage(id, path) {
@@ -1146,6 +1490,10 @@
             x: ['M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 14.7 5.6 22H2.4l7.3-8.4L1.8 2h6.5l4.4 6.8L18.9 2Zm-1.1 18h1.7L7.2 3.9H5.4L17.8 20Z'],
             facebook: ['M13.5 21v-8h2.7l.4-3h-3.1V8.1c0-.9.3-1.5 1.6-1.5h1.7V3.9c-.3 0-1.4-.1-2.6-.1-2.6 0-4.3 1.6-4.3 4.4V10H7v3h2.9v8h3.6Z'],
             tiktok: ['M19.6 7.1a6.8 6.8 0 0 1-4.1-1.4v8.1a6 6 0 1 1-6-6c.4 0 .8 0 1.2.1v3.3a2.8 2.8 0 1 0 1.8 2.6V2.2h3.2a6.8 6.8 0 0 0 3.9 3.9v1Z'],
+            github: ['M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.54v-2.1c-3.1.67-3.76-1.32-3.76-1.32-.5-1.28-1.24-1.62-1.24-1.62-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 .1.78 2.2 3.55 1.57.1-.72.39-1.21.7-1.49-2.48-.28-5.09-1.24-5.09-5.53 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.1-2.95 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.11-1.45 3.05-1.15 3.05-1.15.6 1.53.22 2.67.1 2.95.72.78 1.15 1.78 1.15 3 0 4.3-2.61 5.24-5.1 5.52.4.35.75 1.03.75 2.08v3.07c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z'],
+            telegram: ['M21.7 3.3 18.5 20c-.24 1.18-.86 1.47-1.74.91l-4.82-3.55-2.33 2.24c-.26.26-.48.48-.98.48l.35-4.91 8.94-8.08c.39-.35-.08-.55-.6-.2L6.27 13.9l-4.72-1.48c-1.03-.32-1.05-1.03.22-1.54L20.2 3.06c.86-.32 1.61.21 1.5.24Z'],
+            discord: ['M19.7 5.1A18.3 18.3 0 0 0 15.2 3.7l-.55 1.12a16.7 16.7 0 0 0-5.3 0L8.8 3.7a18.2 18.2 0 0 0-4.5 1.4C1.45 9.28.68 13.35 1.07 17.37a18.4 18.4 0 0 0 5.55 2.8l1.2-1.96c-.66-.24-1.3-.55-1.9-.91l.46-.36a13.1 13.1 0 0 0 11.24 0l.46.36c-.6.36-1.24.67-1.9.91l1.2 1.96a18.3 18.3 0 0 0 5.55-2.8c.46-4.67-.8-8.7-3.23-12.27ZM8.4 14.54c-1.1 0-2-.99-2-2.2s.88-2.2 2-2.2 2.02.99 2 2.2c0 1.21-.89 2.2-2 2.2Zm7.2 0c-1.1 0-2-.99-2-2.2s.88-2.2 2-2.2 2.02.99 2 2.2c0 1.21-.87 2.2-2 2.2Z'],
+            snapchat: ['M12 2.2c-3.4 0-5.5 2.2-5.5 5.8 0 .66.12 1.38.24 2.08-.25.14-.65.17-.98.17-.35 0-.68-.05-.91-.1-.08-.02-.17-.04-.26-.04-.3 0-.52.16-.58.42-.1.39.26.67 1.1.89.62.16.97.32.96.56-.03.38-.74 1.58-1.63 2.43-.63.6-1.48 1.03-2.57 1.3-.27.06-.44.23-.42.46.02.2.2.36.45.43.13.04.28.07.45.1.38.08.92.19 1.26.49.2.17.35.52.48.82.06.13.11.25.17.35.12.2.31.3.55.3.1 0 .22-.02.35-.04.26-.05.62-.12 1.06-.12.26 0 .52.02.78.08.52.1 1.04.4 1.64.75 1 .6 2.13 1.27 3.36 1.27s2.36-.67 3.36-1.27c.6-.35 1.12-.65 1.64-.75.26-.06.52-.08.78-.08.44 0 .8.07 1.06.12.13.02.25.04.35.04.24 0 .43-.1.55-.3.06-.1.11-.22.17-.35.13-.3.28-.65.48-.82.34-.3.88-.41 1.26-.49.17-.03.32-.06.45-.1.25-.07.43-.23.45-.43.02-.23-.15-.4-.42-.46-1.09-.27-1.94-.7-2.57-1.3-.89-.85-1.6-2.05-1.63-2.43-.01-.24.34-.4.96-.56.84-.22 1.2-.5 1.1-.89-.06-.26-.28-.42-.58-.42-.09 0-.18.02-.26.04-.23.05-.56.1-.91.1-.33 0-.73-.03-.98-.17.12-.7.24-1.42.24-2.08 0-3.6-2.1-5.8-5.5-5.8Z'],
             whatsapp: ['M20.52 3.48A11.82 11.82 0 0 0 12.08 0C5.5 0 .14 5.35.14 11.93c0 2.1.55 4.15 1.6 5.96L.04 24l6.27-1.64a11.9 11.9 0 0 0 5.76 1.47h.01c6.58 0 11.94-5.36 11.94-11.94 0-3.19-1.24-6.19-3.5-8.41ZM12.08 21.8h-.01a9.9 9.9 0 0 1-5.05-1.39l-.36-.21-3.72.98.99-3.63-.24-.37a9.86 9.86 0 0 1-1.52-5.25c0-5.48 4.46-9.94 9.93-9.94a9.88 9.88 0 0 1 7.04 2.92 9.88 9.88 0 0 1 2.91 7.04c0 5.48-4.46 9.94-9.97 9.94Zm5.46-7.44c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.48-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.08 4.49.71.31 1.26.5 1.7.64.72.23 1.37.2 1.88.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.08-.12-.27-.2-.57-.35Z'],
         };
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1166,7 +1514,7 @@
     }
 
     function showPage(section) {
-        const validPages = new Set(['overview', 'profile', 'social', 'leads', 'crm', 'company']);
+        const validPages = new Set(['overview', 'profile', 'profiles', 'social', 'leads', 'crm', 'company', 'subscription', 'help']);
         const page = validPages.has(section) ? section : 'overview';
         document.querySelectorAll('[data-dashboard-page]').forEach(element => {
             element.hidden = element.dataset.dashboardPage !== page;
@@ -1179,13 +1527,19 @@
         const titles = {
             overview: 'Overview',
             profile: 'Profile',
+            profiles: 'My profiles',
             social: 'Social links',
             leads: 'Leads',
             crm: 'CRM',
             company: 'Company',
+            subscription: 'Subscription',
+            help: 'Help',
         };
         byId('dashboardPageTitle').textContent = titles[page];
         document.title = `${titles[page]} | BlipLink Company Dashboard`;
+        if (page === 'overview' && countryMap) {
+            window.setTimeout(() => countryMap.invalidateSize(), 100);
+        }
     }
 
     function getInitials(value) {

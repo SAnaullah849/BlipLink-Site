@@ -6,7 +6,7 @@ The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL
 
 The dashboard frontend is configured for the BlipLink Supabase project in [`config.js`](./config.js). Its `sb_publishable_...` key is intended for browser use; never put a Supabase secret/service-role key in this file.
 
-Run the current [`schema.sql`](./schema.sql) in the Supabase SQL Editor before using the dashboard. It creates a company profile for newly invited Auth users and backfills profiles for existing Auth users. Re-running the updated script preserves existing card URLs while enabling multiple cards per company account, Facebook and TikTok links, card view/tap analytics, leads, and the CRM pipeline. Before inviting companies:
+Run the current [`schema.sql`](./schema.sql) in the Supabase SQL Editor before using the dashboard. It creates a company profile and an inactive subscription row for new Auth users, backfills both for existing users, enables profile locking/deletion, country analytics, lead notifications, and the CRM pipeline. Re-running the script preserves existing card URLs. Before inviting companies:
 
 1. In **Authentication → Settings → General**, disable public sign-ups. Invitations are sent by an authorized project administrator; visitors cannot register themselves.
 2. In **Authentication → URL Configuration**, set **Site URL** to `https://bliplink.vercel.app/login.html`. Add that exact URL under **Redirect URLs** and remove old localhost/development entries. Supabase uses the Site URL as the return destination when an invitation is sent from its Users screen; the deployed login page handles the invite and password setup. This project-level Auth URL setting cannot be changed by `schema.sql`.
@@ -19,11 +19,39 @@ Note: the invitation redirect is configured in the Supabase dashboard, not in th
 
 The `profile-photos` bucket is limited to 5 MB image uploads. Profile images are public so they can load on shared digital cards; upload, update, and delete access remains restricted to the owner’s folder.
 
+## Country analytics and server configuration
+
+Visitor country counts are derived server-side from Vercel’s `x-vercel-ip-country` request header (Cloudflare’s `cf-ipcountry` header is also recognized). The app stores only aggregate ISO country codes and view/tap counts; it never stores raw IP addresses or precise location. The dashboard uses Leaflet with OpenStreetMap tiles, so map tiles require an internet connection.
+
+The public card sends analytics to [`../api/track-event.js`](../api/track-event.js). In the Vercel project settings, configure these **server-side environment variables** for every deployed environment:
+
+- `SUPABASE_URL`: the project URL.
+- `SUPABASE_SERVICE_ROLE_KEY`: the Supabase service-role secret. Keep this only in Vercel server-side environment variables; never add it to `config.js`, browser code, or a committed file.
+
+Redeploy after setting the variables, then run the latest `schema.sql`. Without the server function and environment variables, public cards still render, but view/tap totals and country data will not be recorded. A static Live Server session does not run Vercel API functions; use `vercel dev` with the server-side variables to test analytics locally. Local requests usually have no trusted country header, so they will not be included in a country.
+
+## Manual annual subscriptions
+
+The dashboard displays a read-only `$6.99 USD / year` subscription status. There is no payment provider or automatic billing; an administrator confirms payment outside the app and sets dates directly in the Supabase SQL Editor. To activate an account for one year, replace the email below and run:
+
+```sql
+update public.company_subscriptions
+set status = 'active',
+    starts_at = now(),
+    expires_at = now() + interval '1 year',
+    updated_at = now()
+where user_id = (
+    select id from auth.users where lower(email) = lower('company@example.com')
+);
+```
+
+To deactivate an account, set `status = 'inactive'`, `starts_at = null`, and `expires_at = null`. Authenticated company users can read their own subscription but cannot modify it.
+
 ## Public digital cards
 
-Each saved profile gets a URL in the form `card.html?id=<account-id>`. The dashboard’s **View card** button opens it in a new tab, and **Copy link** copies its address. Public cards include a customizable banner and profile photo, plain email/phone/website details, social icons (including WhatsApp), a QR code, and a downloadable contact file. A saved business address appears at the bottom of the card, above optional wallet links, and opens a Google Maps search when selected. Companies enter a WhatsApp number with country code; BlipLink turns it into a `wa.me` chat link. Companies can paste their issuer-generated Apple Wallet and Google Wallet pass URLs into their profile; the corresponding links appear on the public card only when provided.
+Each saved profile gets a URL in the form `card.html?id=<profile-id>`. The dashboard’s **View card** button opens it in a new tab, and **Copy link** copies its address. Public cards include a customizable banner and profile photo, plain email/phone/website details, social icons (including WhatsApp, Facebook, TikTok, GitHub, Telegram, Discord, and Snapchat), a QR code, and a downloadable contact file. Locked profiles are hidden from visitors; at least one profile must remain on each company account. A saved business address appears at the bottom of the card, above optional wallet links, and opens a Google Maps search when selected. Companies enter a WhatsApp number with country code; BlipLink turns it into a `wa.me` chat link. Companies can paste their issuer-generated Apple Wallet and Google Wallet pass URLs into their profile; the corresponding links appear on the public card only when provided.
 
-Visitors can submit a contact exchange after explicitly consenting. Those contact details are stored in `card_contact_exchanges`; only the associated company account can read them in its dashboard. A company can save those submissions to `crm_leads`, track pipeline stage, notes, and follow-up date, and manage multiple employee cards from one login. The Overview shows all-time profile visits, link taps, and leads per profile, plus recent submissions; analytics do not store visitor IP addresses or country data. The QR image is generated by the QR Server image API from the public card URL. BlipLink displays wallet pass links from the company’s existing issuer; it does not generate wallet passes.
+Visitors can submit a contact exchange after explicitly consenting. Those contact details are stored in `card_contact_exchanges`; only the associated company account can read them in its dashboard. A company can save those submissions to `crm_leads`, track pipeline stage, notes, and follow-up date, and manage multiple employee cards from one login. The Overview shows all-time profile visits, link taps, country aggregates, and leads; lead and analytics changes refresh through Supabase Realtime. The QR image is generated by the QR Server image API from the public card URL. BlipLink displays wallet pass links from the company’s existing issuer; it does not generate wallet passes.
 
 ## Included
 
@@ -32,8 +60,12 @@ Visitors can submit a contact exchange after explicitly consenting. Those contac
 - Responsive dashboard with profile editing and a live preview.
 - Public, responsive profile cards with plain contact details, social icons, and downloadable vCard contacts.
 - QR codes, card sharing, consent-based lead capture, an owner-only Leads inbox, and a CRM pipeline.
-- Multiple employee profiles per company login, with Facebook and TikTok links on public cards.
-- Aggregate card views and taps by profile; visitor IP addresses and locations are not collected.
+- Multiple employee profiles per company login, with view/edit/lock/unlock/delete actions and one-profile minimum.
+- Aggregate views, taps, and country-level visitor counts; no raw IP or precise location is stored.
+- Real-time new-lead notifications, a mobile floating notification button, and refreshed visitor analytics.
+- Read-only subscription status at $6.99/year, manually activated by an administrator.
+- WhatsApp support at [`https://wa.me/77770665790`](https://wa.me/77770665790).
+- GitHub, Telegram, Discord, and Snapchat profile links alongside the existing social networks.
 - Per-account card link with one-click preview and copy actions.
 - Profile photo upload and removal.
 - Website, LinkedIn, Instagram, and X link editing, plus WhatsApp number-to-chat-link support.

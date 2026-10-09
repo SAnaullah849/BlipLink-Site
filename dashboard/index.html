@@ -10,10 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=12">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="dashboard.css?v=13">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=12" defer></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="dashboard.js?v=13" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -33,6 +35,10 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
                     My profile
                 </a>
+                <a class="side-nav-link" href="#profiles" data-nav="profiles">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+                    My profiles
+                </a>
                 <a class="side-nav-link" href="#social" data-nav="social">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
                     Social links
@@ -48,6 +54,14 @@
                 <a class="side-nav-link" href="#company" data-nav="company">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V5l7-3 7 3v16M9 9h.01M15 9h.01M9 13h.01M15 13h.01M10 21v-4h4v4"/></svg>
                     Company
+                </a>
+                <a class="side-nav-link" href="#subscription" data-nav="subscription">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+                    Subscription
+                </a>
+                <a class="side-nav-link" href="#help" data-nav="help">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.6 9a2.5 2.5 0 1 1 4.7 1.2c-.8 1.2-2.3 1.4-2.3 3M12 17h.01"/></svg>
+                    Help
                 </a>
             </nav>
             <div class="sidebar-bottom">
@@ -74,6 +88,17 @@
                     </div>
                 </div>
                 <div class="account-menu-container">
+                    <div class="notification-container">
+                        <button id="notificationButton" class="notification-button" type="button" aria-label="Notifications" aria-controls="notificationPanel" aria-expanded="false">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+                            <span id="notificationBadge" class="notification-badge" aria-live="polite" aria-atomic="true" hidden>0</span>
+                        </button>
+                        <section id="notificationPanel" class="notification-panel" aria-label="Notifications" hidden>
+                            <div class="notification-panel-heading"><strong>Notifications</strong><span id="notificationCount">No new alerts</span></div>
+                            <div id="notificationList" class="notification-list"><p class="inline-message">New leads will appear here.</p></div>
+                            <a href="#leads" class="notification-view-all">View all leads</a>
+                        </section>
+                    </div>
                     <button id="accountMenuButton" class="account-chip" type="button" aria-label="Open profile menu" aria-controls="accountMenu" aria-expanded="false">
                         <span id="accountAvatar" class="account-avatar">B</span>
                         <span id="accountEmail" class="account-email">Company account</span>
@@ -97,7 +122,7 @@
                                 <h2>Welcome back, <strong id="overviewName">there</strong></h2>
                                 <p>Here’s how your digital profiles are performing.</p>
                             </div>
-                            <a class="button button-primary" href="#company">Manage profiles <span aria-hidden="true">→</span></a>
+                            <a class="button button-primary" href="#profiles">Manage profiles <span aria-hidden="true">→</span></a>
                         </div>
                         <div class="analytics-summary">
                             <article class="panel analytics-stat">
@@ -127,6 +152,15 @@
                             </div>
                             <p id="analyticsMessage" class="inline-message" role="status" aria-live="polite">Loading analytics…</p>
                             <div id="analyticsChart" class="analytics-chart" role="img" aria-label="Profile taps and leads chart"></div>
+                        </section>
+                        <section class="panel country-analytics-panel" aria-labelledby="countryAnalyticsTitle">
+                            <div class="panel-heading">
+                                <div><span class="eyebrow">AUDIENCE</span><h2 id="countryAnalyticsTitle">Visitors by country</h2></div>
+                                <span id="countryAnalyticsTotal" class="analytics-period">0 visits</span>
+                            </div>
+                            <p id="countryAnalyticsMessage" class="inline-message" role="status" aria-live="polite">Loading country analytics…</p>
+                            <div id="countryMap" class="country-map" role="img" aria-label="Visitor map by country"></div>
+                            <div id="countryAnalyticsList" class="country-analytics-list"></div>
                         </section>
                     </div>
                     <aside class="overview-aside">
@@ -162,6 +196,14 @@
                         </section>
                     </aside>
                 </div>
+            </section>
+
+            <section id="profiles" class="panel profile-panel dashboard-page" data-dashboard-page="profiles" aria-labelledby="profilesTitle">
+                <div class="panel-heading">
+                    <div><span class="eyebrow">COMPANY WORKSPACE</span><h2 id="profilesTitle">My profiles</h2><p>Manage public cards for everyone on your team. Locked cards are hidden from visitors.</p></div>
+                    <button id="addProfileButton" class="button button-primary" type="button">Add profile</button>
+                </div>
+                <div id="myProfilesList" class="my-profiles-list"></div>
             </section>
 
             <div class="dashboard-grid dashboard-page" data-dashboard-page="profile">
@@ -321,6 +363,10 @@
                         <label for="tiktokUrl">TikTok</label>
                         <input id="tiktokUrl" form="profileForm" name="tiktok_url" type="url" inputmode="url" maxlength="500" placeholder="https://tiktok.com/@yourname">
                     </div>
+                    <div class="field"><label for="githubUrl">GitHub</label><input id="githubUrl" form="profileForm" name="github_url" type="url" inputmode="url" maxlength="500" placeholder="https://github.com/username"></div>
+                    <div class="field"><label for="telegramUrl">Telegram</label><input id="telegramUrl" form="profileForm" name="telegram_url" type="url" inputmode="url" maxlength="500" placeholder="https://t.me/username"></div>
+                    <div class="field"><label for="discordUrl">Discord</label><input id="discordUrl" form="profileForm" name="discord_url" type="url" inputmode="url" maxlength="500" placeholder="https://discord.com/users/your-id"></div>
+                    <div class="field"><label for="snapchatUrl">Snapchat</label><input id="snapchatUrl" form="profileForm" name="snapchat_url" type="url" inputmode="url" maxlength="500" placeholder="https://www.snapchat.com/add/username"></div>
                     <div class="field">
                         <label for="whatsappNumber">WhatsApp number</label>
                         <input id="whatsappNumber" form="profileForm" name="whatsapp_url" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+1 555 123 4567">
@@ -339,6 +385,21 @@
                     <p class="field-hint">Social links are saved together with the selected profile.</p>
                     <button class="button button-primary" type="submit" form="profileForm">Save social links</button>
                 </div>
+            </section>
+
+            <section id="subscription" class="panel profile-panel dashboard-page" data-dashboard-page="subscription" aria-labelledby="subscriptionTitle">
+                <div class="panel-heading"><div><span class="eyebrow">PLAN</span><h2 id="subscriptionTitle">Subscription</h2><p>$6.99 USD per year. Payments are handled manually; your account status is managed by the administrator.</p></div></div>
+                <div class="subscription-card">
+                    <div><span class="eyebrow">ANNUAL PLAN</span><strong>$6.99 <small>/ year</small></strong></div>
+                    <span id="subscriptionStatus" class="subscription-status">Loading status…</span>
+                    <dl class="subscription-dates"><div><dt>Starts</dt><dd id="subscriptionStarts">—</dd></div><div><dt>Expires</dt><dd id="subscriptionExpires">—</dd></div></dl>
+                    <p id="subscriptionMessage" class="inline-message" role="status" aria-live="polite">Subscription details load from your account.</p>
+                </div>
+            </section>
+
+            <section id="help" class="panel profile-panel dashboard-page" data-dashboard-page="help" aria-labelledby="helpTitle">
+                <div class="panel-heading"><div><span class="eyebrow">WE’RE HERE TO HELP</span><h2 id="helpTitle">Contact support</h2><p>Message our team on WhatsApp and we’ll help you with your BlipLink workspace.</p></div></div>
+                <a class="button button-primary" href="https://wa.me/77770665790" target="_blank" rel="noopener noreferrer">Chat with support on WhatsApp</a>
             </section>
 
             <section id="cardLeads" class="panel leads-panel dashboard-page" data-dashboard-page="leads" aria-labelledby="leadsTitle">
@@ -372,7 +433,7 @@
                         <h2 id="companyTitle">Company profiles</h2>
                         <p>Manage multiple employee cards from this company account.</p>
                     </div>
-                    <button id="addProfileButton" class="button button-primary button-small" type="button">Add profile</button>
+                    <a class="button button-primary button-small" href="#profiles">Manage profiles</a>
                 </div>
                 <div id="companyProfilesList" class="company-profiles-list"></div>
             </section>

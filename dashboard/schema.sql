@@ -20,10 +20,15 @@ create table if not exists public.company_profiles (
     x_url text check (x_url is null or char_length(x_url) <= 500),
     facebook_url text check (facebook_url is null or char_length(facebook_url) <= 500),
     tiktok_url text check (tiktok_url is null or char_length(tiktok_url) <= 500),
+    github_url text check (github_url is null or char_length(github_url) <= 500),
+    telegram_url text check (telegram_url is null or char_length(telegram_url) <= 500),
+    discord_url text check (discord_url is null or char_length(discord_url) <= 500),
+    snapchat_url text check (snapchat_url is null or char_length(snapchat_url) <= 500),
     apple_wallet_url text check (apple_wallet_url is null or char_length(apple_wallet_url) <= 500),
     google_wallet_url text check (google_wallet_url is null or char_length(google_wallet_url) <= 500),
     avatar_path text,
     banner_path text,
+    is_locked boolean not null default false,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -61,11 +66,16 @@ alter table public.company_profiles
     add column if not exists google_wallet_url text check (google_wallet_url is null or char_length(google_wallet_url) <= 500),
     add column if not exists banner_path text,
     add column if not exists facebook_url text check (facebook_url is null or char_length(facebook_url) <= 500),
-    add column if not exists tiktok_url text check (tiktok_url is null or char_length(tiktok_url) <= 500);
+    add column if not exists tiktok_url text check (tiktok_url is null or char_length(tiktok_url) <= 500),
+    add column if not exists github_url text check (github_url is null or char_length(github_url) <= 500),
+    add column if not exists telegram_url text check (telegram_url is null or char_length(telegram_url) <= 500),
+    add column if not exists discord_url text check (discord_url is null or char_length(discord_url) <= 500),
+    add column if not exists snapchat_url text check (snapchat_url is null or char_length(snapchat_url) <= 500),
+    add column if not exists is_locked boolean not null default false;
 
 alter table public.company_profiles enable row level security;
 
-revoke all on public.company_profiles from anon;
+revoke all on public.company_profiles from anon, authenticated, public;
 grant select, insert, update on public.company_profiles to authenticated;
 
 drop policy if exists "Company users can read their own profile" on public.company_profiles;
@@ -161,6 +171,10 @@ returns table (
     x_url text,
     facebook_url text,
     tiktok_url text,
+    github_url text,
+    telegram_url text,
+    discord_url text,
+    snapchat_url text,
     apple_wallet_url text,
     google_wallet_url text,
     avatar_path text,
@@ -187,12 +201,17 @@ as $$
         profile.x_url,
         profile.facebook_url,
         profile.tiktok_url,
+        profile.github_url,
+        profile.telegram_url,
+        profile.discord_url,
+        profile.snapchat_url,
         profile.apple_wallet_url,
         profile.google_wallet_url,
         profile.avatar_path,
         profile.banner_path
     from public.company_profiles as profile
     where profile.id = requested_user_id
+      and not profile.is_locked
     limit 1
 $$;
 
@@ -207,7 +226,7 @@ create table if not exists public.card_analytics (
 );
 
 alter table public.card_analytics enable row level security;
-revoke all on public.card_analytics from anon, public;
+revoke all on public.card_analytics from anon, authenticated, public;
 grant select on public.card_analytics to authenticated;
 
 drop policy if exists "Company users can read their card analytics" on public.card_analytics;
@@ -221,9 +240,139 @@ create policy "Company users can read their card analytics"
         )
     );
 
+drop function if exists public.record_public_card_event(uuid, text);
+
+create table if not exists public.card_country_analytics (
+profile_id uuid not null references public.company_profiles (id) on delete cascade,
+country_code text not null check (country_code ~ '^[A-Z]{2}$'),
+views bigint not null default 0 check (views >= 0),
+taps bigint not null default 0 check (taps >= 0),
+updated_at timestamptz not null default now(),
+primary key (profile_id, country_code)
+);
+
+alter table public.card_country_analytics enable row level security;
+revoke all on public.card_country_analytics from anon, authenticated, public;
+grant select on public.card_country_analytics to authenticated;
+
+drop policy if exists "Company users can read their country analytics" on public.card_country_analytics;
+create policy "Company users can read their country analytics"
+on public.card_country_analytics for select to authenticated
+using (
+    exists (
+        select 1 from public.company_profiles as profile
+        where profile.id = card_country_analytics.profile_id
+          and profile.user_id = (select auth.uid())
+    )
+);
+
+do $$
+declare
+target_table text;
+begin
+if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    foreach target_table in array array['card_analytics', 'card_country_analytics'] loop
+        if not exists (
+            select 1 from pg_publication_tables
+            where pubname = 'supabase_realtime'
+              and schemaname = 'public'
+              and tablename = target_table
+        ) then
+            execute format('alter publication supabase_realtime add table public.%I', target_table);
+        end if;
+    end loop;
+end if;
+end;
+$$;
+
+create table if not exists public.company_subscriptions (
+user_id uuid primary key references auth.users (id) on delete cascade,
+status text not null default 'inactive' check (status in ('active', 'inactive')),
+price numeric(8, 2) not null default 6.99 check (price = 6.99),
+currency text not null default 'USD' check (currency = 'USD'),
+starts_at timestamptz,
+expires_at timestamptz,
+updated_at timestamptz not null default now(),
+check (
+    (status = 'inactive' and starts_at is null and expires_at is null)
+    or (status = 'active' and starts_at is not null and expires_at > starts_at)
+)
+);
+
+insert into public.company_subscriptions (user_id)
+select id from auth.users
+on conflict (user_id) do nothing;
+
+alter table public.company_subscriptions enable row level security;
+revoke all on public.company_subscriptions from anon, authenticated, public;
+grant select on public.company_subscriptions to authenticated;
+
+drop policy if exists "Company users can read their subscription" on public.company_subscriptions;
+create policy "Company users can read their subscription"
+on public.company_subscriptions for select to authenticated
+using (user_id = (select auth.uid()));
+
+create or replace function public.create_company_subscription_for_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+insert into public.company_subscriptions (user_id)
+values (new.id)
+on conflict (user_id) do nothing;
+return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_company_subscription on auth.users;
+create trigger on_auth_user_created_company_subscription
+after insert on auth.users
+for each row execute function public.create_company_subscription_for_new_user();
+
+create or replace function public.delete_company_profile(requested_profile_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+profile_owner uuid;
+profile_count integer;
+begin
+select user_id into profile_owner
+from public.company_profiles
+where id = requested_profile_id;
+
+if profile_owner is distinct from (select auth.uid()) then
+    raise exception 'Profile not found or access denied.';
+end if;
+
+perform id
+from public.company_profiles
+where user_id = profile_owner
+for update;
+
+select count(*) into profile_count
+from public.company_profiles
+where user_id = profile_owner;
+
+if profile_count <= 1 then
+    raise exception 'At least one company profile must remain.';
+end if;
+
+delete from public.company_profiles where id = requested_profile_id;
+end;
+$$;
+
+revoke all on function public.delete_company_profile(uuid) from public, anon;
+grant execute on function public.delete_company_profile(uuid) to authenticated;
+
 create or replace function public.record_public_card_event(
     requested_profile_id uuid,
-    requested_event_type text
+    requested_event_type text,
+    requested_country_code text
 )
 returns void
 language plpgsql
@@ -234,10 +383,14 @@ begin
     if requested_event_type not in ('view', 'tap') then
         raise exception 'Unsupported card analytics event.';
     end if;
+    if requested_country_code is not null and requested_country_code !~ '^[A-Z]{2}$' then
+        raise exception 'Country must be a two-letter ISO code.';
+    end if;
     if not exists (
         select 1 from public.company_profiles as profile
         where profile.id = requested_profile_id
           and char_length(btrim(profile.full_name)) > 0
+          and not profile.is_locked
     ) then
         raise exception 'This business card is unavailable.';
     end if;
@@ -251,11 +404,24 @@ begin
         views = public.card_analytics.views + excluded.views,
         taps = public.card_analytics.taps + excluded.taps,
         updated_at = now();
+    if requested_country_code is not null then
+        insert into public.card_country_analytics (profile_id, country_code, views, taps)
+        values (
+            requested_profile_id,
+            requested_country_code,
+            case when requested_event_type = 'view' then 1 else 0 end,
+            case when requested_event_type = 'tap' then 1 else 0 end
+        )
+        on conflict (profile_id, country_code) do update set
+            views = public.card_country_analytics.views + excluded.views,
+            taps = public.card_country_analytics.taps + excluded.taps,
+            updated_at = now();
+    end if;
 end;
 $$;
 
-revoke all on function public.record_public_card_event(uuid, text) from public;
-grant execute on function public.record_public_card_event(uuid, text) to anon, authenticated;
+revoke all on function public.record_public_card_event(uuid, text, text) from public, anon, authenticated;
+grant execute on function public.record_public_card_event(uuid, text, text) to service_role;
 
 create or replace function public.get_company_card_analytics()
 returns table (profile_id uuid, full_name text, views bigint, taps bigint)
@@ -291,6 +457,20 @@ create table if not exists public.card_contact_exchanges (
     consented_at timestamptz not null default now(),
     created_at timestamptz not null default now()
 );
+
+do $$
+begin
+    if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+       and not exists (
+           select 1 from pg_publication_tables
+           where pubname = 'supabase_realtime'
+             and schemaname = 'public'
+             and tablename = 'card_contact_exchanges'
+       ) then
+        alter publication supabase_realtime add table public.card_contact_exchanges;
+    end if;
+end;
+$$;
 
 alter table public.card_contact_exchanges
     add column if not exists profile_id uuid references public.company_profiles (id) on delete set null;
@@ -390,6 +570,7 @@ begin
         from public.company_profiles as profile
         where profile.id = requested_profile_id
           and char_length(btrim(profile.full_name)) > 0
+          and not profile.is_locked
     ) then
         raise exception 'This business card is unavailable.';
     end if;

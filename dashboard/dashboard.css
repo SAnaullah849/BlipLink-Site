@@ -2031,3 +2031,286 @@ textarea:focus {
         flex: 1 1 auto;
     }
 }
+.country-analytics-panel {
+    margin-top: 18px;
+}
+
+.sidebar {
+    overflow-y: auto;
+}
+
+.country-map {
+    z-index: 0;
+    height: 290px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #eaf2f8;
+}
+
+.country-analytics-list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px 14px;
+    margin-top: 14px;
+}
+
+.country-analytics-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    color: #52627a;
+    font-size: 11px;
+}
+
+.country-analytics-row strong {
+    color: var(--ink);
+}
+
+.my-profiles-list,
+.company-profiles-list {
+    display: grid;
+    gap: 12px;
+}
+
+.company-profile-row {
+    align-items: center;
+}
+
+.company-profile-actions {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.profile-state {
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #e9f7f0;
+    color: #14734d;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.profile-state-locked {
+    background: #fff1e8;
+    color: #a45319;
+}
+
+.button-danger {
+    border: 1px solid #f2cbd0;
+    background: #fff;
+    color: var(--red);
+}
+
+.button-danger:hover:not(:disabled) {
+    background: #fff2f3;
+}
+
+.button-danger:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.account-menu-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+}
+
+.notification-container {
+    position: relative;
+}
+
+.notification-button {
+    position: relative;
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    color: #43536b;
+    cursor: pointer;
+}
+
+.notification-button svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    display: grid;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    place-items: center;
+    border: 2px solid var(--page);
+    border-radius: 999px;
+    background: #e04455;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.notification-panel {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 12px);
+    right: 0;
+    width: min(360px, calc(100vw - 30px));
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 18px 48px rgba(19, 37, 72, 0.18);
+}
+
+.notification-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+}
+
+.notification-panel-heading span,
+.notification-item time {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.notification-list {
+    display: grid;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: grid;
+    gap: 3px;
+    padding: 10px 2px;
+    border-top: 1px solid var(--border);
+}
+
+.notification-item strong {
+    font-size: 12px;
+}
+
+.notification-view-all {
+    display: block;
+    margin-top: 8px;
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.subscription-card {
+    display: grid;
+    max-width: 560px;
+    gap: 20px;
+    padding: 24px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: linear-gradient(135deg, #fff, #f2f7ff);
+}
+
+.subscription-card > div:first-child {
+    display: grid;
+    gap: 8px;
+}
+
+.subscription-card > div:first-child strong {
+    font-family: "Manrope", sans-serif;
+    font-size: 30px;
+}
+
+.subscription-card small {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.subscription-status {
+    justify-self: start;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #fff1e8;
+    color: #a45319;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.subscription-status.subscription-active {
+    background: #e9f7f0;
+    color: #14734d;
+}
+
+.subscription-dates {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+}
+
+.subscription-dates div {
+    display: grid;
+    gap: 5px;
+}
+
+.subscription-dates dt {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.subscription-dates dd {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+@media (max-width: 640px) {
+    .country-analytics-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .notification-container {
+        position: static;
+    }
+
+    .notification-button {
+        position: fixed;
+        z-index: 25;
+        right: 20px;
+        bottom: 20px;
+        width: 54px;
+        height: 54px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--blue);
+        color: #fff;
+        box-shadow: 0 8px 24px rgba(8, 123, 255, 0.35);
+    }
+
+    .notification-badge {
+        border-color: #fff;
+    }
+
+    .notification-panel {
+        position: fixed;
+        z-index: 24;
+        right: 14px;
+        bottom: 84px;
+        top: auto;
+        width: min(360px, calc(100vw - 28px));
+    }
+}
