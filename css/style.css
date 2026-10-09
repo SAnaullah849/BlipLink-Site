@@ -140,6 +140,10 @@ section[id] {
     font-weight: 500;
 }
 
+.mobile-login-link {
+    display: none;
+}
+
 .btn-primary {
     background: var(--blue);
     color: white;
@@ -903,8 +907,20 @@ section[id] {
     .nav-links, .nav-right {
         display: none;
     }
+    .mobile-login-link {
+        display: inline-flex;
+        align-items: center;
+        margin-left: auto;
+        padding: 8px 12px;
+        color: var(--navy);
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        white-space: nowrap;
+    }
     .mobile-toggle {
         display: flex;
+        margin-left: 4px;
     }
     .mobile-menu {
         display: none;
