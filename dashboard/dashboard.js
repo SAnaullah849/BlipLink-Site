@@ -33,6 +33,13 @@
 
     async function initialize() {
         byId('signOutButton').addEventListener('click', handleSignOut);
+        byId('profileSignOutButton').addEventListener('click', handleSignOut);
+        byId('mobileNavigationToggle').addEventListener('click', toggleMobileNavigation);
+        byId('drawerBackdrop').addEventListener('click', closeMobileNavigation);
+        byId('accountMenuButton').addEventListener('click', toggleAccountMenu);
+        document.addEventListener('click', event => {
+            if (!event.target.closest('.account-menu-container')) closeAccountMenu();
+        });
         byId('profileForm').addEventListener('submit', handleProfileSave);
         byId('copyCardLinkButton').addEventListener('click', handleCopyCardLink);
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
@@ -42,7 +49,19 @@
         byId('removeBannerButton').addEventListener('click', handleBannerRemoval);
         byId('bio').addEventListener('input', updateBioCount);
         document.querySelectorAll('.side-nav-link[data-nav]').forEach(link => {
-            link.addEventListener('click', () => setActiveNavigation(link.dataset.nav));
+            link.addEventListener('click', () => {
+                setActiveNavigation(link.dataset.nav);
+                closeMobileNavigation();
+            });
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                closeMobileNavigation();
+                closeAccountMenu();
+            }
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 640) closeMobileNavigation();
         });
         document.querySelectorAll('#profileForm input, #profileForm textarea').forEach(input => {
             input.addEventListener('input', updatePreview);
@@ -97,7 +116,37 @@
     function showDashboard() {
         byId('dashboardView').hidden = false;
         byId('accountEmail').textContent = currentUser?.email || 'Company account';
+        byId('accountMenuEmail').textContent = currentUser?.email || 'Company account';
         byId('accountAvatar').textContent = getInitials(profile.full_name || currentUser?.email || 'BlipLink');
+    }
+
+    function toggleMobileNavigation() {
+        const sidebar = byId('dashboardSidebar');
+        const isOpen = sidebar.classList.toggle('mobile-open');
+        byId('drawerBackdrop').hidden = !isOpen;
+        byId('mobileNavigationToggle').setAttribute('aria-expanded', String(isOpen));
+        byId('mobileNavigationToggle').setAttribute('aria-label', isOpen ? 'Close dashboard menu' : 'Open dashboard menu');
+        document.body.classList.toggle('drawer-open', isOpen);
+    }
+
+    function closeMobileNavigation() {
+        byId('dashboardSidebar').classList.remove('mobile-open');
+        byId('drawerBackdrop').hidden = true;
+        byId('mobileNavigationToggle').setAttribute('aria-expanded', 'false');
+        byId('mobileNavigationToggle').setAttribute('aria-label', 'Open dashboard menu');
+        document.body.classList.remove('drawer-open');
+    }
+
+    function toggleAccountMenu() {
+        const menu = byId('accountMenu');
+        const isOpen = menu.hidden;
+        menu.hidden = !isOpen;
+        byId('accountMenuButton').setAttribute('aria-expanded', String(isOpen));
+    }
+
+    function closeAccountMenu() {
+        byId('accountMenu').hidden = true;
+        byId('accountMenuButton').setAttribute('aria-expanded', 'false');
     }
 
     async function handleSignOut() {

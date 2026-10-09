@@ -10,14 +10,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=8">
+    <link rel="stylesheet" href="dashboard.css?v=10">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=8" defer></script>
+    <script src="dashboard.js?v=10" defer></script>
 </head>
 <body>
     <div id="dashboardView" class="dashboard-shell" hidden>
-        <aside class="sidebar">
+        <button id="drawerBackdrop" class="drawer-backdrop" type="button" aria-label="Close dashboard menu" hidden></button>
+        <aside id="dashboardSidebar" class="sidebar">
             <a class="brand sidebar-brand" href="../" aria-label="BlipLink home">
                 <img src="../assets/logo-symbol.png" alt="" width="38" height="38">
                 <img src="../assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark">
@@ -55,13 +56,25 @@
 
         <main class="dashboard-main">
             <header class="topbar">
-                <div>
-                    <p class="topbar-kicker">BLIPLINK COMPANY PORTAL</p>
-                    <h1>Profile dashboard</h1>
+                <div class="topbar-heading">
+                    <button id="mobileNavigationToggle" class="mobile-navigation-toggle" type="button" aria-label="Open dashboard menu" aria-controls="dashboardSidebar" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="11" width="7" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/></svg>
+                    </button>
+                    <div>
+                        <p class="topbar-kicker">BLIPLINK COMPANY PORTAL</p>
+                        <h1>Profile dashboard</h1>
+                    </div>
                 </div>
-                <div class="account-chip">
-                    <span id="accountAvatar" class="account-avatar">B</span>
-                    <span id="accountEmail" class="account-email">Company account</span>
+                <div class="account-menu-container">
+                    <button id="accountMenuButton" class="account-chip" type="button" aria-label="Open profile menu" aria-controls="accountMenu" aria-expanded="false">
+                        <span id="accountAvatar" class="account-avatar">B</span>
+                        <span id="accountEmail" class="account-email">Company account</span>
+                    </button>
+                    <div id="accountMenu" class="account-menu" hidden>
+                        <span class="account-menu-label">Signed in as</span>
+                        <span id="accountMenuEmail" class="account-menu-email">Company account</span>
+                        <button id="profileSignOutButton" class="account-menu-sign-out" type="button">Sign out</button>
+                    </div>
                 </div>
             </header>
 
