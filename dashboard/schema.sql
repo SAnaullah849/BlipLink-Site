@@ -749,26 +749,13 @@ begin
         raise exception 'Company name is too long.';
     end if;
     if cardinality(coalesce(submitted_services, array[]::text[])) > 12 then
-        raise exception 'Select no more than 12 services.';
+        raise exception 'Interested services are too long.';
     end if;
     if exists (
         select 1
         from unnest(coalesce(submitted_services, array[]::text[])) as selected_service(value)
         where selected_service.value is null
-           or selected_service.value not in (
-                'Digital Business Card',
-                'NFC Business Card',
-                'NFC Phone Sticker',
-                'Review Card',
-                'Digital Profile Setup',
-                'QR Code Sharing',
-                'Team & Employee Cards',
-                'Company Branding & Custom Design',
-                'Team Management',
-                'Lead Collection',
-                'Analytics & Performance Reporting',
-                'Bulk Team Setup'
-           )
+           or char_length(btrim(selected_service.value)) > 500
     ) then
         raise exception 'One or more selected services are invalid.';
     end if;
