@@ -253,6 +253,17 @@ textarea:focus {
     text-align: center;
 }
 
+.request-access-link {
+    color: #086bd5;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.request-access-link:hover {
+    color: var(--navy);
+    text-decoration: underline;
+}
+
 .back-link {
     display: block;
     color: #45627f;
