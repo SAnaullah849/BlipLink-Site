@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard/dashboard.css?v=11">
+    <link rel="stylesheet" href="dashboard/dashboard.css?v=12">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="dashboard/config.js"></script>
-    <script src="dashboard/login.js?v=2" defer></script>
+    <script src="dashboard/login.js?v=3" defer></script>
 </head>
 <body>
     <main class="login-screen">
@@ -28,6 +28,7 @@
                 <p>Sign in to manage your BlipLink professional profile.</p>
             </div>
             <div id="setupNotice" class="notice notice-info" role="status" hidden></div>
+            <div id="invitationNotice" class="notice notice-error" role="alert" hidden></div>
             <form id="loginForm" class="form-stack">
                 <label for="loginEmail">Work email</label>
                 <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="you@company.com" required>
@@ -35,6 +36,16 @@
                 <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
                 <button id="loginButton" class="button button-primary button-full" type="submit">Sign in</button>
                 <p id="loginMessage" class="form-message" role="alert" aria-live="polite"></p>
+            </form>
+            <form id="invitationForm" class="form-stack" hidden>
+                <label for="invitationEmail">Invited work email</label>
+                <input id="invitationEmail" name="email" type="email" autocomplete="username" readonly>
+                <label for="invitationPassword">Create password</label>
+                <input id="invitationPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+                <label for="invitationPasswordConfirm">Confirm password</label>
+                <input id="invitationPasswordConfirm" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
+                <button id="invitationButton" class="button button-primary button-full" type="submit">Set password</button>
+                <p id="invitationMessage" class="form-message" role="alert" aria-live="polite"></p>
             </form>
             <p class="login-footnote">Company accounts are created by BlipLink administrators. Don’t have login details yet? <a class="request-access-link" href="mailto:devops@shaunco.ai?subject=Request%20for%20a%20BlipLink%20company%20account&amp;body=Hello%2C%0A%0AI%27d%20like%20to%20request%20access%20to%20the%20BlipLink%20company%20dashboard.%0A%0AName%3A%0ACompany%3A%0AWork%20email%3A%0A%0AThank%20you.">Request account access</a>.</p>
             <a class="back-link" href="index.html">← Back to BlipLink</a>

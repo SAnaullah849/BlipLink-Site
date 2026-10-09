@@ -312,6 +312,10 @@ textarea:focus {
     line-height: 1.5;
 }
 
+.form-message-success {
+    color: var(--green);
+}
+
 .dashboard-shell {
     min-height: 100vh;
 }

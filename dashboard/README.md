@@ -1,6 +1,6 @@
 # BlipLink Company Dashboard
 
-The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL, and Supabase Storage. Public account registration is not provided. A BlipLink administrator creates company accounts and gives each company its login credentials.
+The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL, and Supabase Storage. Public account registration is not provided. A BlipLink administrator invites company users through Supabase; invitees set their password from the secure email link before signing in.
 
 ## Supabase setup
 
@@ -8,9 +8,10 @@ The dashboard frontend is configured for the BlipLink Supabase project in [`conf
 
 Run the current [`schema.sql`](./schema.sql) in the Supabase SQL Editor before using the dashboard. If you already ran an earlier version, run the updated file again to enable public business cards, banner images, WhatsApp and wallet links, business addresses, and contact exchanges. Before inviting companies:
 
-1. In **Authentication → Settings**, disable public sign-ups. The dashboard has no registration screen, but this Auth setting is also required to prevent self-registration through the Supabase API.
-2. Under **Authentication → Users**, create each company user manually with a unique email and password. Confirm the email or send the Supabase password setup/invitation flow before sharing access.
-3. Deploy the site with the `dashboard/` directory and `login.html` included. The homepage sends visitors directly to `/login.html`; after sign-in, they are redirected to `/dashboard/index.html` so local static servers open the app instead of showing a directory listing. Opening the dashboard while signed out returns visitors to the sign-in page. The sign-in screen includes a link back to the public homepage.
+1. In **Authentication → Settings → General**, disable public sign-ups. Invitations are still sent by an authorized project administrator; visitors cannot register themselves.
+2. In **Authentication → URL Configuration**, set the **Site URL** to the deployed `login.html` address (for local development, use the local `login.html` URL). Add the deployed site origin and each local development origin to **Redirect URLs** so Supabase may return invitees to the existing login page.
+3. Under **Authentication → Users**, select **Add user → Send invitation**, enter the company email, and send it. The invitee opens the Supabase email link and returns to `login.html`, where the same page switches to an invitation password form with the invited email prefilled and read-only. They set and confirm their password, then continue to the dashboard. No separate registration page or public sign-up flow is used. Ensure the Supabase invitation email template uses its standard confirmation link (`{{ .ConfirmationURL }}`) so the invite token is verified by Supabase before redirecting back.
+4. Deploy the site with the `dashboard/` directory and `login.html` included. The homepage sends visitors to `/login.html`; after sign-in, they are redirected to `/dashboard/index.html`. Opening the dashboard while signed out returns visitors to the sign-in page. The login screen includes a link back to the public homepage.
 
 The `profile-photos` bucket is limited to 5 MB image uploads. Profile images are public so they can load on shared digital cards; upload, update, and delete access remains restricted to the owner’s folder.
 
