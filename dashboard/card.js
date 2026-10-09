@@ -236,7 +236,8 @@
             submitted_phone: byId('visitorPhone').value.trim(),
             submitted_email: byId('visitorEmail').value.trim() || null,
             submitted_company: byId('visitorCompany').value.trim() || null,
-            submitted_role: byId('visitorRole').value.trim() || null,
+            submitted_services: [...form.querySelectorAll('input[name="services"]:checked')]
+                .map(input => input.value),
             submitted_message: byId('visitorMessage').value.trim() || null,
             submitted_consent: byId('visitorConsent').checked,
         };

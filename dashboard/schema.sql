@@ -543,6 +543,7 @@ create table if not exists public.card_contact_exchanges (
     visitor_email text check (visitor_email is null or char_length(visitor_email) <= 254),
     visitor_company text check (visitor_company is null or char_length(visitor_company) <= 120),
     visitor_role text check (visitor_role is null or char_length(visitor_role) <= 120),
+    visitor_services text[] not null default '{}',
     visitor_message text check (visitor_message is null or char_length(visitor_message) <= 1000),
     consented_at timestamptz not null default now(),
     created_at timestamptz not null default now()
@@ -563,7 +564,8 @@ end;
 $$;
 
 alter table public.card_contact_exchanges
-    add column if not exists profile_id uuid references public.company_profiles (id) on delete set null;
+    add column if not exists profile_id uuid references public.company_profiles (id) on delete set null,
+    add column if not exists visitor_services text[] not null default '{}';
 update public.card_contact_exchanges as exchange
 set profile_id = profile.id
 from public.company_profiles as profile
@@ -715,13 +717,14 @@ revoke all on function public.get_company_location_summary(uuid) from public;
 grant execute on function public.get_company_location_summary(uuid) to authenticated;
 
 drop function if exists public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean);
+drop function if exists public.submit_public_card_exchange(uuid, text, text, text, text, text[], text, boolean);
 create function public.submit_public_card_exchange(
     requested_profile_id uuid,
     submitted_name text,
     submitted_phone text,
     submitted_email text,
     submitted_company text,
-    submitted_role text,
+    submitted_services text[],
     submitted_message text,
     submitted_consent boolean
 )
@@ -745,8 +748,29 @@ begin
     if submitted_company is not null and char_length(submitted_company) > 120 then
         raise exception 'Company name is too long.';
     end if;
-    if submitted_role is not null and char_length(submitted_role) > 120 then
-        raise exception 'Role is too long.';
+    if cardinality(coalesce(submitted_services, array[]::text[])) > 12 then
+        raise exception 'Select no more than 12 services.';
+    end if;
+    if exists (
+        select 1
+        from unnest(coalesce(submitted_services, array[]::text[])) as selected_service(value)
+        where selected_service.value is null
+           or selected_service.value not in (
+                'Digital Business Card',
+                'NFC Business Card',
+                'NFC Phone Sticker',
+                'Review Card',
+                'Digital Profile Setup',
+                'QR Code Sharing',
+                'Team & Employee Cards',
+                'Company Branding & Custom Design',
+                'Team Management',
+                'Lead Collection',
+                'Analytics & Performance Reporting',
+                'Bulk Team Setup'
+           )
+    ) then
+        raise exception 'One or more selected services are invalid.';
     end if;
     if submitted_message is not null and char_length(submitted_message) > 1000 then
         raise exception 'Message is too long.';
@@ -775,7 +799,7 @@ begin
         visitor_phone,
         visitor_email,
         visitor_company,
-        visitor_role,
+        visitor_services,
         visitor_message
     )
     values (
@@ -785,14 +809,17 @@ begin
         btrim(submitted_phone),
         nullif(btrim(submitted_email), ''),
         nullif(btrim(submitted_company), ''),
-        nullif(btrim(submitted_role), ''),
+        coalesce((
+            select array_agg(distinct selected_service.value order by selected_service.value)
+            from unnest(coalesce(submitted_services, array[]::text[])) as selected_service(value)
+        ), array[]::text[]),
         nullif(btrim(submitted_message), '')
     );
 end;
 $$;
 
-revoke all on function public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean) from public;
-grant execute on function public.submit_public_card_exchange(uuid, text, text, text, text, text, text, boolean) to anon, authenticated;
+revoke all on function public.submit_public_card_exchange(uuid, text, text, text, text, text[], text, boolean) from public;
+grant execute on function public.submit_public_card_exchange(uuid, text, text, text, text, text[], text, boolean) to anon, authenticated;
 
 create table if not exists public.crm_leads (
     id uuid primary key default gen_random_uuid(),
@@ -810,6 +837,9 @@ create table if not exists public.crm_leads (
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
+
+alter table public.crm_leads
+    add column if not exists services text[] not null default '{}';
 
 create index if not exists crm_leads_owner_updated_idx
     on public.crm_leads (owner_id, updated_at desc);

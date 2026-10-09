@@ -899,7 +899,7 @@
         try {
             const { data, error } = await supabaseClient
                 .from('card_contact_exchanges')
-                .select('id, profile_id, visitor_name, visitor_phone, visitor_email, visitor_company, visitor_role, visitor_message, created_at')
+                .select('id, profile_id, visitor_name, visitor_phone, visitor_email, visitor_company, visitor_role, visitor_services, visitor_message, created_at')
                 .eq('card_owner_id', currentUser.id)
                 .order('created_at', { ascending: false })
                 .limit(100);
@@ -958,6 +958,9 @@
         if (cardProfile?.full_name) appendLeadText(article, 'lead-card-details', `Card: ${cardProfile.full_name}`);
         const details = [lead.visitor_role, lead.visitor_company].filter(Boolean).join(' · ');
         if (details) appendLeadText(article, 'lead-card-details', details);
+        if (lead.visitor_services?.length) {
+            appendLeadText(article, 'lead-card-details', `Interested services: ${lead.visitor_services.join(', ')}`);
+        }
         const contacts = document.createElement('div');
         contacts.className = 'lead-card-contacts';
         if (lead.visitor_email) {
@@ -996,6 +999,7 @@
                 email: lead.visitor_email,
                 company: lead.visitor_company,
                 role: lead.visitor_role,
+                services: lead.visitor_services || [],
                 message: lead.visitor_message,
             }, { onConflict: 'source_exchange_id', ignoreDuplicates: true });
             if (error) throw new Error(error.message);
@@ -1019,7 +1023,7 @@
         try {
             const { data, error } = await supabaseClient
                 .from('crm_leads')
-                .select('id, full_name, phone, email, company, role, message, status, notes, follow_up_at, created_at')
+                .select('id, full_name, phone, email, company, role, services, message, status, notes, follow_up_at, created_at')
                 .eq('owner_id', currentUser.id)
                 .order('updated_at', { ascending: false })
                 .limit(200);
@@ -1063,6 +1067,9 @@
         article.append(heading);
         const contacts = [lead.role, lead.company, lead.email, lead.phone].filter(Boolean);
         if (contacts.length) appendLeadText(article, 'lead-card-details', contacts.join(' · '));
+        if (lead.services?.length) {
+            appendLeadText(article, 'lead-card-details', `Interested services: ${lead.services.join(', ')}`);
+        }
         if (lead.message) appendLeadText(article, 'lead-card-message', lead.message);
 
         const notesLabel = document.createElement('label');

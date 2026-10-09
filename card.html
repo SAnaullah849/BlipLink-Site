@@ -16,10 +16,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard/card.css?v=8">
+    <link rel="stylesheet" href="dashboard/card.css?v=9">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="dashboard/config.js"></script>
-    <script src="dashboard/card.js?v=10" defer></script>
+    <script src="dashboard/card.js?v=11" defer></script>
 </head>
 <body>
     <main class="public-card-shell">
@@ -77,8 +77,23 @@
             <input id="visitorEmail" name="email" type="email" autocomplete="email" maxlength="254">
             <label for="visitorCompany">Company</label>
             <input id="visitorCompany" name="company" autocomplete="organization" maxlength="120">
-            <label for="visitorRole">Role</label>
-            <input id="visitorRole" name="role" autocomplete="organization-title" maxlength="120">
+            <fieldset class="exchange-services">
+                <legend>Interested services <span>(optional — select all that apply)</span></legend>
+                <div class="exchange-services-options">
+                    <label><input type="checkbox" name="services" value="Digital Business Card"><span>Digital Business Card</span></label>
+                    <label><input type="checkbox" name="services" value="NFC Business Card"><span>NFC Business Card</span></label>
+                    <label><input type="checkbox" name="services" value="NFC Phone Sticker"><span>NFC Phone Sticker</span></label>
+                    <label><input type="checkbox" name="services" value="Review Card"><span>Review Card</span></label>
+                    <label><input type="checkbox" name="services" value="Digital Profile Setup"><span>Digital Profile Setup</span></label>
+                    <label><input type="checkbox" name="services" value="QR Code Sharing"><span>QR Code Sharing</span></label>
+                    <label><input type="checkbox" name="services" value="Team & Employee Cards"><span>Team &amp; Employee Cards</span></label>
+                    <label><input type="checkbox" name="services" value="Company Branding & Custom Design"><span>Company Branding &amp; Custom Design</span></label>
+                    <label><input type="checkbox" name="services" value="Team Management"><span>Team Management</span></label>
+                    <label><input type="checkbox" name="services" value="Lead Collection"><span>Lead Collection</span></label>
+                    <label><input type="checkbox" name="services" value="Analytics & Performance Reporting"><span>Analytics &amp; Performance Reporting</span></label>
+                    <label><input type="checkbox" name="services" value="Bulk Team Setup"><span>Bulk Team Setup</span></label>
+                </div>
+            </fieldset>
             <label for="visitorMessage">Message</label>
             <textarea id="visitorMessage" name="message" rows="3" maxlength="1000"></textarea>
             <label class="exchange-consent">
