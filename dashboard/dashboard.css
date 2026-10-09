@@ -1981,13 +1981,13 @@ textarea:focus {
     }
 
     .analytics-summary {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 9px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
     }
 
     .analytics-stat {
         min-height: 75px;
-        padding: 10px;
+        padding: 10px 8px;
     }
 
     .analytics-stat-icon {
@@ -1997,6 +1997,11 @@ textarea:focus {
 
     .analytics-stat strong {
         font-size: 19px;
+    }
+
+    .analytics-stat .eyebrow {
+        font-size: 8px;
+        line-height: 1.35;
     }
 
     .analytics-panel {
