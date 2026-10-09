@@ -240,11 +240,17 @@ a {
     background: linear-gradient(110deg, #0b1f5e, #087bff);
     color: #fff;
     transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+    font: inherit;
 }
 
 .public-social:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(8, 123, 255, 0.23);
+}
+
+.public-share {
+    padding: 0;
 }
 
 .public-social svg {
