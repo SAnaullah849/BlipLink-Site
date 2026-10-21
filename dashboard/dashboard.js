@@ -37,6 +37,7 @@
     let removeBanner = false;
     let realtimeChannel;
     let notificationLeads = [];
+    let customLinksAvailable = null;
 
     const byId = id => document.getElementById(id);
 
@@ -62,6 +63,14 @@
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
         byId('refreshCrmButton').addEventListener('click', loadCrmLeads);
         byId('addProfileButton').addEventListener('click', createProfile);
+        document.querySelectorAll('[data-company-action=details]').forEach(button => button.addEventListener('click', openCompanyDetailsDialog));
+        document.querySelectorAll('[data-company-action=wallets]').forEach(button => button.addEventListener('click', openCompanyWalletDialog));
+        document.querySelectorAll('[data-company-add-link]').forEach(button => button.addEventListener('click', () => openCompanyLinkDialog(button.dataset.companyAddLink)));
+        document.querySelectorAll('[data-close-company-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+        byId('companyDetailsForm').addEventListener('submit', saveCompanyDetails);
+        byId('companyWalletForm').addEventListener('submit', saveCompanyWallets);
+        byId('companyLinkForm').addEventListener('submit', saveCompanyLink);
+        byId('deleteCompanyLink').addEventListener('click', deleteCompanyLink);
         byId('applyAnalyticsFilter').addEventListener('click', loadAnalytics);
         byId('photoInput').addEventListener('change', handlePhotoSelection);
         byId('removePhotoButton').addEventListener('click', handlePhotoRemoval);
@@ -263,6 +272,7 @@
         updatePreview();
         await updatePhotoPreview(profile.avatar_path);
         await updateBannerPreview(profile.banner_path);
+        if ((window.location.hash.slice(1) || document.body.dataset.page) === 'company') await loadCompanyCustomLinks(nextProfile.id);
         renderCompanyProfile();
         updateCardLink();
         showDashboard();
@@ -298,6 +308,17 @@
         }
     }
 
+    async function loadCompanyCustomLinks(profileId) {
+        const notice = byId('companyLinksNotice');
+        const { data, error } = await supabaseClient.from('company_profiles').select('custom_links').eq('id', profileId).eq('user_id', currentUser.id).maybeSingle();
+        if (error) {
+            profile.custom_links = []; customLinksAvailable = false;
+            notice.textContent = 'Run the latest dashboard/schema.sql in Supabase to enable saved social, store, and app links.'; notice.hidden = false;
+            return;
+        }
+        customLinksAvailable = true; profile.custom_links = data?.custom_links || []; notice.hidden = true;
+    }
+
     function renderCompanyProfiles() {
         renderProfileRows(byId('companyProfilesList'));
     }
@@ -318,15 +339,80 @@
         setCompanyContact('companyPhone', profile.phone, value => 'tel:' + value.replace(/[^0-9+]/g, ''), 'Add phone number');
         setCompanyContact('companyAddress', profile.address, value => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(value), 'Add address');
         setCompanyContact('companyWebsite', profile.website_url, value => safePreviewUrl(value), 'Add website');
-        const social = [['LinkedIn', profile.linkedin_url], ['Instagram', profile.instagram_url], ['X', profile.x_url], ['Facebook', profile.facebook_url], ['TikTok', profile.tiktok_url], ['GitHub', profile.github_url], ['Telegram', profile.telegram_url], ['Discord', profile.discord_url], ['Snapchat', profile.snapchat_url]].filter(([,url]) => url);
+        const social = [['LinkedIn',profile.linkedin_url],['Instagram',profile.instagram_url],['X',profile.x_url],['Facebook',profile.facebook_url],['TikTok',profile.tiktok_url],['GitHub',profile.github_url],['Telegram',profile.telegram_url],['Discord',profile.discord_url],['Snapchat',profile.snapchat_url],['WhatsApp',profile.whatsapp_url]].filter(([,url])=>url);
         const socialBox = byId('companySocialLinks');
-        socialBox.replaceChildren(...social.map(([label,url]) => makeCompanyLink(label,url)));
-        if (!social.length) socialBox.append(companyEmptyState('No social links added yet.'));
-        const webBox = byId('companyWebLinks');
-        webBox.replaceChildren(...(profile.website_url ? [makeCompanyLink('Company website',profile.website_url)] : []));
-        if (!profile.website_url) webBox.append(companyEmptyState('No web apps added yet.'));
+        socialBox.replaceChildren(...social.map(([label,url])=>makeCompanyLink(label,url)));
+        if (!social.length && !(profile.custom_links||[]).some(item=>item.category==='social')) socialBox.append(companyEmptyState('Add a social profile to show it here.'));
+        renderCustomCompanyLinks('social',socialBox);
+        renderCustomCompanyLinks('play_store',byId('companyPlayLinks'));
+        renderCustomCompanyLinks('app_store',byId('companyAppLinks'));
+        renderCustomCompanyLinks('web_app',byId('companyWebLinks'));
+        const wallets=[['Apple Wallet',profile.apple_wallet_url],['Google Wallet',profile.google_wallet_url]].filter(([,url])=>url);
+        const walletBox=byId('companyWalletLinks');
+        walletBox.replaceChildren(...wallets.map(([label,url])=>makeCompanyLink(label,url)));
+        if(!wallets.length) walletBox.append(companyEmptyState('Add issuer pass URLs to show wallet buttons.'));
     }
 
+    function renderCustomCompanyLinks(category,container) {
+        const items=(Array.isArray(profile.custom_links)?profile.custom_links:[]).filter(item=>item.category===category);
+        if(!container)return;
+        items.forEach(item=>{const row=document.createElement('div');row.className='company-link-entry';row.append(makeCompanyLink(item.label||'Open link',item.url));
+            const edit=document.createElement('button');edit.type='button';edit.className='company-link-edit';edit.textContent='Edit';
+            edit.addEventListener('click',()=>openCompanyLinkDialog(category,item));row.append(edit);container.append(row);});
+        if(!items.length && category!=='social') container.append(companyEmptyState('No links added yet.'));
+    }
+    function openCompanyDetailsDialog(){
+        byId('companyEditName').value=profile.company_name||'';byId('companyEditEmail').value=profile.contact_email||'';
+        byId('companyEditPhone').value=profile.phone||'';byId('companyEditWebsite').value=profile.website_url||'';
+        byId('companyEditAddress').value=profile.address||'';byId('companyEditBio').value=profile.bio||'';
+        byId('companyDetailsMessage').textContent='';byId('companyProfileDialog').showModal();
+    }
+    function openCompanyWalletDialog(){
+        byId('companyEditAppleWallet').value=profile.apple_wallet_url||'';byId('companyEditGoogleWallet').value=profile.google_wallet_url||'';
+        byId('companyWalletMessage').textContent='';byId('companyWalletDialog').showModal();
+    }
+    function openCompanyLinkDialog(category,item){
+        const dialog=byId('companyLinkDialog');dialog.dataset.category=category;dialog.dataset.linkId=item?.id||'';
+        byId('companyLinkDialogTitle').textContent=item?'Edit link':'Add '+category.replace('_',' ')+' link';
+        byId('companyLinkLabel').value=item?.label||'';byId('companyLinkUrl').value=item?.url||'';
+        byId('companyLinkMessage').textContent='';byId('deleteCompanyLink').hidden=!item;dialog.showModal();
+    }
+    function companySchemaError(error){return /custom_links|PGRST204|42703|schema cache/i.test(error?.message||'')?'Run the updated dashboard/schema.sql in Supabase to enable custom company links.':(error?.message||'Unable to save changes.');}
+    async function saveCompanyDetails(event){
+        event.preventDefault();const button=byId('saveCompanyDetails'),message=byId('companyDetailsMessage');button.disabled=true;button.textContent='Saving…';message.textContent='';
+        const patch={company_name:byId('companyEditName').value.trim(),contact_email:byId('companyEditEmail').value.trim()||null,phone:byId('companyEditPhone').value.trim()||null,website_url:byId('companyEditWebsite').value.trim()||null,address:byId('companyEditAddress').value.trim()||null,bio:byId('companyEditBio').value.trim()||null,updated_at:new Date().toISOString()};
+        try{const {data,error}=await supabaseClient.from('company_profiles').update(patch).eq('id',profile.id).eq('user_id',currentUser.id).select(['id','user_id',...PROFILE_FIELDS,'avatar_path','banner_path','created_at','is_locked'].join(',')).single();if(error)throw error;
+            data.custom_links=profile.custom_links||[];profile=data;profiles=profiles.map(item=>item.id===data.id?data:item);
+            byId('companyName').value=data.company_name||'';byId('contactEmail').value=data.contact_email||'';byId('phone').value=data.phone||'';byId('websiteUrl').value=data.website_url||'';byId('address').value=data.address||'';byId('bio').value=data.bio||'';
+            updatePreview();renderCompanyProfile();renderCompanyProfiles();byId('companyProfileDialog').close();showDashboardMessage('Company profile saved.','success');
+        }catch(error){message.textContent=companySchemaError(error);}finally{button.disabled=false;button.textContent='Save changes';}
+    }
+    async function saveCompanyWallets(event){
+        event.preventDefault();const button=byId('saveCompanyWallets'),message=byId('companyWalletMessage');button.disabled=true;button.textContent='Saving…';message.textContent='';
+        const patch={apple_wallet_url:byId('companyEditAppleWallet').value.trim()||null,google_wallet_url:byId('companyEditGoogleWallet').value.trim()||null,updated_at:new Date().toISOString()};
+        try{const {data,error}=await supabaseClient.from('company_profiles').update(patch).eq('id',profile.id).eq('user_id',currentUser.id).select(['id','user_id',...PROFILE_FIELDS,'avatar_path','banner_path','created_at','is_locked'].join(',')).single();if(error)throw error;
+            data.custom_links=profile.custom_links||[];profile=data;profiles=profiles.map(item=>item.id===data.id?data:item);byId('appleWalletUrl').value=data.apple_wallet_url||'';byId('googleWalletUrl').value=data.google_wallet_url||'';
+            updatePreview();renderCompanyProfile();byId('companyWalletDialog').close();showDashboardMessage('Wallet pass links saved.','success');
+        }catch(error){message.textContent=companySchemaError(error);}finally{button.disabled=false;button.textContent='Save wallet links';}
+    }
+    async function saveCompanyLink(event){
+        event.preventDefault();const dialog=byId('companyLinkDialog'),button=byId('saveCompanyLink'),message=byId('companyLinkMessage');button.disabled=true;button.textContent='Saving…';message.textContent='';
+        const category=dialog.dataset.category,label=byId('companyLinkLabel').value.trim(),url=byId('companyLinkUrl').value.trim();
+        try{if(customLinksAvailable===false)throw new Error('Run the latest dashboard/schema.sql in Supabase to enable saved company links.');const parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol))throw new Error('Use an http or https link.');
+            const links=Array.isArray(profile.custom_links)?[...profile.custom_links]:[],id=dialog.dataset.linkId;
+            const next=id?links.map(item=>item.id===id?{...item,label,url,category}:item):[...links,{id:crypto.randomUUID(),label,url,category}];
+            const {data,error}=await supabaseClient.from('company_profiles').update({custom_links:next,updated_at:new Date().toISOString()}).eq('id',profile.id).eq('user_id',currentUser.id).select('custom_links').single();if(error)throw error;
+            profile.custom_links=data.custom_links||next;profiles=profiles.map(item=>item.id===profile.id?{...item,custom_links:profile.custom_links}:item);renderCompanyProfile();dialog.close();
+        }catch(error){message.textContent=companySchemaError(error);}finally{button.disabled=false;button.textContent='Save link';}
+    }
+    async function deleteCompanyLink(){
+        if(customLinksAvailable===false){byId('companyLinkMessage').textContent='Run the latest dashboard/schema.sql in Supabase to enable saved company links.';return;}
+        const dialog=byId('companyLinkDialog'),id=dialog.dataset.linkId;if(!id)return;const button=byId('deleteCompanyLink');button.disabled=true;
+        try{const next=(Array.isArray(profile.custom_links)?profile.custom_links:[]).filter(item=>item.id!==id);
+            const {data,error}=await supabaseClient.from('company_profiles').update({custom_links:next,updated_at:new Date().toISOString()}).eq('id',profile.id).eq('user_id',currentUser.id).select('custom_links').single();if(error)throw error;
+            profile.custom_links=data.custom_links||next;profiles=profiles.map(item=>item.id===profile.id?{...item,custom_links:profile.custom_links}:item);renderCompanyProfile();dialog.close();
+        }catch(error){byId('companyLinkMessage').textContent=companySchemaError(error);}finally{button.disabled=false;}
+    }
     function setCompanyContact(id,value,hrefForValue,emptyText) {
         const link=byId(id); link.textContent=value || emptyText;
         link.href=value ? hrefForValue(value) : 'profile.html';

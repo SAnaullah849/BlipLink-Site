@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="dashboard.css?v=20">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=22" defer></script>
+    <script src="dashboard.js?v=24" defer></script>
 </head>
 <body data-page="leads">
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -447,28 +447,28 @@
                 <div id="crmList" class="crm-list"></div>
             </section>
             <section id="companyPage" class="company-page dashboard-page" data-dashboard-page="company" aria-labelledby="companyTitle">
-                <div class="company-cover"><img id="companyBanner" alt="" hidden></div>
-                <div class="company-identity"><div class="company-logo"><img id="companyLogo" alt="" hidden><span id="companyLogoFallback">BL</span></div><h2 id="companyTitle">Company name</h2><a class="company-edit-link" href="profile.html">Edit company profile <span aria-hidden="true">↗</span></a></div>
+                <div class="company-cover"><img id="companyBanner" alt="" hidden><a class="company-cover-action" href="profile.html">Change banner</a></div>
+                <div class="company-identity"><div class="company-logo"><img id="companyLogo" alt="" hidden><span id="companyLogoFallback">BL</span><a class="company-logo-action" href="profile.html" aria-label="Change company logo">✎</a></div><h2 id="companyTitle">Company name</h2><button class="company-edit-button" type="button" data-company-action="details">Edit profile</button></div>
                 <div class="company-details-grid">
-                    <article class="company-detail-card"><span>Company email</span><a id="companyEmail" href="#">Add company email</a></article>
-                    <article class="company-detail-card"><span>Phone</span><a id="companyPhone" href="#">Add phone number</a></article>
-                    <article class="company-detail-card"><span>Address</span><a id="companyAddress" href="#">Add address</a></article>
-                    <article class="company-detail-card"><span>Website</span><a id="companyWebsite" href="#">Add website</a></article>
+                    <article class="company-detail-card"><span>Company email</span><a id="companyEmail" href="#">Add company email</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
+                    <article class="company-detail-card"><span>Phone</span><a id="companyPhone" href="#">Add phone number</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
+                    <article class="company-detail-card"><span>Address</span><a id="companyAddress" href="#">Add address</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
+                    <article class="company-detail-card"><span>Website</span><a id="companyWebsite" href="#">Add website</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
                 </div>
+                <p id="companyLinksNotice" class="company-links-notice" role="status" hidden></p>
                 <div class="company-links-grid">
-                    <section class="company-link-group"><h3>Social media</h3><div id="companySocialLinks" class="company-link-items"></div></section>
-                    <section class="company-link-group"><h3>Play Store</h3><p>App listing links can be added in profile social links.</p></section>
-                    <section class="company-link-group"><h3>App Store</h3><p>App listing links can be added in profile social links.</p></section>
-                    <section class="company-link-group"><h3>Web apps</h3><div id="companyWebLinks" class="company-link-items"></div></section>
+                    <section class="company-link-group"><div class="company-link-heading"><h3>Social media</h3><div><a class="company-manage-link" href="social.html">Manage</a><button type="button" class="company-add-link" data-company-add-link="social">＋ Add new</button></div></div><div id="companySocialLinks" class="company-link-items"></div></section>
+                    <section class="company-link-group"><div class="company-link-heading"><h3>Play Store</h3><button type="button" class="company-add-link" data-company-add-link="play_store">＋ Add new</button></div><div id="companyPlayLinks" class="company-link-items"></div></section>
+                    <section class="company-link-group"><div class="company-link-heading"><h3>App Store</h3><button type="button" class="company-add-link" data-company-add-link="app_store">＋ Add new</button></div><div id="companyAppLinks" class="company-link-items"></div></section>
+                    <section class="company-link-group"><div class="company-link-heading"><h3>Web apps</h3><button type="button" class="company-add-link" data-company-add-link="web_app">＋ Add new</button></div><div id="companyWebLinks" class="company-link-items"></div></section>
+                    <section class="company-link-group company-wallet-group"><div class="company-link-heading"><div><h3>Apple Wallet &amp; Google Wallet</h3><p>Use pass URLs from your wallet provider.</p></div><button type="button" class="company-add-link" data-company-action="wallets">Manage</button></div><div id="companyWalletLinks" class="company-link-items"></div></section>
                 </div>
                 <div class="company-manage-row"><span>Manage employee cards and profile visibility</span><a class="button button-primary button-small" href="profile.html">Manage profiles</a></div>
-            </section>
-            <section class="panel profile-management dashboard-page" data-dashboard-page="profile" aria-labelledby="profileManagementTitle">
-                <div class="panel-heading">
-                    <div><span class="eyebrow">COMPANY WORKSPACE</span><h2 id="profileManagementTitle">Manage profiles</h2><p>Create and manage multiple employee profiles from this company account.</p></div>
-                    <button id="addProfileButton" class="button button-primary button-small" type="button">Add profile</button>
-                </div>
-                <div id="companyProfilesList" class="company-profiles-list"></div>
+                <dialog id="companyProfileDialog" class="company-dialog"><form id="companyDetailsForm"><div class="company-dialog-heading"><div><span class="eyebrow">COMPANY PROFILE</span><h2>Edit company details</h2></div><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields">
+                    <label>Company name<input id="companyEditName" maxlength="120"></label><label>Company email<input id="companyEditEmail" type="email" maxlength="254"></label><label>Phone<input id="companyEditPhone" type="tel" maxlength="40"></label><label>Website<input id="companyEditWebsite" type="url" maxlength="500"></label><label class="company-dialog-full">Address<input id="companyEditAddress" maxlength="300"></label><label class="company-dialog-full">Short description<textarea id="companyEditBio" maxlength="500" rows="3"></textarea></label>
+                </div><p id="companyDetailsMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyDetails" class="button button-primary">Save changes</button></div></form></dialog>
+                <dialog id="companyLinkDialog" class="company-dialog"><form id="companyLinkForm"><div class="company-dialog-heading"><div><span class="eyebrow">COMPANY LINKS</span><h2 id="companyLinkDialogTitle">Add link</h2></div><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields"><label>Link name<input id="companyLinkLabel" maxlength="80" required placeholder="e.g. Main app"></label><label>Link URL<input id="companyLinkUrl" type="url" maxlength="500" required placeholder="https://"></label></div><p id="companyLinkMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-danger" id="deleteCompanyLink" hidden>Delete</button><span></span><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyLink" class="button button-primary">Save link</button></div></form></dialog>
+                <dialog id="companyWalletDialog" class="company-dialog"><form id="companyWalletForm"><div class="company-dialog-heading"><div><span class="eyebrow">WALLET PASSES</span><h2>Apple &amp; Google Wallet</h2></div><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields"><label>Apple Wallet pass URL<input id="companyEditAppleWallet" type="url" maxlength="500" placeholder="https://"></label><label>Google Wallet pass URL<input id="companyEditGoogleWallet" type="url" maxlength="500" placeholder="https://"></label></div><p class="field-hint">Paste pass links generated by your wallet provider.</p><p id="companyWalletMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyWallets" class="button button-primary">Save wallet links</button></div></form></dialog>
             </section>
             <footer class="dashboard-footer">© 2026 BlipLink · Company dashboard</footer>
         </main>

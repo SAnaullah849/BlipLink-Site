@@ -13,6 +13,7 @@ create table if not exists public.company_profiles (
     phone text check (phone is null or char_length(phone) <= 40),
     address text check (address is null or char_length(address) <= 300),
     website_url text check (website_url is null or char_length(website_url) <= 500),
+    custom_links jsonb not null default '[]'::jsonb check (jsonb_typeof(custom_links) = 'array'),
     whatsapp_url text check (whatsapp_url is null or char_length(whatsapp_url) <= 500),
     bio text check (bio is null or char_length(bio) <= 500),
     linkedin_url text check (linkedin_url is null or char_length(linkedin_url) <= 500),
@@ -62,6 +63,7 @@ alter table public.company_profiles
     add column if not exists address text check (address is null or char_length(address) <= 300);
 alter table public.company_profiles
     add column if not exists whatsapp_url text check (whatsapp_url is null or char_length(whatsapp_url) <= 500),
+    add column if not exists custom_links jsonb not null default '[]'::jsonb check (jsonb_typeof(custom_links) = 'array'),
     add column if not exists apple_wallet_url text check (apple_wallet_url is null or char_length(apple_wallet_url) <= 500),
     add column if not exists google_wallet_url text check (google_wallet_url is null or char_length(google_wallet_url) <= 500),
     add column if not exists banner_path text,
