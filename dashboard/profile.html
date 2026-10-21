@@ -119,19 +119,23 @@
                                 <h2>Welcome back, <strong id="overviewName">there</strong></h2>
                                 <p>Here’s how your digital profiles are performing.</p>
                             </div>
-                            <a class="button button-primary" href="company.html">Manage profiles <span aria-hidden="true">→</span></a>
+                            <a class="button button-primary" href="profile.html">Manage profiles <span aria-hidden="true">→</span></a>
                         </div>
                         <div class="analytics-summary">
                             <article class="panel analytics-stat">
-                                <div><span class="eyebrow">TOTAL VIEWS</span><strong id="totalCardViews">0</strong></div>
+                                <span class="analytics-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3.5 20v-1.5a5.5 5.5 0 0 1 11 0V20M16 5.5a3 3 0 0 1 0 5.8M18 14a4.5 4.5 0 0 1 2.5 4v2"></path></svg></span>
+                                <div><span class="eyebrow">USED PROFILES</span><strong id="usedProfiles">0</strong></div>
                             </article>
                             <article class="panel analytics-stat">
-                                <div><span class="eyebrow">VIEWS · LAST 30 DAYS</span><strong id="last30Views" title="Total tracked card views during the most recent 30 UTC calendar days">0</strong></div>
+                                <span class="analytics-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.6"></circle></svg></span>
+                                <div><span class="eyebrow">PROFILE VISITS</span><strong id="last30Views" title="Profile visits in the last 30 days">0</strong></div>
                             </article>
                             <article class="panel analytics-stat">
-                                <div><span class="eyebrow">TOTAL LEADS</span><strong id="totalLeads">0</strong></div>
+                                <span class="analytics-stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 19.5 9 14l3.5 3 7-9M15 8h4.5v4.5"></path></svg></span>
+                                <div><span class="eyebrow">NEW LEADS</span><strong id="totalLeads">0</strong></div>
                             </article>
                         </div>
+                        <p class="total-views-note"><strong id="totalCardViews">0</strong> total profile views</p>
                         <section class="panel analytics-panel" aria-labelledby="analyticsTitle">
                             <div class="panel-heading analytics-heading">
                                 <div>
@@ -349,6 +353,14 @@
                 </aside>
             </div>
 
+            <section class="panel profile-management dashboard-page" data-dashboard-page="profile" aria-labelledby="profileManagementTitle">
+                <div class="panel-heading">
+                    <div><span class="eyebrow">COMPANY WORKSPACE</span><h2 id="profileManagementTitle">Manage profiles</h2><p>Create and manage multiple employee profiles from this company account.</p></div>
+                    <button id="addProfileButton" class="button button-primary button-small" type="button">Add profile</button>
+                </div>
+                <div id="companyProfilesList" class="company-profiles-list"></div>
+            </section>
+
             <section id="socialLinks" class="panel profile-panel dashboard-page" data-dashboard-page="social" aria-labelledby="socialLinksTitle">
                 <div class="panel-heading">
                     <div>
@@ -442,16 +454,22 @@
                 <p id="crmMessage" class="inline-message" role="status" aria-live="polite">Loading your CRM…</p>
                 <div id="crmList" class="crm-list"></div>
             </section>
-            <section id="companyPage" class="panel leads-panel dashboard-page" data-dashboard-page="company" aria-labelledby="companyTitle">
-                <div class="panel-heading">
-                    <div>
-                        <span class="eyebrow">COMPANY WORKSPACE</span>
-                        <h2 id="companyTitle">Company profiles</h2>
-                        <p>Manage multiple employee cards, edit their details, and control whether each card is public.</p>
-                    </div>
-                    <button id="addProfileButton" class="button button-primary button-small" type="button">Add profile</button>
+            <section id="companyPage" class="company-page dashboard-page" data-dashboard-page="company" aria-labelledby="companyTitle">
+                <div class="company-cover"><img id="companyBanner" alt="" hidden></div>
+                <div class="company-identity"><div class="company-logo"><img id="companyLogo" alt="" hidden><span id="companyLogoFallback">BL</span></div><h2 id="companyTitle">Company name</h2><a class="company-edit-link" href="profile.html">Edit company profile <span aria-hidden="true">↗</span></a></div>
+                <div class="company-details-grid">
+                    <article class="company-detail-card"><span>Company email</span><a id="companyEmail" href="#">Add company email</a></article>
+                    <article class="company-detail-card"><span>Phone</span><a id="companyPhone" href="#">Add phone number</a></article>
+                    <article class="company-detail-card"><span>Address</span><a id="companyAddress" href="#">Add address</a></article>
+                    <article class="company-detail-card"><span>Website</span><a id="companyWebsite" href="#">Add website</a></article>
                 </div>
-                <div id="companyProfilesList" class="company-profiles-list"></div>
+                <div class="company-links-grid">
+                    <section class="company-link-group"><h3>Social media</h3><div id="companySocialLinks" class="company-link-items"></div></section>
+                    <section class="company-link-group"><h3>Play Store</h3><p>App listing links can be added in profile social links.</p></section>
+                    <section class="company-link-group"><h3>App Store</h3><p>App listing links can be added in profile social links.</p></section>
+                    <section class="company-link-group"><h3>Web apps</h3><div id="companyWebLinks" class="company-link-items"></div></section>
+                </div>
+                <div class="company-manage-row"><span>Manage employee cards and profile visibility</span><a class="button button-primary button-small" href="profile.html">Manage profiles</a></div>
             </section>
             <footer class="dashboard-footer">© 2026 BlipLink · Company dashboard</footer>
         </main>

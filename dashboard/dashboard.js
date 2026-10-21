@@ -208,6 +208,7 @@
         }
 
         profiles = data || [];
+        byId('usedProfiles').textContent = profiles.length.toLocaleString();
         if (!profiles.length) {
             const { data: createdProfile, error: createError } = await supabaseClient
                 .from('company_profiles')
@@ -261,6 +262,7 @@
         updatePreview();
         await updatePhotoPreview(profile.avatar_path);
         await updateBannerPreview(profile.banner_path);
+        renderCompanyProfile();
         updateCardLink();
         showDashboard();
         profileDirty = false;
@@ -280,6 +282,7 @@
                 .single();
             if (error) throw new Error(`Unable to create profile: ${error.message}`);
             profiles.push(data);
+            byId('usedProfiles').textContent = profiles.length.toLocaleString();
             refreshAnalyticsProfileOptions();
             await loadProfile(data);
             renderCompanyProfiles();
@@ -296,6 +299,47 @@
 
     function renderCompanyProfiles() {
         renderProfileRows(byId('companyProfilesList'));
+    }
+
+    function renderCompanyProfile() {
+        if (!byId('companyTitle')) return;
+        const companyName = profile.company_name || profile.full_name || 'Company name';
+        byId('companyTitle').textContent = companyName;
+        const logo = byId('companyLogo'); const logoSource = byId('profilePhoto').src;
+        logo.hidden = !profile.avatar_path || !logoSource;
+        if (logo.hidden) logo.removeAttribute('src'); else logo.src = logoSource;
+        byId('companyLogoFallback').textContent = getInitials(companyName);
+        byId('companyLogoFallback').hidden = !logo.hidden;
+        const banner = byId('companyBanner'); const bannerSource = byId('previewBanner').src;
+        banner.hidden = !profile.banner_path || !bannerSource;
+        if (banner.hidden) banner.removeAttribute('src'); else banner.src = bannerSource;
+        setCompanyContact('companyEmail', profile.contact_email, value => 'mailto:' + value, 'Add company email');
+        setCompanyContact('companyPhone', profile.phone, value => 'tel:' + value.replace(/[^0-9+]/g, ''), 'Add phone number');
+        setCompanyContact('companyAddress', profile.address, value => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(value), 'Add address');
+        setCompanyContact('companyWebsite', profile.website_url, value => safePreviewUrl(value), 'Add website');
+        const social = [['LinkedIn', profile.linkedin_url], ['Instagram', profile.instagram_url], ['X', profile.x_url], ['Facebook', profile.facebook_url], ['TikTok', profile.tiktok_url], ['GitHub', profile.github_url], ['Telegram', profile.telegram_url], ['Discord', profile.discord_url], ['Snapchat', profile.snapchat_url]].filter(([,url]) => url);
+        const socialBox = byId('companySocialLinks');
+        socialBox.replaceChildren(...social.map(([label,url]) => makeCompanyLink(label,url)));
+        if (!social.length) socialBox.append(companyEmptyState('No social links added yet.'));
+        const webBox = byId('companyWebLinks');
+        webBox.replaceChildren(...(profile.website_url ? [makeCompanyLink('Company website',profile.website_url)] : []));
+        if (!profile.website_url) webBox.append(companyEmptyState('No web apps added yet.'));
+    }
+
+    function setCompanyContact(id,value,hrefForValue,emptyText) {
+        const link=byId(id); link.textContent=value || emptyText;
+        link.href=value ? hrefForValue(value) : 'profile.html';
+        link.target=(id==='companyAddress'||id==='companyWebsite') ? '_blank' : '';
+        link.rel=link.target ? 'noopener noreferrer' : '';
+    }
+
+    function makeCompanyLink(label,url) {
+        const link=document.createElement('a'); link.className='company-link-item';
+        link.href=safePreviewUrl(url); link.target='_blank'; link.rel='noopener noreferrer'; link.textContent=label; return link;
+    }
+
+    function companyEmptyState(text) {
+        const p=document.createElement('p'); p.className='company-empty-state'; p.textContent=text; return p;
     }
 
     function renderProfileRows(list) {
@@ -403,6 +447,7 @@
             }
         }
         profiles = profiles.filter(profileItem => profileItem.id !== item.id);
+        byId('usedProfiles').textContent = profiles.length.toLocaleString();
         refreshAnalyticsProfileOptions();
         if (profile.id === item.id) await loadProfile(profiles[0]);
         renderCompanyProfiles();
@@ -511,6 +556,8 @@
             byId('bannerInput').value = '';
             await updatePhotoPreview(profile.avatar_path);
             await updateBannerPreview(profile.banner_path);
+            renderCompanyProfile();
+            renderCompanyProfiles();
 
             const oldImagePaths = [previousAvatarPath, previousBannerPath].filter(Boolean);
             const currentImagePaths = [profile.avatar_path, profile.banner_path];
@@ -555,7 +602,7 @@
     }
 
     function createWhatsAppLink(value, inputId) {
-        let digits = /^https?:\/\//i.test(value) ? getWhatsAppNumber(value) : value.replace(/\D/g, '');
+        let digits = /^https?:\/\//i.test(value) ? getWhatsAppNumber(value) : value.replace(/[^0-9+]/g, '');
         if (digits.startsWith('00')) digits = digits.slice(2);
         if (digits.length < 7 || digits.length > 15) {
             byId(inputId).focus();
@@ -579,7 +626,7 @@
     }
 
     function normalizeWhatsAppDigits(value) {
-        let digits = value.replace(/\D/g, '');
+        let digits = value.replace(/[^0-9+]/g, '');
         if (digits.startsWith('00')) digits = digits.slice(2);
         return digits;
     }
@@ -1162,7 +1209,7 @@
 
     function initializeAnalyticsFilters() {
         refreshAnalyticsProfileOptions();
-        const { start, end } = getLastThirtyDayRange();
+        const { start, end } = getCenteredThirtyDayRange();
         byId('analyticsStartDate').value = start;
         byId('analyticsEndDate').value = end;
     }
@@ -1189,12 +1236,17 @@
 
     function getLastThirtyDayRange() {
         const end = new Date().toISOString().slice(0, 10);
-        const start = new Date(`${end}T00:00:00.000Z`);
+        const start = new Date(end + 'T00:00:00.000Z');
         start.setUTCDate(start.getUTCDate() - 29);
-        return {
-            start: start.toISOString().slice(0, 10),
-            end,
-        };
+        return { start: start.toISOString().slice(0, 10), end };
+    }
+
+    function getCenteredThirtyDayRange() {
+        const today = new Date().toISOString().slice(0, 10);
+        const start = new Date(today + 'T00:00:00.000Z');
+        const end = new Date(today + 'T00:00:00.000Z');
+        start.setUTCDate(start.getUTCDate() - 14); end.setUTCDate(end.getUTCDate() + 15);
+        return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
     }
 
     async function getAnalyticsTimeseries(profileId, start, end) {
@@ -1379,6 +1431,7 @@
             const taps = Number(row.taps || 0);
             const leads = Number(row.leads || 0);
             group.dataset.date = row.event_date;
+            if (row.event_date === new Date().toISOString().slice(0, 10)) group.classList.add('chart-today');
             group.title = `${row.event_date}: ${taps.toLocaleString()} taps, ${leads.toLocaleString()} leads`;
             group.setAttribute('aria-label', `${row.event_date}: ${taps.toLocaleString()} taps, ${leads.toLocaleString()} leads`);
             for (const [className, value, label] of [
