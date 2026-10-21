@@ -62,7 +62,7 @@
         byId('overviewCopyCardLink').addEventListener('click', handleOverviewCopyCardLink);
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
         byId('refreshCrmButton').addEventListener('click', loadCrmLeads);
-        byId('addProfileButton').addEventListener('click', createProfile);
+        byId('addProfileButton')?.addEventListener('click', createProfile);
         document.querySelectorAll('[data-company-action=details]').forEach(button => button.addEventListener('click', openCompanyDetailsDialog));
         document.querySelectorAll('[data-company-action=wallets]').forEach(button => button.addEventListener('click', openCompanyWalletDialog));
         document.querySelectorAll('[data-company-add-link]').forEach(button => button.addEventListener('click', () => openCompanyLinkDialog(button.dataset.companyAddLink)));
