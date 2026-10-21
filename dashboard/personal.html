@@ -14,16 +14,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="card-theme.js?v=1" defer></script>
-    <script src="personal.js?v=1" defer></script>
+    <script src="access-state.js?v=1" defer></script>
+    <script src="personal.js?v=2" defer></script>
 </head>
 <body class="personal-page">
     <header class="personal-header">
         <a class="brand" href="personal.html" aria-label="My BlipLink card"><img src="../assets/logo-symbol.png" alt="" width="38" height="38"><img src="../assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark"></a>
-        <div class="personal-header-actions"><a id="personalAdminLink" href="admin.html" hidden>Administration</a><button id="personalSignOut" type="button" class="personal-text-button" hidden>Sign out</button><button id="savePersonalCard" class="button button-primary" type="submit" form="personalCardForm" disabled>Save changes</button></div>
+        <div class="personal-header-actions"><button id="personalSignOut" type="button" class="personal-text-button" hidden>Sign out</button><button id="savePersonalCard" class="button button-primary" type="submit" form="personalCardForm" disabled>Save changes</button></div>
     </header>
     <main class="personal-main">
         <div class="personal-intro"><div><span class="eyebrow">YOUR PERSONAL BRAND</span><h1>My card</h1><p>A little about you. A design that feels like you.</p></div><span id="personalSaveState" class="personal-save-state" role="status">Loading your card…</span></div>
         <p id="personalMessage" class="notice notice-info" role="status" aria-live="polite">Opening your personal workspace…</p>
+        <p id="personalAccessStatus" class="notice notice-info" role="status" hidden></p>
         <div id="personalWorkspace" class="personal-workspace" hidden>
             <section class="personal-editor panel" aria-label="Card editor">
                 <div class="personal-tabs" role="tablist" aria-label="Edit your card">

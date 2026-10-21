@@ -1,10 +1,11 @@
--- Run this file in the Supabase SQL Editor before using the dashboard.
--- Then run account-access.sql for individual/company types, profile allowances,
--- and administration. Run bootstrap-admin.sql once to enable the first admin.
--- Finally run card-themes.sql for saved themes and the individual CRM restriction.
--- Create company accounts by invitation in Supabase Authentication. Public
--- sign-ups must remain disabled in the Supabase Auth settings. The trigger
--- below creates a company profile for invited users when Auth creates them.
+-- Fail closed until account-settings.sql installs the real expiry check.
+-- Use setup.sql so installation and upgrades happen together in one transaction.
+create or replace function public.account_is_active(requested_user_id uuid)
+returns boolean language sql stable security definer set search_path = '' as $$ select false; $$;
+-- Maintained component: run the combined setup.sql in Supabase SQL Editor.
+-- setup.sql includes the quota, card-theme, and Supabase-only account settings.
+-- Public sign-ups must remain disabled in Supabase Auth. Account options are
+-- prepared in account_settings before inviting the matching email address.
 
 create table if not exists public.company_profiles (
     id uuid primary key default gen_random_uuid(),
@@ -217,6 +218,7 @@ as $$
     from public.company_profiles as profile
     where profile.id = requested_user_id
       and not profile.is_locked
+          and public.account_is_active(profile.user_id)
     limit 1
 $$;
 
@@ -461,6 +463,7 @@ begin
         where profile.id = requested_profile_id
           and char_length(btrim(profile.full_name)) > 0
           and not profile.is_locked
+          and public.account_is_active(profile.user_id)
     ) then
         raise exception 'This business card is unavailable.';
     end if;
@@ -776,6 +779,7 @@ begin
         where profile.id = requested_profile_id
           and char_length(btrim(profile.full_name)) > 0
           and not profile.is_locked
+          and public.account_is_active(profile.user_id)
     ) then
         raise exception 'This business card is unavailable.';
     end if;

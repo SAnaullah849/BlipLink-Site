@@ -7,10 +7,16 @@ const { chromium } = require(process.env.BLIPLINK_PLAYWRIGHT || 'playwright');
 const root = process.cwd();
 const output = process.env.BLIPLINK_QA_OUTPUT || path.join(os.tmpdir(), 'bliplink-admin-qa');
 
-function mockSupabase({ type = 'company', limit = 3, admin = true } = {}) {
+function mockSupabase({ type = 'company', limit = 3, status = 'active', period = 'yearly' } = {}) {
     const user = { id: '11111111-1111-4111-8111-111111111111', email: 'devops@shaunco.ai' };
     const profiles = [JSON.parse(localStorage.getItem('qa-profile') || 'null') || { id: '22222222-2222-4222-8222-222222222222', user_id: user.id, full_name: 'Alex Morgan', contact_email: 'alex@example.com', company_name: 'BlipLink', card_theme: {}, custom_links: [], created_at: new Date().toISOString() }];
     window.__qaRequests = [];
+    const accessState = () => {
+        const effective = localStorage.getItem('qa-access-status') || status;
+        return { account_type: type, profile_limit: limit, access_period: period, access_status: effective === 'inactive' ? 'inactive' : 'active',
+            effective_status: effective, can_edit: effective === 'active', starts_at: '2020-01-01',
+            expires_at: effective === 'expired' ? '2021-01-01' : new Date(Date.now() + 86400000 * 100).toISOString() };
+    };
     const client = {
         auth: { getSession: async () => ({ data: { session: { user, access_token: 'fake-test-token' } }, error: null }), onAuthStateChange() {} },
         from(table) {
@@ -18,7 +24,6 @@ function mockSupabase({ type = 'company', limit = 3, admin = true } = {}) {
             let insertion;
             const result = single => {
                 let data = table === 'account_access' ? { account_type: type, profile_limit: limit }
-                    : table === 'app_admins' ? (admin ? { user_id: user.id } : null)
                     : table === 'company_profiles' ? (single ? profiles[0] : profiles)
                     : table === 'company_subscriptions' ? null : [];
                 if (insertion) {
@@ -38,8 +43,9 @@ function mockSupabase({ type = 'company', limit = 3, admin = true } = {}) {
         },
         rpc: async name => {
             window.__qaRequests.push(name);
-            return { data: name === 'get_public_company_card' ? [{ ...profiles[0], profile_id: profiles[0].id }]
-                : name === 'get_public_card_appearance' ? { theme: profiles[0].card_theme, account_type: type } : [], error: null };
+            return { data: name === 'get_my_account_access' ? [accessState()]
+                : name === 'get_public_company_card' ? (accessState().can_edit ? [{ ...profiles[0], profile_id: profiles[0].id }] : [])
+                : name === 'get_public_card_appearance' ? { theme: profiles[0].card_theme, account_type: type, expires_at: accessState().expires_at } : [], error: null };
         },
         channel() { return { on() { return this; }, subscribe() { return this; } }; },
     };
@@ -63,42 +69,10 @@ function mockSupabase({ type = 'company', limit = 3, admin = true } = {}) {
     try {
         browser = await chromium.launch({ headless: true, channel: 'msedge' });
         const errors = [];
-        const context = await browser.newContext({ viewport: { width: 1440, height: 1100 } });
-        await context.addInitScript(mockSupabase, {});
-        await context.route('https://**/*', route => route.fulfill({ contentType: 'text/javascript', body: '' }));
-        const page = await context.newPage();
-        page.on('pageerror', error => errors.push(error.message));
-        const accounts = [
-            { user_id: '11111111-1111-4111-8111-111111111111', email: 'devops@shaunco.ai', account_type: 'company', profile_limit: 10, profiles_used: 3, total_count: 2, is_admin: true },
-            { user_id: '22222222-2222-4222-8222-222222222222', email: 'alex@example.com', account_type: 'individual', profile_limit: 1, profiles_used: 1, total_count: 2, is_admin: false },
-        ];
-        const mutations = [];
-        await page.route('**/api/admin-accounts?*', async route => {
-            const request = route.request();
-            if (request.method() === 'GET') return route.fulfill({ json: { accounts, page: 1, pageSize: 50 } });
-            const body = request.postDataJSON(); mutations.push(body);
-            return route.fulfill({ json: { account: { profile_limit: body.profileLimit }, isAdmin: body.isAdmin } });
-        });
-        await page.goto(base + '/dashboard/admin.html');
-        await page.locator('#adminContent').waitFor({ state: 'visible' });
-        assert.equal(await page.locator('.admin-account').count(), 2);
-        assert.equal(await page.locator('#inviteProfileLimit').isDisabled(), true);
-        await page.locator('#inviteAccountType').selectOption('company');
-        assert.equal(await page.locator('#inviteProfileLimit').isEnabled(), true);
-        await page.locator('#inviteEmail').fill('new-company@example.com');
-        await page.locator('#inviteProfileLimit').fill('12');
-        await page.locator('#inviteUserButton').click();
-        await page.locator('#inviteMessage').filter({ hasText: 'Invitation sent' }).waitFor();
-        assert.deepEqual(mutations[0], { email: 'new-company@example.com', accountType: 'company', profileLimit: 12 });
-        await page.locator('.admin-account').nth(1).locator('input[type="checkbox"]').check();
-        await page.locator('.admin-account').nth(1).getByRole('button', { name: 'Save admin access' }).click();
-        await page.locator('.admin-account').nth(1).getByText('Administrator access updated.').waitFor();
-        assert.equal(mutations[1].isAdmin, true);
-        await page.screenshot({ path: path.join(output, 'admin-desktop.png'), fullPage: true });
-        await page.setViewportSize({ width: 390, height: 844 });
-        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-        await page.screenshot({ path: path.join(output, 'admin-mobile.png'), fullPage: true });
-
+        const removedContext = await browser.newContext();
+        assert.equal((await removedContext.request.get(base + '/dashboard/admin.html')).status(), 404);
+        assert.equal((await removedContext.request.get(base + '/api/admin-accounts')).status(), 404);
+        await removedContext.close();
         for (const type of ['individual', 'company']) {
             const userContext = await browser.newContext({ viewport: { width: 1440, height: 1100 } });
             await userContext.addInitScript(mockSupabase, { type, limit: type === 'individual' ? 1 : 3, admin: false });
@@ -160,7 +134,7 @@ function mockSupabase({ type = 'company', limit = 3, admin = true } = {}) {
             await userPage.locator('#accountAllowance').filter({ hasText: '1 of' }).waitFor();
             assert.equal(await userPage.locator('#addProfileButton').isDisabled(), type === 'individual');
             assert.equal(await userPage.locator('[data-nav="company"]').isVisible(), type === 'company');
-            assert.equal(await userPage.locator('#adminNavigationLink').isVisible(), false);
+            assert.equal(await userPage.locator('#adminNavigationLink').count(), 0);
             await userPage.goto(base + '/dashboard/social.html');
             await userPage.locator('#socialLinks').waitFor({ state: 'visible' });
             assert.equal(await userPage.locator('#dashboardView').isVisible(), true);
@@ -169,8 +143,45 @@ function mockSupabase({ type = 'company', limit = 3, admin = true } = {}) {
             await userPage.locator(type === 'individual' ? '#profileEditor' : '#companyPage').waitFor({ state: 'visible' });
             await userContext.close();
         }
+        for (const type of ['individual', 'company']) {
+            const pausedContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+            await pausedContext.addInitScript(mockSupabase, { type, status: 'expired', period: 'monthly' });
+            await pausedContext.route('https://**/*', route => route.fulfill({ contentType: 'text/javascript', body: '' }));
+            const pausedPage = await pausedContext.newPage();
+            pausedPage.on('pageerror', error => errors.push(error.message));
+            await pausedPage.goto(base + '/dashboard/index.html');
+            if (type === 'individual') {
+                await pausedPage.waitForURL('**/dashboard/personal.html');
+                await pausedPage.locator('#personalWorkspace').waitFor({ state: 'visible' });
+                assert.equal(await pausedPage.locator('#savePersonalCard').isDisabled(), true);
+                assert.equal(await pausedPage.locator('#personalCardForm').evaluate(element => element.inert), true);
+                assert.match(await pausedPage.locator('#personalAccessStatus').textContent(), /expired.*public cards are hidden/);
+            } else {
+                await pausedPage.locator('#subscription').waitFor({ state: 'visible' });
+                assert.equal(await pausedPage.locator('#subscriptionPlan').textContent(), 'Monthly access');
+                assert.equal(await pausedPage.locator('[data-nav="company"]').isVisible(), false);
+                assert.equal(await pausedPage.locator('[data-nav="crm"]').isVisible(), false);
+            }
+            assert.equal(await pausedPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+            await pausedPage.screenshot({ path: path.join(output, `${type}-expired-mobile.png`), fullPage: true });
+            const expiredPublic = await pausedContext.newPage();
+            await expiredPublic.goto(base + '/card.html?id=22222222-2222-4222-8222-222222222222');
+            await expiredPublic.locator('#cardStatus').filter({ hasText: 'not available' }).waitFor();
+            assert.equal(await expiredPublic.locator('#publicCard').isVisible(), false);
+            await pausedPage.evaluate(() => localStorage.setItem('qa-access-status', 'active'));
+            await pausedPage.reload();
+            if (type === 'individual') {
+                await pausedPage.locator('#personalWorkspace').waitFor({ state: 'visible' });
+                assert.equal(await pausedPage.locator('#savePersonalCard').isEnabled(), true);
+            } else {
+                await pausedPage.locator('#accountAllowance').filter({ hasText: 'Monthly access' }).waitFor();
+                await pausedPage.locator('#mobileNavigationToggle').click();
+                await pausedPage.locator('[data-nav="crm"]').waitFor({ state: 'visible' });
+            }
+            await pausedContext.close();
+        }
         assert.deepEqual(errors, []);
-        console.log('Browser checks passed: admin controls, individual route isolation, theme preview/save/reload/public card, desktop/mobile layouts, and company routes.');
+        console.log('Browser checks passed: removed admin routes, individual route isolation, theme preview/save/reload/public card, desktop/mobile layouts, and company routes.');
     } finally {
         await browser?.close();
         await new Promise(resolve => server.close(resolve));

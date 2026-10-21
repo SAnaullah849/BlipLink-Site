@@ -2,7 +2,8 @@
   "name": "bliplink-site",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.cjs"
+    "test": "node --test tests/*.test.cjs",
+    "db:build": "node scripts/build-database-setup.cjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.11"

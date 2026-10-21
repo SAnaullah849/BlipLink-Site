@@ -13,6 +13,7 @@
         ['Apple Wallet pass', 'apple_wallet_url', 'https://…'], ['Google Wallet pass', 'google_wallet_url', 'https://…'],
     ];
     let client, user, profile, dirty = false, themeDirty = false, saving = false, themeReady = false;
+    let accessState;
     const images = { avatar: { file: null, url: null, remove: false }, banner: { file: null, url: null, remove: false } };
 
     document.addEventListener('DOMContentLoaded', initialize);
@@ -33,9 +34,8 @@
             if (!session.data.session?.user) { window.location.replace('../login.html'); return; }
             user = session.data.session.user;
             byId('personalSignOut').hidden = false;
-            const access = await client.from('account_access').select('account_type').eq('user_id', user.id).single();
-            if (access.error || !access.data) throw new Error('Unable to load your account. Please try again or contact support.');
-            if (access.data.account_type !== 'individual') { window.location.replace('index.html'); return; }
+            accessState = await window.BlipLinkAccess.load(client);
+            if (accessState.account_type !== 'individual') { window.location.replace('index.html'); return; }
             let result = await client.from('company_profiles').select('*').eq('user_id', user.id)
                 .order('created_at', { ascending: true }).limit(1).maybeSingle();
             if (result.error) throw new Error('Unable to load your card. Please try again.');
@@ -50,13 +50,15 @@
             }
             fillTheme(profile.card_theme);
             byId('personalWorkspace').hidden = false;
-            byId('savePersonalCard').disabled = false;
-            updateSharing();
             byId('personalSaveState').textContent = 'All changes saved';
+            applyAccessState();
             showMessage(themeReady ? '' : 'Your profile is ready to edit. Design saving needs a one-time setup by your administrator.', themeReady ? 'info' : 'error');
             selectTab(window.location.hash.slice(1));
             postPreview();
-            loadAdminLink();
+            window.BlipLinkAccess.watch(client, access => {
+                if (access?.account_type === 'company') { dirty = false; window.location.replace('index.html'); return; }
+                accessState = access; applyAccessState();
+            });
             client.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_OUT' || !session?.user || session.user.id !== user.id) {
                     dirty = false; window.location.replace('../login.html');
@@ -222,7 +224,7 @@
         images[kind] = { file, url: URL.createObjectURL(file), remove: false }; markDirty();
     }
     async function saveCard(event) {
-        event.preventDefault(); if (!profile || saving) return;
+        event.preventDefault(); if (!profile || saving || !accessState?.can_edit) return;
         const form = byId('personalCardForm');
         const invalid = [...form.elements].find(input => input.willValidate && !input.validity.valid);
         if (invalid) { selectTab(invalid.closest('[role="tabpanel"]').id.replace('Panel', '')); invalid.reportValidity(); return; }
@@ -232,6 +234,8 @@
         const uploaded = []; let committed = false;
         saving = true; form.inert = true; byId('savePersonalCard').disabled = true; byId('personalSaveState').textContent = 'Saving…';
         try {
+            accessState = await window.BlipLinkAccess.load(client);
+            if (!accessState.can_edit) throw new Error(window.BlipLinkAccess.message(accessState));
             for (const field of fields.filter(name => name.endsWith('_url') && name !== 'whatsapp_url')) {
                 if (!values[field]) continue;
                 const url = new URL(values[field]);
@@ -274,7 +278,7 @@
         } catch (error) {
             if (!committed && uploaded.length) { try { await client.storage.from('profile-photos').remove(uploaded); } catch { /* Retry the save to keep editing. */ } }
             byId('personalSaveState').textContent = 'Unsaved changes'; showMessage(error.message || 'Unable to save your card.', 'error');
-        } finally { saving = false; form.inert = false; byId('savePersonalCard').disabled = false; }
+        } finally { saving = false; applyAccessState(); }
     }
     function whatsappNumber(value) {
         const text = String(value || '');
@@ -283,15 +287,20 @@
     }
     function publicCardUrl() { return new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href; }
     function updateSharing() {
-        const active = Boolean(profile.full_name?.trim()) && !profile.is_locked;
+        const active = Boolean(profile.full_name?.trim()) && !profile.is_locked && accessState?.can_edit;
         byId('openPersonalCard').setAttribute('aria-disabled', String(!active)); byId('copyPersonalCard').disabled = !active;
         if (active) byId('openPersonalCard').href = publicCardUrl(); else byId('openPersonalCard').removeAttribute('href');
     }
-    async function loadAdminLink() {
-        try {
-            const result = await client.from('app_admins').select('user_id').eq('user_id', user.id).maybeSingle();
-            byId('personalAdminLink').hidden = Boolean(result.error) || !result.data;
-        } catch { /* This account can continue editing its card. */ }
+    function applyAccessState() {
+        const active = Boolean(accessState?.can_edit);
+        byId('personalCardForm').inert = !active || saving;
+        byId('savePersonalCard').disabled = !active || saving;
+        byId('personalAccessStatus').textContent = window.BlipLinkAccess.message(accessState);
+        byId('personalAccessStatus').className = `notice notice-${active ? 'info' : 'error'}`;
+        byId('personalAccessStatus').hidden = false;
+        if (!active) byId('personalSaveState').textContent = 'Read only';
+        else if (!saving) byId('personalSaveState').textContent = dirty ? 'Unsaved changes' : 'All changes saved';
+        if (profile) updateSharing();
     }
     function showMessage(message, kind = 'info') {
         byId('personalMessage').textContent = message; byId('personalMessage').className = `notice notice-${kind}`; byId('personalMessage').hidden = !message;

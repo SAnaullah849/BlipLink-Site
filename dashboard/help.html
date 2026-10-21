@@ -13,7 +13,8 @@
     <link rel="stylesheet" href="dashboard.css?v=20">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=27" defer></script>
+    <script src="access-state.js?v=1" defer></script>
+    <script src="dashboard.js?v=28" defer></script>
 </head>
 <body data-page="help">
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -59,7 +60,6 @@
                 </a>
             </nav>
             <div class="sidebar-bottom">
-                <a id="adminNavigationLink" class="side-nav-link" href="admin.html" hidden>Account administration</a>
                 <a class="side-nav-link" href="../">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6M9 12h12"/><path d="M4 4v16"/></svg>
                     View website
@@ -409,9 +409,9 @@
             </section>
 
             <section id="subscription" class="panel profile-panel dashboard-page" data-dashboard-page="subscription" aria-labelledby="subscriptionTitle">
-                <div class="panel-heading"><div><span class="eyebrow">PLAN</span><h2 id="subscriptionTitle">Subscription</h2><p>$6.99 USD per year. Payments are handled manually; your account status is managed by the administrator.</p></div></div>
+                <div class="panel-heading"><div><span class="eyebrow">PLAN</span><h2 id="subscriptionTitle">Subscription</h2><p>Your monthly or yearly access is managed by BlipLink support. No automatic payments are collected here.</p></div></div>
                 <div class="subscription-card">
-                    <div><span class="eyebrow">ANNUAL PLAN</span><strong>$6.99 <small>/ year</small></strong></div>
+                    <div><span class="eyebrow">YOUR PLAN</span><strong id="subscriptionPlan">Account access</strong></div>
                     <span id="subscriptionStatus" class="subscription-status">Loading status…</span>
                     <dl class="subscription-dates"><div><dt>Starts</dt><dd id="subscriptionStarts">—</dd></div><div><dt>Expires</dt><dd id="subscriptionExpires">—</dd></div></dl>
                     <p id="subscriptionMessage" class="inline-message" role="status" aria-live="polite">Subscription details load from your account.</p>

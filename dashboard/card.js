@@ -3,6 +3,7 @@
     let cardProfile;
     let appearance = null;
     let previewMode = false;
+    let expiryTimer;
 
     document.addEventListener('DOMContentLoaded', initialize);
 
@@ -34,7 +35,7 @@
             });
             if (error?.code === 'PGRST202') {
                 console.error('Public card database function is missing from the Supabase schema cache:', error);
-                showStatus('The public card service has not been set up yet. Please ask the site administrator to apply the latest dashboard/schema.sql in Supabase.');
+                showStatus('The public card service is not available yet. Please contact BlipLink support.');
                 return;
             }
             if (error) throw new Error(`Unable to load this card: ${error.message}`);
@@ -48,7 +49,10 @@
             // Older installations can still display cards before theme setup is applied.
             try {
                 const result = await client.rpc('get_public_card_appearance', { requested_profile_id: userId });
-                if (!result.error) appearance = result.data;
+                if (!result.error) {
+                    appearance = result.data;
+                    if (!appearance) { showStatus('This profile is not available.'); return; }
+                }
             } catch { /* Fall back to the existing card design. */ }
             renderCard(client);
             void recordCardEvent(userId, 'view');
@@ -205,12 +209,26 @@
 
         byId('publicCard').hidden = false;
         byId('cardStatus').hidden = true;
+        if (!previewMode && appearance?.expires_at) scheduleExpiry(appearance.expires_at);
         if (!previewMode && !byId('publicCard').dataset.trackingAttached) {
             byId('publicCard').dataset.trackingAttached = 'true';
             byId('publicCard').addEventListener('click', event => {
                 if (event.target.closest('a, button')) void recordCardEvent(cardProfile.profile_id, 'tap');
             });
         }
+    }
+
+    function scheduleExpiry(value) {
+        window.clearTimeout(expiryTimer);
+        const remaining = new Date(value).getTime() - Date.now();
+        if (!Number.isFinite(remaining)) return;
+        if (remaining <= 0) {
+            byId('publicCard').hidden = true;
+            byId('cardStatus').hidden = false;
+            showStatus('This profile is not available.');
+            return;
+        }
+        expiryTimer = window.setTimeout(() => scheduleExpiry(value), Math.min(remaining, 86400000));
     }
 
     async function recordCardEvent(profileId, eventType) {

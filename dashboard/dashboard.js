@@ -134,15 +134,24 @@
             return;
         }
         showDashboard();
-        loadAdministratorNavigation();
         await loadProfiles(sessionStorage.getItem('bliplink-active-profile-' + currentUser.id));
         initializeAnalyticsFilters();
-        await loadLeads();
-        await loadCrmLeads();
-        await loadAnalytics();
+        if (accountAccess?.can_edit) {
+            await loadLeads();
+            await loadCrmLeads();
+            await loadAnalytics();
+            subscribeToNewLeads();
+        }
         await loadSubscription();
-        subscribeToNewLeads();
         showPage(window.location.hash.slice(1) || document.body.dataset.page || 'overview');
+        window.BlipLinkAccess.watch(supabaseClient, access => {
+            const previouslyActive = accountAccess?.can_edit;
+            if (access?.account_type === 'individual') { window.location.replace('personal.html'); return; }
+            accountAccess = access;
+            renderAccountAllowance(); loadSubscription();
+            if (access?.can_edit && !previouslyActive) { window.location.reload(); return; }
+            if (!access?.can_edit) showPage('subscription');
+        });
 
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' || !session?.user) {
@@ -160,7 +169,6 @@
                         window.location.replace('personal.html');
                         return;
                     }
-                    loadAdministratorNavigation();
                     await loadProfiles();
                 }, 0);
             }
@@ -169,28 +177,11 @@
 
     async function loadAccountAccess() {
         try {
-            const { data, error } = await supabaseClient.from('account_access')
-                .select('account_type, profile_limit').eq('user_id', currentUser.id).single();
-            if (error || !['individual', 'company'].includes(data?.account_type) ||
-                !Number.isInteger(data.profile_limit) || data.profile_limit < 1) {
-                throw new Error('Account allowance unavailable');
-            }
-            accountAccess = data;
+            accountAccess = await window.BlipLinkAccess.load(supabaseClient);
         } catch {
             accountAccess = null;
         }
         renderAccountAllowance();
-    }
-
-    async function loadAdministratorNavigation() {
-        const link = byId('adminNavigationLink');
-        if (!link) return;
-        link.hidden = true;
-        try {
-            const { data, error } = await supabaseClient.from('app_admins')
-                .select('user_id').eq('user_id', currentUser.id).maybeSingle();
-            link.hidden = Boolean(error) || !data;
-        } catch { /* Older database setups do not expose administration. */ }
     }
 
     function renderAccountAllowance() {
@@ -198,19 +189,25 @@
         const notice = byId('accountAllowance');
         if (notice) {
             notice.textContent = accountAccess
-                ? `${individual ? 'Individual professional' : 'Company account'} · ${profiles.length} of ${accountAccess.profile_limit} profiles used.`
-                : 'Profile allowance is unavailable. Contact your administrator to finish account setup. Existing profiles remain available.';
+                ? `${individual ? 'Individual professional' : 'Company account'} · ${profiles.length} of ${accountAccess.profile_limit} profiles used. ${window.BlipLinkAccess.message(accountAccess)}`
+                : 'Account access is unavailable. Editing is paused. Contact support.';
         }
         const button = byId('addProfileButton');
         if (button) {
-            button.disabled = creatingProfile || !accountAccess || profiles.length >= accountAccess.profile_limit;
-            button.title = !accountAccess ? 'Contact your administrator to configure account access.'
+            button.disabled = creatingProfile || !accountAccess?.can_edit || profiles.length >= accountAccess.profile_limit;
+            button.title = !accountAccess?.can_edit ? 'Contact support to activate or renew your access.'
                 : button.disabled ? 'Your profile allowance is full. Contact your administrator for more profiles.' : '';
         }
         if (byId('profileManagementTitle')) byId('profileManagementTitle').textContent = individual ? 'Your professional profile' : 'Manage profiles';
         if (byId('profileManagementDescription')) byId('profileManagementDescription').textContent = individual
             ? 'Your individual account includes one professional profile.' : 'Create and manage profiles within your company allowance.';
-        document.querySelectorAll('[data-nav="company"]').forEach(link => { link.hidden = individual; });
+        document.querySelectorAll('[data-nav]').forEach(link => {
+            link.hidden = (!accountAccess?.can_edit && !['subscription', 'help'].includes(link.dataset.nav)) || (individual && link.dataset.nav === 'company');
+        });
+        document.querySelectorAll('.notification-container').forEach(element => { element.hidden = !accountAccess?.can_edit; });
+        if (!accountAccess?.can_edit && byId('dashboardMessage')?.className.includes('notice-success')) {
+            showDashboardMessage('', 'info');
+        }
         document.querySelectorAll('[data-account-workspace]').forEach(label => {
             label.textContent = individual ? 'PROFESSIONAL WORKSPACE' : 'COMPANY WORKSPACE';
         });
@@ -355,7 +352,7 @@
         button.textContent = 'Creating…';
         try {
             await loadAccountAccess();
-            if (!accountAccess || profiles.length >= accountAccess.profile_limit) {
+            if (!accountAccess?.can_edit || profiles.length >= accountAccess.profile_limit) {
                 showDashboardMessage(accountAccess
                     ? 'Your profile allowance is full. Contact your administrator to increase it.'
                     : 'Your profile allowance is unavailable. Contact your administrator.', 'error');
@@ -1428,53 +1425,16 @@
     }
 
     async function loadSubscription() {
-        const message = byId('subscriptionMessage');
-        const { data, error } = await supabaseClient
-            .from('company_subscriptions')
-            .select('status, price, currency, starts_at, expires_at')
-            .eq('user_id', currentUser.id)
-            .maybeSingle();
-        if (error) {
-            message.textContent = `Unable to load subscription details: ${error.message}`;
-            console.error('Subscription load failed:', error);
-            return;
-        }
-        if (!data) {
-            byId('subscriptionStatus').textContent = 'Not active';
-            message.textContent = 'Your subscription has not been activated yet. Contact support for help.';
-            return;
-        }
-        const now = new Date();
-        const startsAt = data.starts_at ? new Date(data.starts_at) : null;
-        const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
-        const hasPeriod = Boolean(startsAt && expiresAt);
-        const active = data.status === 'active' && hasPeriod && startsAt <= now && expiresAt > now;
-        const statusText = active ? 'Active' :
-            data.status !== 'active' ? 'Not active' :
-                !hasPeriod ? 'Dates not set' :
-                    startsAt > now ? 'Scheduled' : 'Expired';
-        byId('subscriptionStatus').textContent = statusText;
-        byId('subscriptionStatus').classList.toggle('subscription-active', Boolean(active));
-        byId('subscriptionStarts').textContent = data.starts_at
-            ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(data.starts_at))
-            : '—';
-        byId('subscriptionExpires').textContent = data.expires_at
-            ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(data.expires_at))
-            : '—';
-        if (active) {
-            const remainingDays = Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
-            message.textContent = `Your $${Number(data.price).toFixed(2)} ${data.currency} annual plan is active and expires in ${remainingDays} ${remainingDays === 1 ? 'day' : 'days'}.`;
-        } else if (statusText === 'Expired') {
-            message.textContent = `This subscription expired on ${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(expiresAt)}. Contact support to renew it.`;
-        } else if (statusText === 'Scheduled') {
-            message.textContent = `This subscription starts on ${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(startsAt)}.`;
-        } else if (statusText === 'Dates not set') {
-            message.textContent = 'The subscription is marked active, but its start and expiry dates are missing. Ask the administrator to add both dates.';
-        } else {
-            message.textContent = 'Subscription dates are managed manually by the BlipLink administrator.';
-        }
+        const access = accountAccess;
+        const formatter = window.BlipLinkAccess;
+        byId('subscriptionPlan').textContent = formatter.label(access);
+        byId('subscriptionStatus').textContent = access?.effective_status === 'active' ? 'Active' :
+            access?.effective_status === 'expired' ? 'Expired' : access?.effective_status === 'scheduled' ? 'Scheduled' : 'Not active';
+        byId('subscriptionStatus').classList.toggle('subscription-active', Boolean(access?.can_edit));
+        byId('subscriptionStarts').textContent = formatter.date(access?.starts_at);
+        byId('subscriptionExpires').textContent = formatter.date(access?.expires_at);
+        byId('subscriptionMessage').textContent = formatter.message(access);
     }
-
     function subscribeToNewLeads() {
         if (realtimeChannel) void supabaseClient.removeChannel(realtimeChannel);
         realtimeChannel = supabaseClient
@@ -1827,6 +1787,7 @@
         const validPages = new Set(['overview', 'profile', 'social', 'leads', 'crm', 'company', 'subscription', 'help']);
         let page = validPages.has(section) ? section : 'overview';
         if (page === 'company' && accountAccess?.account_type === 'individual') page = 'profile';
+        if (currentUser && !accountAccess?.can_edit && !['subscription', 'help'].includes(page)) page = 'subscription';
         document.querySelectorAll('[data-dashboard-page]').forEach(element => {
             element.hidden = element.dataset.dashboardPage !== page;
         });

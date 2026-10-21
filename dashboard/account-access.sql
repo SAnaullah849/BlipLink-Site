@@ -17,24 +17,13 @@ left join public.company_profiles as profile on profile.user_id = users.id
 group by users.id
 on conflict (user_id) do nothing;
 
-create table if not exists public.app_admins (
-    user_id uuid primary key references auth.users(id) on delete cascade,
-    created_at timestamptz not null default now()
-);
-
 alter table public.account_access enable row level security;
-alter table public.app_admins enable row level security;
-revoke all on public.account_access, public.app_admins from public, anon, authenticated;
-grant select on public.account_access, public.app_admins to authenticated;
-grant all on public.account_access, public.app_admins to service_role;
-
+revoke all on public.account_access from public, anon, authenticated;
+grant select on public.account_access to authenticated;
+grant all on public.account_access to service_role;
 drop policy if exists "Users can read their account allowance" on public.account_access;
 create policy "Users can read their account allowance" on public.account_access
     for select to authenticated using (user_id = (select auth.uid()));
-drop policy if exists "Administrators can read their membership" on public.app_admins;
-create policy "Administrators can read their membership" on public.app_admins
-    for select to authenticated using (user_id = (select auth.uid()));
-
 -- This row lock serializes profile creation with quota changes for the same owner.
 -- A simultaneous request cannot create an extra profile beyond the allowance.
 create or replace function public.enforce_profile_allowance()
@@ -87,7 +76,7 @@ create trigger account_access_validate_allowance before update on public.account
     for each row execute function public.validate_account_allowance();
 
 -- Ignore user-editable Auth metadata for account type, limits, and admin rights.
--- New invitations start with one individual profile until the admin API sets access.
+-- account-settings.sql installs the final invitation provisioning workflow.
 create or replace function public.create_company_profile_for_new_user()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
@@ -98,45 +87,5 @@ end;
 $$;
 revoke all on function public.create_company_profile_for_new_user() from public, anon, authenticated;
 
--- Only the server service role may list accounts and their Auth email addresses.
-create or replace function public.list_bliplink_accounts(requested_page integer default 1)
-returns table(user_id uuid, email text, account_type text, profile_limit integer,
-    profiles_used bigint, total_count bigint, is_admin boolean)
-language sql stable security definer set search_path = '' as $$
-    select account.user_id, users.email::text, account.account_type, account.profile_limit,
-        (select count(*) from public.company_profiles as profile where profile.user_id = account.user_id),
-        count(*) over (), exists(select 1 from public.app_admins as admin where admin.user_id = account.user_id)
-    from public.account_access as account join auth.users as users on users.id = account.user_id
-    order by users.created_at desc, account.user_id
-    limit 50 offset ((greatest(1, least(coalesce(requested_page, 1), 1000000)) - 1)::bigint * 50);
-$$;
-revoke all on function public.list_bliplink_accounts(integer) from public, anon, authenticated;
-grant execute on function public.list_bliplink_accounts(integer) to service_role;
-
-create or replace function public.set_bliplink_administrator(requested_user_id uuid, requested_admin boolean)
-returns void language plpgsql security definer set search_path = '' as $$
-begin
-    perform pg_catalog.pg_advisory_xact_lock(8627441923::bigint);
-    if requested_admin is null or not exists(select 1 from auth.users where id = requested_user_id) then
-        raise exception 'Choose an existing account.';
-    end if;
-    if requested_admin then
-        insert into public.app_admins(user_id) values(requested_user_id) on conflict (user_id) do nothing;
-    else
-        if exists(select 1 from public.app_admins where user_id = requested_user_id)
-            and (select count(*) from public.app_admins) <= 1 then
-            raise exception 'The last administrator cannot be removed. Add another administrator first.';
-        end if;
-        delete from public.app_admins where user_id = requested_user_id;
-    end if;
-end;
-$$;
-revoke all on function public.set_bliplink_administrator(uuid, boolean) from public, anon, authenticated;
-grant execute on function public.set_bliplink_administrator(uuid, boolean) to service_role;
 
 commit;
-
--- Bootstrap your FIRST administrator manually (replace the email before running):
--- insert into public.app_admins(user_id)
--- select id from auth.users where lower(email) = lower('your-admin@example.com')
--- on conflict (user_id) do nothing;
