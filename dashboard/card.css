@@ -553,3 +553,38 @@ a {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* The same appearance engine styles both the saved card and the editor preview. */
+body.card-theme-surface { background: var(--card-page); }
+.card-theme-surface .return-home { color: var(--card-page-text); }
+.themed-card { border-color: color-mix(in srgb, var(--card-muted) 22%, transparent); border-radius: var(--card-radius); background: var(--card-card); color: var(--card-text); box-shadow: var(--card-shadow); font-family: var(--card-font); }
+.themed-card .public-card-cover { height: var(--card-cover-height); background: var(--card-cover); }
+.themed-card .public-card-avatar { width: var(--card-avatar-size); height: var(--card-avatar-size); margin-top: calc(var(--card-avatar-size) * -.5); border-color: var(--card-card); border-radius: var(--card-avatar-radius); background: var(--card-card); color: var(--card-accent); font-family: var(--card-font); }
+.themed-card h1 { color: var(--card-text); font-family: var(--card-font); }
+.themed-card .public-role, .themed-card .public-bio, .themed-card .card-qr-section, .themed-card .public-contact-detail span, .themed-card .public-card-footer { color: var(--card-muted); }
+.themed-card .public-company, .themed-card .public-contact-detail a, .themed-card .public-address, .themed-card .public-card-footer a { color: var(--card-accent); }
+.themed-card .public-social, .themed-card .save-contact-button { border-radius: var(--card-button-radius); background: var(--card-accent); color: var(--card-on-accent); }
+.themed-card .wallet-actions a, .themed-card .share-card-button { border-radius: var(--card-button-radius); border-color: var(--card-accent); background: transparent; color: var(--card-accent); }
+.themed-card .public-card-footer { border-color: color-mix(in srgb, var(--card-muted) 22%, transparent); background: transparent; }
+.themed-card .card-primary-actions { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.themed-card .theme-hidden { display: none !important; }
+.themed-card.theme-no-banner .public-card-avatar { margin-top: 26px; }
+.themed-card[data-layout="left"] .public-card-body, .themed-card[data-layout="left"] .public-contact-detail { text-align: left; }
+.themed-card[data-layout="left"] .public-card-avatar { margin-left: 0; }
+.themed-card[data-layout="left"] .public-socials { justify-content: flex-start; }
+.themed-card[data-layout="left"] .public-contact-details { width: 100%; }
+.themed-card[data-layout="compact"] .public-card-body { padding-right: 22px; padding-bottom: 22px; padding-left: 22px; }
+.themed-card[data-layout="compact"] h1 { font-size: 26px; }
+.themed-card[data-layout="compact"] .public-bio { font-size: 12px; }
+.themed-card.theme-no-photo .public-card-body { padding-top: 24px; }
+.themed-card[data-spacing="compact"] .public-card-body { padding-right: 22px; padding-bottom: 20px; padding-left: 22px; }
+.themed-card[data-spacing="compact"] .public-socials { gap: 5px; margin-top: 8px; }
+.themed-card[data-spacing="compact"] .card-qr-section { margin-top: 9px; }
+.themed-card[data-social-style="outline"] .public-social { border-color: var(--card-accent); background: transparent; color: var(--card-accent); }
+.themed-card[data-social-style="minimal"] .public-social { border: 0; background: transparent; color: var(--card-accent); }
+body.card-preview-mode { min-height: 0; }
+.card-preview-mode .public-card-shell { min-height: 0; padding: 16px 12px 24px; }
+.card-preview-mode .public-card-brand, .card-preview-mode .return-home, .card-preview-mode #cardFeedback { display: none; }
+.card-preview-mode .public-card { animation: none; }
+.card-preview-mode #publicCard a, .card-preview-mode #publicCard button { pointer-events: none; }
+.card-theme-surface[data-page-tone="dark"] .public-card-brand img:last-child { filter: brightness(0) invert(1); }

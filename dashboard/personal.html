@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>My card | BlipLink</title>
+    <link rel="icon" href="../assets/logo-symbol.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css?v=20">
+    <link rel="stylesheet" href="personal.css?v=1">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="card-theme.js?v=1" defer></script>
+    <script src="personal.js?v=1" defer></script>
+</head>
+<body class="personal-page">
+    <header class="personal-header">
+        <a class="brand" href="personal.html" aria-label="My BlipLink card"><img src="../assets/logo-symbol.png" alt="" width="38" height="38"><img src="../assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark"></a>
+        <div class="personal-header-actions"><a id="personalAdminLink" href="admin.html" hidden>Administration</a><button id="personalSignOut" type="button" class="personal-text-button" hidden>Sign out</button><button id="savePersonalCard" class="button button-primary" type="submit" form="personalCardForm" disabled>Save changes</button></div>
+    </header>
+    <main class="personal-main">
+        <div class="personal-intro"><div><span class="eyebrow">YOUR PERSONAL BRAND</span><h1>My card</h1><p>A little about you. A design that feels like you.</p></div><span id="personalSaveState" class="personal-save-state" role="status">Loading your card…</span></div>
+        <p id="personalMessage" class="notice notice-info" role="status" aria-live="polite">Opening your personal workspace…</p>
+        <div id="personalWorkspace" class="personal-workspace" hidden>
+            <section class="personal-editor panel" aria-label="Card editor">
+                <div class="personal-tabs" role="tablist" aria-label="Edit your card">
+                    <button id="detailsTab" type="button" role="tab" aria-selected="true" aria-controls="detailsPanel" data-personal-tab="details">Profile</button>
+                    <button id="designTab" type="button" role="tab" aria-selected="false" aria-controls="designPanel" data-personal-tab="design" tabindex="-1">Design</button>
+                    <button id="linksTab" type="button" role="tab" aria-selected="false" aria-controls="linksPanel" data-personal-tab="links" tabindex="-1">Links</button>
+                </div>
+                <form id="personalCardForm" novalidate>
+                    <section id="detailsPanel" class="personal-tab-panel" role="tabpanel" aria-labelledby="detailsTab">
+                        <div class="personal-section-heading"><h2>Make your introduction</h2><p>The details people see when they open your card.</p></div>
+                        <div class="personal-photo-fields">
+                            <label class="personal-upload">Profile photo<input id="personalPhotoInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><span>JPG, PNG, WebP or GIF · up to 5 MB</span></label><button id="removePersonalPhoto" type="button" class="personal-text-button">Remove photo</button>
+                            <label class="personal-upload">Cover photo<input id="personalBannerInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><span>Optional. Use a theme color or upload your own image.</span></label><button id="removePersonalBanner" type="button" class="personal-text-button">Remove cover</button>
+                        </div>
+                        <div class="personal-fields">
+                            <label class="personal-full">Full name<input name="full_name" maxlength="100" autocomplete="name" required placeholder="Alex Morgan"></label>
+                            <label>Job title<input name="job_title" maxlength="100" autocomplete="organization-title" placeholder="Designer, developer, consultant…"></label>
+                            <label>Organization (optional)<input name="company_name" maxlength="120" autocomplete="organization" placeholder="Where you work"></label>
+                            <label>Email<input name="contact_email" type="email" maxlength="254" autocomplete="email" placeholder="hello@example.com"></label>
+                            <label>Phone<input name="phone" type="tel" maxlength="40" autocomplete="tel" placeholder="Your phone number"></label>
+                            <label class="personal-full">Website<input name="website_url" type="url" maxlength="500" placeholder="https://yourwebsite.com"></label>
+                            <label class="personal-full">About you<textarea name="bio" maxlength="500" rows="4" placeholder="What do you do? What would you love to connect about?"></textarea></label>
+                            <label class="personal-full">Location or address<input name="address" maxlength="300" autocomplete="street-address" placeholder="City or business address"></label>
+                        </div>
+                    </section>
+                    <section id="designPanel" class="personal-tab-panel" role="tabpanel" aria-labelledby="designTab" hidden>
+                        <div class="personal-section-heading"><h2>Your card, your style</h2><p>Start with a theme, then make every detail your own.</p></div>
+                        <div id="personalPresets" class="personal-presets" aria-label="Theme presets"></div>
+                        <div class="personal-design-heading"><h3>Colors</h3><button id="resetPersonalTheme" type="button" class="personal-text-button">Reset design</button></div>
+                        <div id="personalThemeColors" class="personal-colors"></div>
+                        <h3 class="personal-group-title">Layout &amp; details</h3><div id="personalThemeLayout" class="personal-fields"></div>
+                        <h3 class="personal-group-title">Visible sections</h3><p class="personal-section-note">Choose what appears on your public card.</p><div id="personalThemeVisibility" class="personal-visibility"></div>
+                    </section>
+                    <section id="linksPanel" class="personal-tab-panel" role="tabpanel" aria-labelledby="linksTab" hidden>
+                        <div class="personal-section-heading"><h2>Keep the conversation going</h2><p>Add the places where people can find you. Leave any you don’t use blank.</p></div>
+                        <div id="personalSocialFields" class="personal-fields"></div>
+                    </section>
+                </form>
+            </section>
+            <aside class="personal-preview-column" aria-label="Live card preview">
+                <div class="personal-preview-heading"><span class="eyebrow">LIVE PREVIEW</span><span>Updates as you edit</span></div>
+                <div class="personal-preview-frame"><iframe id="personalPreviewFrame" src="../card.html?preview=1" title="Live preview of your public card" scrolling="yes"></iframe></div>
+                <div class="personal-share-actions"><a id="openPersonalCard" class="button button-secondary" target="_blank" rel="noopener noreferrer" aria-disabled="true">Open my card ↗</a><button id="copyPersonalCard" type="button" class="button button-secondary" disabled>Copy link</button></div>
+                <p class="personal-preview-hint">Save changes to update the card everyone sees.</p>
+            </aside>
+        </div>
+        <footer class="personal-footer">One profile. All you. <a href="mailto:devops@shaunco.ai">Need a hand?</a></footer>
+    </main>
+</body>
+</html>

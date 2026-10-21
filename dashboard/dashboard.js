@@ -128,8 +128,12 @@
         }
 
         currentUser = data.session.user;
-        showDashboard();
         await loadAccountAccess();
+        if (accountAccess?.account_type === 'individual') {
+            window.location.replace('personal.html');
+            return;
+        }
+        showDashboard();
         loadAdministratorNavigation();
         await loadProfiles(sessionStorage.getItem('bliplink-active-profile-' + currentUser.id));
         initializeAnalyticsFilters();
@@ -152,6 +156,10 @@
                 accountAccess = null;
                 window.setTimeout(async () => {
                     await loadAccountAccess();
+                    if (accountAccess?.account_type === 'individual') {
+                        window.location.replace('personal.html');
+                        return;
+                    }
                     loadAdministratorNavigation();
                     await loadProfiles();
                 }, 0);

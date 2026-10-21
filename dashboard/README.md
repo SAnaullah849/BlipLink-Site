@@ -4,13 +4,13 @@ The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL
 
 ## Individual and company accounts
 
-- **Individual professional:** one profile, with profile editing, social links, leads, CRM, and analytics.
+- **Individual professional:** exactly one profile in a dedicated `/dashboard/personal.html` editor, with Profile, Design, and Links tabs. No company navigation, CRM, leads, analytics, subscription screens, or profile-management actions appear. Opening an old dashboard route redirects to the individual editor before company data loads.
 - **Company:** an administrator chooses the total profile allowance, including the initial profile. For example, an allowance of 10 supports 10 profiles under one login.
 - **Administrator:** a separate permission on an existing account, independent of its individual/company type. Administrators can invite users, change account type and allowance, and transfer administrator access.
 
 ### Enable account administration
 
-1. Run [`schema.sql`](./schema.sql) in Supabase SQL Editor, then [`account-access.sql`](./account-access.sql). Always rerun these in this order when applying both. Existing accounts remain companies and retain all profiles and card URLs. Their initial allowance equals their current profile count (at least one); an administrator can increase it afterward. New Auth users default to individual accounts with one profile until an administrator changes them.
+1. Run [`schema.sql`](./schema.sql), then [`account-access.sql`](./account-access.sql), then [`card-themes.sql`](./card-themes.sql) in Supabase SQL Editor. Keep this order when rerunning the setup. If the first two are already installed, only `card-themes.sql` is needed for the individual card editor's saved themes and CRM restriction. Existing accounts remain companies and retain all profiles and card URLs. Their initial allowance equals their current profile count (at least one); an administrator can increase it afterward. New Auth users default to individual accounts with one profile until an administrator changes them.
 2. Ensure `devops@shaunco.ai` exists in Supabase Authentication. Run [`bootstrap-admin.sql`](./bootstrap-admin.sql) once to grant this existing user administrator access. This script does not change passwords or send email.
 3. Configure Vercel's server-side `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as described below, and deploy. Keep the existing Supabase Site URL/Redirect URL pointed at your deployed `/login.html` so invitations return to the password-setup page.
 4. Sign in as `devops@shaunco.ai`, open **Account administration** in the sidebar, or visit `/dashboard/admin.html`. Choose the email and account type; company accounts also receive the profile allowance you enter. **Send invitation** sends the Supabase invitation and saves the selected allowance.
@@ -21,6 +21,12 @@ Account type and allowances live in `public.account_access`; ordinary users can 
 ### Change the administrator later
 
 The initial email is not hardcoded into application authorization. In the admin page, invite the replacement user if needed, enable **Administrator access** for their account, and click **Save admin access**. Sign in as the replacement administrator to verify access, then remove the old account's administrator permission. The API prevents removal of the last administrator. Changing the email of the same Auth user through Supabase Authentication also preserves administrator access because membership uses the user's UUID.
+
+### Individual card design
+
+The individual editor keeps profile details, photo/cover uploads, social links, and appearance settings in one place. Five presets can be customized with page/card/text/accent/cover colors, gradients, centered/left/compact layouts, four fonts, photo and button shapes, cover and avatar sizes, corner radius, spacing, shadow, icon styles, and section visibility. A same-origin iframe reuses the actual public-card renderer for live preview. Changes publish only when **Save changes** succeeds; refreshing the editor reloads the saved theme. Public card links keep their existing IDs.
+
+`card-themes.sql` adds `company_profiles.card_theme`, a small public appearance RPC, and a company-only CRM policy. The browser normalizes saved themes to a fixed set of safe color and layout values. It accepts no custom CSS or HTML. Individual public cards omit the contact-exchange button, while contact download and the chosen links remain available. Company card behavior stays compatible with previous designs. If the theme migration is missing, public cards still load and profile details can still save, but the editor clearly reports that design saving needs setup.
 
 If an invitation succeeds but saving its allowance fails, the page tells you to refresh the list and edit that account. Do this instead of sending another invitation. If the migration has not been applied, existing profiles can still be edited, but creating additional profiles remains disabled until account access is configured.
 

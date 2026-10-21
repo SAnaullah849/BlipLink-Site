@@ -1,10 +1,17 @@
 (() => {
     const byId = id => document.getElementById(id);
     let cardProfile;
+    let appearance = null;
+    let previewMode = false;
 
     document.addEventListener('DOMContentLoaded', initialize);
 
     async function initialize() {
+        previewMode = new URLSearchParams(window.location.search).get('preview') === '1' && window.parent !== window;
+        if (previewMode) {
+            initializePreview();
+            return;
+        }
         const userId = new URLSearchParams(window.location.search).get('id');
         if (!userId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId)) {
             showStatus('This card link is invalid. Please check the link and try again.');
@@ -38,12 +45,33 @@
                 return;
             }
 
+            // Older installations can still display cards before theme setup is applied.
+            try {
+                const result = await client.rpc('get_public_card_appearance', { requested_profile_id: userId });
+                if (!result.error) appearance = result.data;
+            } catch { /* Fall back to the existing card design. */ }
             renderCard(client);
             void recordCardEvent(userId, 'view');
         } catch (error) {
             console.error('Public card load failed:', error);
             showStatus('This card is temporarily unavailable. Please try again later.');
         }
+    }
+
+    function initializePreview() {
+        document.body.classList.add('card-preview-mode');
+        const config = window.BLIPLINK_SUPABASE_CONFIG;
+        if (!window.supabase?.createClient || !config?.url || !config?.anonKey) return;
+        const client = window.supabase.createClient(config.url, config.anonKey);
+        window.addEventListener('message', event => {
+            if (event.origin !== window.location.origin || event.source !== window.parent ||
+                event.data?.type !== 'bliplink-card-preview' || !event.data.profile) return;
+            cardProfile = event.data.profile;
+            cardProfile.full_name = String(cardProfile.full_name || 'Your name');
+            appearance = { theme: event.data.theme, account_type: 'individual' };
+            renderCard(client);
+        });
+        window.parent.postMessage({ type: 'bliplink-card-preview-ready' }, window.location.origin);
     }
 
     function renderCard(client) {
@@ -53,8 +81,14 @@
         setOptionalText('publicBio', cardProfile.bio);
         setAddressLink('publicAddress', cardProfile.address);
         byId('publicInitials').textContent = getInitials(cardProfile.full_name);
-        byId('cardQrCode').src =
-            `https://api.qrserver.com/v1/create-qr-code/?size=272x272&margin=2&data=${encodeURIComponent(window.location.href)}`;
+        const cardUrl = previewMode
+            ? new URL(`card.html?id=${encodeURIComponent(cardProfile.profile_id || '')}`, window.location.href).href
+            : window.location.href;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=272x272&margin=2&data=${encodeURIComponent(cardUrl)}`;
+        if (byId('cardQrCode').src !== qrUrl) byId('cardQrCode').src = qrUrl;
+        byId('publicPhoto').hidden = true;
+        byId('publicInitials').hidden = false;
+        byId('publicBanner').hidden = true;
 
         if (cardProfile.avatar_path) {
             const { data } = client.storage.from('profile-photos').getPublicUrl(cardProfile.avatar_path);
@@ -62,10 +96,10 @@
             image.src = data.publicUrl;
             image.hidden = false;
             byId('publicInitials').hidden = true;
-            image.addEventListener('error', () => {
+            image.onerror = () => {
                 image.hidden = true;
                 byId('publicInitials').hidden = false;
-            }, { once: true });
+            };
         }
 
         if (cardProfile.banner_path) {
@@ -73,9 +107,21 @@
             const banner = byId('publicBanner');
             banner.src = data.publicUrl;
             banner.hidden = false;
-            banner.addEventListener('error', () => {
+            banner.onerror = () => {
                 banner.hidden = true;
-            }, { once: true });
+            };
+        }
+        if (previewMode) {
+            for (const [field, id] of [['avatar_preview_url', 'publicPhoto'], ['banner_preview_url', 'publicBanner']]) {
+                const value = cardProfile[field];
+                if (typeof value !== 'string') continue;
+                try {
+                    const url = new URL(value);
+                    if (url.protocol !== 'blob:' || url.origin !== window.location.origin) continue;
+                    byId(id).src = url.href; byId(id).hidden = false;
+                    if (id === 'publicPhoto') byId('publicInitials').hidden = true;
+                } catch { /* Ignore invalid local previews. */ }
+            }
         }
 
         const actions = [
@@ -147,16 +193,24 @@
         byId('walletActions').hidden =
             byId('appleWalletLink').hidden && byId('googleWalletLink').hidden;
 
-        if (cardProfile.contact_email || cardProfile.phone || cardProfile.website_url) {
-            byId('saveContactButton').hidden = false;
-            byId('saveContactButton').addEventListener('click', downloadContact);
+        byId('saveContactButton').hidden = !(cardProfile.contact_email || cardProfile.phone || cardProfile.website_url);
+        byId('saveContactButton').onclick = downloadContact;
+
+        if (appearance && window.BlipLinkCardTheme &&
+            (appearance.account_type === 'individual' || Object.keys(appearance.theme || {}).length)) {
+            window.BlipLinkCardTheme.apply(byId('publicCard'), appearance.theme, {
+                surface: document.body, individual: appearance.account_type === 'individual',
+            });
         }
 
         byId('publicCard').hidden = false;
         byId('cardStatus').hidden = true;
-        byId('publicCard').addEventListener('click', event => {
-            if (event.target.closest('a, button')) void recordCardEvent(cardProfile.profile_id, 'tap');
-        });
+        if (!previewMode && !byId('publicCard').dataset.trackingAttached) {
+            byId('publicCard').dataset.trackingAttached = 'true';
+            byId('publicCard').addEventListener('click', event => {
+                if (event.target.closest('a, button')) void recordCardEvent(cardProfile.profile_id, 'tap');
+            });
+        }
     }
 
     async function recordCardEvent(profileId, eventType) {
