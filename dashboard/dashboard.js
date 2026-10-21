@@ -68,12 +68,9 @@
         byId('removeBannerButton').addEventListener('click', handleBannerRemoval);
         byId('bio').addEventListener('input', updateBioCount);
         document.querySelectorAll('.side-nav-link[data-nav]').forEach(link => {
-            link.addEventListener('click', () => {
-                showPage(link.dataset.nav);
-                closeMobileNavigation();
-            });
+            link.addEventListener('click', closeMobileNavigation);
         });
-        window.addEventListener('hashchange', () => showPage(window.location.hash.slice(1) || 'overview'));
+        window.addEventListener('hashchange', () => showPage(window.location.hash.slice(1) || document.body.dataset.page || 'overview'));
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
                 closeMobileNavigation();
@@ -120,14 +117,14 @@
 
         currentUser = data.session.user;
         showDashboard();
-        await loadProfiles();
+        await loadProfiles(sessionStorage.getItem('bliplink-active-profile-' + currentUser.id));
         initializeAnalyticsFilters();
         await loadLeads();
         await loadCrmLeads();
         await loadAnalytics();
         await loadSubscription();
         subscribeToNewLeads();
-        showPage(window.location.hash.slice(1) || 'overview');
+        showPage(window.location.hash.slice(1) || document.body.dataset.page || 'overview');
 
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' || !session?.user) {
@@ -238,6 +235,7 @@
     async function loadProfile(nextProfile) {
         if (!nextProfile) return;
         profile = nextProfile;
+        sessionStorage.setItem('bliplink-active-profile-' + currentUser.id, nextProfile.id);
         PROFILE_FIELDS.forEach(field => {
             byId(field === 'full_name' ? 'fullName' :
                 field === 'job_title' ? 'jobTitle' :
@@ -286,8 +284,7 @@
             await loadProfile(data);
             renderCompanyProfiles();
             await loadAnalytics();
-            showPage('profile');
-            window.location.hash = 'profile';
+            window.location.href = 'profile.html';
         } catch (error) {
             showDashboardMessage(error.message || 'Unable to create a profile.', 'error');
             console.error('Company profile creation failed:', error);
@@ -334,8 +331,7 @@
                 if (profileDirty && !window.confirm('Discard unsaved changes to this profile?')) return;
                 await loadProfile(item);
                 renderCompanyProfiles();
-                showPage('profile');
-                window.location.hash = 'profile';
+                window.location.href = 'profile.html';
             });
             const lock = document.createElement('button');
             lock.className = 'button button-secondary button-small';

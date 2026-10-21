@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Company Profile | BlipLink</title>
+    <link rel="icon" type="image/png" href="../assets/logo-symbol.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard.css?v=20">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="dashboard.js?v=21" defer></script>
+</head>
+<body data-page="crm">
+    <div id="dashboardView" class="dashboard-shell" hidden>
+        <button id="drawerBackdrop" class="drawer-backdrop" type="button" aria-label="Close dashboard menu" hidden></button>
+        <aside id="dashboardSidebar" class="sidebar">
+            <a class="brand sidebar-brand" href="../" aria-label="BlipLink home">
+                <img src="../assets/logo-symbol.png" alt="" width="38" height="38">
+                <img src="../assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark">
+            </a>
+            <span class="sidebar-label">WORKSPACE</span>
+            <nav class="side-nav" aria-label="Dashboard">
+                <a class="side-nav-link active" href="index.html" data-nav="overview">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="11" width="7" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/></svg>
+                    Overview
+                </a>
+                <a class="side-nav-link" href="profile.html" data-nav="profile">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                    My profile
+                </a>
+                <a class="side-nav-link" href="social.html" data-nav="social">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
+                    Social links
+                </a>
+                <a class="side-nav-link" href="leads.html" data-nav="leads">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m-3-3h6"/></svg>
+                    Leads
+                </a>
+                <a class="side-nav-link" href="crm.html" data-nav="crm">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h5M7 16h7"/></svg>
+                    CRM
+                </a>
+                <a class="side-nav-link" href="company.html" data-nav="company">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V5l7-3 7 3v16M9 9h.01M15 9h.01M9 13h.01M15 13h.01M10 21v-4h4v4"/></svg>
+                    Company
+                </a>
+                <a class="side-nav-link" href="subscription.html" data-nav="subscription">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+                    Subscription
+                </a>
+                <a class="side-nav-link" href="help.html" data-nav="help">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.6 9a2.5 2.5 0 1 1 4.7 1.2c-.8 1.2-2.3 1.4-2.3 3M12 17h.01"/></svg>
+                    Help
+                </a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a class="side-nav-link" href="../">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6M9 12h12"/><path d="M4 4v16"/></svg>
+                    View website
+                </a>
+                <button id="signOutButton" class="side-nav-link sign-out-button" type="button">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-6"/></svg>
+                    Sign out
+                </button>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="topbar">
+                <div class="topbar-heading">
+                    <button id="mobileNavigationToggle" class="mobile-navigation-toggle" type="button" aria-label="Open dashboard menu" aria-controls="dashboardSidebar" aria-expanded="false">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="11" width="7" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/></svg>
+                    </button>
+                    <div>
+                        <p class="topbar-kicker">BLIPLINK COMPANY PORTAL</p>
+                        <h1 id="dashboardPageTitle">Overview</h1>
+                    </div>
+                </div>
+                <div class="account-menu-container">
+                    <div class="notification-container">
+                        <button id="notificationButton" class="notification-button" type="button" aria-label="Notifications" aria-controls="notificationPanel" aria-expanded="false">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+                            <span id="notificationBadge" class="notification-badge" aria-live="polite" aria-atomic="true" hidden>0</span>
+                        </button>
+                        <section id="notificationPanel" class="notification-panel" aria-label="Notifications" hidden>
+                            <div class="notification-panel-heading">
+                                <div><strong>Notifications</strong><span id="notificationCount">No new alerts</span></div>
+                                <button id="readAllNotifications" class="notification-read-all" type="button">Read all</button>
+                            </div>
+                            <div id="notificationList" class="notification-list"><p class="inline-message">New leads will appear here.</p></div>
+                            <a href="leads.html" class="notification-view-all">View all leads</a>
+                        </section>
+                    </div>
+                    <button id="accountMenuButton" class="account-chip" type="button" aria-label="Open profile menu" aria-controls="accountMenu" aria-expanded="false">
+                        <span id="accountAvatar" class="account-avatar">B</span>
+                        <span id="accountEmail" class="account-email">Company account</span>
+                    </button>
+                    <div id="accountMenu" class="account-menu" hidden>
+                        <span class="account-menu-label">Signed in as</span>
+                        <span id="accountMenuEmail" class="account-menu-email">Company account</span>
+                        <button id="profileSignOutButton" class="account-menu-sign-out" type="button">Sign out</button>
+                    </div>
+                </div>
+            </header>
+
+            <div id="dashboardMessage" class="notice" role="status" aria-live="polite" hidden></div>
+
+            <section id="overview" class="dashboard-page" data-dashboard-page="overview">
+                <div class="overview-layout">
+                    <div class="overview-primary">
+                        <div class="overview-heading">
+                            <div>
+                                <span class="eyebrow">COMPANY OVERVIEW</span>
+                                <h2>Welcome back, <strong id="overviewName">there</strong></h2>
+                                <p>Here’s how your digital profiles are performing.</p>
+                            </div>
+                            <a class="button button-primary" href="company.html">Manage profiles <span aria-hidden="true">→</span></a>
+                        </div>
+                        <div class="analytics-summary">
+                            <article class="panel analytics-stat">
+                                <div><span class="eyebrow">TOTAL VIEWS</span><strong id="totalCardViews">0</strong></div>
+                            </article>
+                            <article class="panel analytics-stat">
+                                <div><span class="eyebrow">VIEWS · LAST 30 DAYS</span><strong id="last30Views" title="Total tracked card views during the most recent 30 UTC calendar days">0</strong></div>
+                            </article>
+                            <article class="panel analytics-stat">
+                                <div><span class="eyebrow">TOTAL LEADS</span><strong id="totalLeads">0</strong></div>
+                            </article>
+                        </div>
+                        <section class="panel analytics-panel" aria-labelledby="analyticsTitle">
+                            <div class="panel-heading analytics-heading">
+                                <div>
+                                    <span class="eyebrow">PERFORMANCE</span>
+                                    <h2 id="analyticsTitle">Stats</h2>
+                                </div>
+                                <span id="analyticsPeriod" class="analytics-period">Last 30 days</span>
+                            </div>
+                            <div class="analytics-filters">
+                                <label class="analytics-filter-profile" for="analyticsProfileSelect">
+                                    <span class="visually-hidden">Profile</span>
+                                    <select id="analyticsProfileSelect"><option value="">All profiles</option></select>
+                                </label>
+                                <div class="analytics-date-range">
+                                    <label for="analyticsStartDate">From</label>
+                                    <input id="analyticsStartDate" type="date">
+                                    <span aria-hidden="true">—</span>
+                                    <label for="analyticsEndDate">To</label>
+                                    <input id="analyticsEndDate" type="date">
+                                </div>
+                                <button id="applyAnalyticsFilter" class="button button-primary" type="button">Apply</button>
+                            </div>
+                            <div class="chart-legend" aria-label="Chart legend">
+                                <span><i class="legend-taps"></i> Taps</span>
+                                <span><i class="legend-leads"></i> Leads</span>
+                            </div>
+                            <p id="analyticsMessage" class="inline-message" role="status" aria-live="polite">Loading analytics…</p>
+                            <div id="analyticsChart" class="analytics-chart" role="img" aria-label="Daily profile taps and leads chart"></div>
+                            <a class="analytics-support-link" href="mailto:devops@shaunco.ai?subject=BlipLink%20analytics%20support&amp;body=Hello%20BlipLink%20support%2C%0A%0AI%20need%20help%20with%20my%20analytics.%0A">Need help with analytics? Email support</a>
+                        </section>
+                    </div>
+                    <aside class="overview-aside">
+                        <section class="panel preview-panel overview-profile-card" aria-label="Profile preview">
+                            <div class="preview-heading">
+                                <span class="eyebrow">LIVE PREVIEW</span>
+                                <span id="overviewPreviewStatus" class="preview-status"><i></i>Your profile</span>
+                            </div>
+                            <div class="preview-card">
+                                <div class="preview-cover">
+                                    <img id="overviewBanner" alt="" hidden>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-photo-frame">
+                                        <img id="overviewPhoto" alt="" hidden>
+                                        <span id="overviewPhotoFallback">BL</span>
+                                    </div>
+                                    <h2 id="overviewCardTitle">Your name</h2>
+                                    <p id="overviewCardRole">Your job title</p>
+                                    <span id="overviewCompany" class="preview-company" hidden>Your company</span>
+                                    <p id="overviewBio" class="preview-bio" hidden></p>
+                                    <div id="overviewContacts" class="preview-contacts"></div>
+                                    <div id="overviewSocials" class="preview-socials"></div>
+                                    <div class="preview-qr">
+                                        <img id="overviewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
+                                        <span id="overviewQrPlaceholder">Save your profile to create its QR code.</span>
+                                        <span>Scan to open this card</span>
+                                    </div>
+                                    <a id="overviewAddress" class="preview-address" target="_blank" rel="noopener noreferrer" hidden></a>
+                                </div>
+                            </div>
+                            <div class="preview-actions overview-preview-actions">
+                                <a id="overviewViewCard" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+                                    View card <span aria-hidden="true">↗</span>
+                                </a>
+                                <button id="overviewCopyCardLink" class="button button-secondary" type="button">Copy link</button>
+                            </div>
+                            <p id="overviewCardLinkText" class="card-link-text" aria-live="polite"></p>
+                            <p class="preview-hint">Your saved profile appears here just as it does in the editor preview.</p>
+                            <div id="overviewWalletPreview" class="wallet-preview" aria-label="Digital wallet passes" hidden>
+                                <a id="overviewAppleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Apple Wallet</a>
+                                <a id="overviewGoogleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Google Wallet</a>
+                                <span id="overviewWalletPlaceholder">Add wallet pass links to show wallet buttons on your card.</span>
+                            </div>
+                            <p class="wallet-setup-hint">Paste pass links from your Apple or Google Wallet issuer.</p>
+                        </section>
+                        <section class="panel overview-leads-card">
+                            <div class="overview-alert-heading">
+                                <h2>Recent leads</h2>
+                                <a href="leads.html">View all</a>
+                            </div>
+                            <div id="overviewRecentLeads" class="overview-recent-leads">
+                                <p class="inline-message">Loading leads…</p>
+                            </div>
+                        </section>
+                    </aside>
+                </div>
+            </section>
+
+            <div class="dashboard-grid dashboard-page" data-dashboard-page="profile">
+                <section id="profileEditor" class="panel profile-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <span class="eyebrow">PROFILE DETAILS</span>
+                            <h2>Edit your profile</h2>
+                            <p>These details appear on your BlipLink profile.</p>
+                        </div>
+                        <span id="saveState" class="save-state">Changes save when you click Save</span>
+                    </div>
+
+                    <form id="profileForm">
+                        <div class="photo-editor">
+                            <div class="profile-photo-frame">
+                                <img id="profilePhoto" alt="Profile photo preview" hidden>
+                                <span id="photoFallback" class="photo-fallback">BL</span>
+                            </div>
+                            <div class="photo-controls">
+                                <strong>Profile photo</strong>
+                                <span>JPG, PNG, WebP or GIF · up to 5 MB</span>
+                                <div class="photo-actions">
+                                    <label class="button button-secondary button-small" for="photoInput">Upload photo</label>
+                                    <button id="removePhotoButton" class="text-button" type="button" hidden>Remove</button>
+                                </div>
+                                <input id="photoInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                                <p id="photoMessage" class="inline-message" aria-live="polite"></p>
+                            </div>
+                        </div>
+                        <div class="photo-editor banner-editor">
+                            <div id="bannerPhotoPreview" class="banner-photo-preview" role="img" aria-label="Card banner preview"></div>
+                            <div class="photo-controls">
+                                <strong>Card banner</strong>
+                                <span>JPG, PNG, WebP or GIF · up to 5 MB</span>
+                                <div class="photo-actions">
+                                    <label class="button button-secondary button-small" for="bannerInput">Upload banner</label>
+                                    <button id="removeBannerButton" class="text-button" type="button" hidden>Remove</button>
+                                </div>
+                                <input id="bannerInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
+                                <p id="bannerMessage" class="inline-message" aria-live="polite"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="fullName">Full name</label>
+                                <input id="fullName" name="full_name" autocomplete="name" maxlength="100" placeholder="Your name" required>
+                            </div>
+                            <div class="field">
+                                <label for="jobTitle">Job title</label>
+                                <input id="jobTitle" name="job_title" maxlength="100" placeholder="e.g. Managing Director">
+                            </div>
+                            <div class="field">
+                                <label for="companyName">Company</label>
+                                <input id="companyName" name="company_name" maxlength="120" placeholder="Company name">
+                            </div>
+                            <div class="field">
+                                <label for="contactEmail">Contact email</label>
+                                <input id="contactEmail" name="contact_email" type="email" autocomplete="email" maxlength="254" placeholder="hello@company.com">
+                            </div>
+                            <div class="field">
+                                <label for="phone">Phone</label>
+                                <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="40" placeholder="+1 555 000 0000">
+                            </div>
+                            <div class="field field-full">
+                                <label for="address">Business address</label>
+                                <input id="address" name="address" autocomplete="street-address" maxlength="300" placeholder="Street, city, country">
+                            </div>
+                            <div class="field">
+                                <label for="websiteUrl">Website</label>
+                                <input id="websiteUrl" name="website_url" type="url" inputmode="url" maxlength="500" placeholder="https://company.com">
+                            </div>
+                            <div class="field field-full">
+                                <label for="bio">About</label>
+                                <textarea id="bio" name="bio" rows="4" maxlength="500" placeholder="A short introduction about you and your work"></textarea>
+                                <span class="field-hint"><span id="bioCount">0</span>/500</span>
+                            </div>
+                        </div>
+
+                        <div class="form-footer">
+                            <p id="profileMessage" class="form-message" role="alert" aria-live="polite"></p>
+                            <button id="saveProfileButton" class="button button-primary" type="submit">Save changes</button>
+                        </div>
+                    </form>
+                </section>
+
+                <aside class="panel preview-panel" aria-label="Profile preview">
+                    <div class="preview-heading">
+                        <span class="eyebrow">LIVE PREVIEW</span>
+                        <span class="preview-status"><i></i> Your profile</span>
+                    </div>
+                    <div class="preview-card">
+                        <div class="preview-cover"><img id="previewBanner" alt="" hidden></div>
+                        <div class="preview-content">
+                            <div class="preview-photo-frame">
+                                <img id="previewPhoto" alt="" hidden>
+                                <span id="previewPhotoFallback">BL</span>
+                            </div>
+                            <h2 id="previewName">Your name</h2>
+                            <p id="previewRole">Your job title</p>
+                            <span id="previewCompany" class="preview-company">Your company</span>
+                            <p id="previewBio" class="preview-bio">Your introduction will appear here.</p>
+                            <div id="previewContacts" class="preview-contacts"></div>
+                            <div id="previewSocials" class="preview-socials"></div>
+                            <div class="preview-qr">
+                                <img id="previewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
+                                <span id="previewQrPlaceholder">Save your profile to create its QR code.</span>
+                                <span>Scan to open this card</span>
+                            </div>
+                            <a id="previewAddress" class="preview-address" target="_blank" rel="noopener noreferrer" hidden></a>
+                        </div>
+                    </div>
+                    <div class="preview-actions">
+                        <a id="viewCardButton" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer">
+                            View card <span aria-hidden="true">↗</span>
+                        </a>
+                        <button id="copyCardLinkButton" class="button button-secondary" type="button">Copy link</button>
+                        <button id="printCardButton" class="button button-secondary" type="button">Print card</button>
+                    </div>
+                    <p id="cardLinkText" class="card-link-text" aria-live="polite">Save your profile to activate its card link.</p>
+                    <p class="preview-hint">Your changes appear in this preview as you edit.</p>
+                    <div id="walletPreview" class="wallet-preview" aria-label="Digital wallet passes" hidden>
+                        <a id="previewAppleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Apple Wallet</a>
+                        <a id="previewGoogleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Google Wallet</a>
+                        <span id="previewWalletPlaceholder">Add wallet pass links to show wallet buttons on your card.</span>
+                    </div>
+                    <p class="wallet-setup-hint">Paste pass links from your Apple or Google Wallet issuer.</p>
+                </aside>
+            </div>
+
+            <section id="socialLinks" class="panel profile-panel dashboard-page" data-dashboard-page="social" aria-labelledby="socialLinksTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">STAY CONNECTED</span>
+                        <h2 id="socialLinksTitle">Social links and passes</h2>
+                        <p>These links appear on the selected public profile.</p>
+                    </div>
+                </div>
+                <div class="form-grid social-grid">
+                    <div class="field">
+                        <label for="linkedinUrl">LinkedIn</label>
+                        <input id="linkedinUrl" form="profileForm" name="linkedin_url" type="url" inputmode="url" maxlength="500" placeholder="https://linkedin.com/in/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="instagramUrl">Instagram</label>
+                        <input id="instagramUrl" form="profileForm" name="instagram_url" type="url" inputmode="url" maxlength="500" placeholder="https://instagram.com/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="xUrl">X</label>
+                        <input id="xUrl" form="profileForm" name="x_url" type="url" inputmode="url" maxlength="500" placeholder="https://x.com/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="facebookUrl">Facebook</label>
+                        <input id="facebookUrl" form="profileForm" name="facebook_url" type="url" inputmode="url" maxlength="500" placeholder="https://facebook.com/yourname">
+                    </div>
+                    <div class="field">
+                        <label for="tiktokUrl">TikTok</label>
+                        <input id="tiktokUrl" form="profileForm" name="tiktok_url" type="url" inputmode="url" maxlength="500" placeholder="https://tiktok.com/@yourname">
+                    </div>
+                    <div class="field"><label for="githubUrl">GitHub</label><input id="githubUrl" form="profileForm" name="github_url" type="url" inputmode="url" maxlength="500" placeholder="https://github.com/username"></div>
+                    <div class="field"><label for="telegramUrl">Telegram</label><input id="telegramUrl" form="profileForm" name="telegram_url" type="url" inputmode="url" maxlength="500" placeholder="https://t.me/username"></div>
+                    <div class="field"><label for="discordUrl">Discord</label><input id="discordUrl" form="profileForm" name="discord_url" type="url" inputmode="url" maxlength="500" placeholder="https://discord.com/users/your-id"></div>
+                    <div class="field"><label for="snapchatUrl">Snapchat</label><input id="snapchatUrl" form="profileForm" name="snapchat_url" type="url" inputmode="url" maxlength="500" placeholder="https://www.snapchat.com/add/username"></div>
+                    <div class="field">
+                        <label for="whatsappNumber">WhatsApp number</label>
+                        <input id="whatsappNumber" form="profileForm" name="whatsapp_url" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+1 555 123 4567">
+                        <span class="field-hint">Include your country code. Your card will open a WhatsApp chat for this number.</span>
+                    </div>
+                    <div class="field">
+                        <label for="appleWalletUrl">Apple Wallet pass link</label>
+                        <input id="appleWalletUrl" form="profileForm" name="apple_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
+                    </div>
+                    <div class="field">
+                        <label for="googleWalletUrl">Google Wallet pass link</label>
+                        <input id="googleWalletUrl" form="profileForm" name="google_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
+                    </div>
+                </div>
+                <div class="form-footer">
+                    <p class="field-hint">Social links are saved together with the selected profile.</p>
+                    <button class="button button-primary" type="submit" form="profileForm">Save social links</button>
+                </div>
+            </section>
+
+            <section id="subscription" class="panel profile-panel dashboard-page" data-dashboard-page="subscription" aria-labelledby="subscriptionTitle">
+                <div class="panel-heading"><div><span class="eyebrow">PLAN</span><h2 id="subscriptionTitle">Subscription</h2><p>$6.99 USD per year. Payments are handled manually; your account status is managed by the administrator.</p></div></div>
+                <div class="subscription-card">
+                    <div><span class="eyebrow">ANNUAL PLAN</span><strong>$6.99 <small>/ year</small></strong></div>
+                    <span id="subscriptionStatus" class="subscription-status">Loading status…</span>
+                    <dl class="subscription-dates"><div><dt>Starts</dt><dd id="subscriptionStarts">—</dd></div><div><dt>Expires</dt><dd id="subscriptionExpires">—</dd></div></dl>
+                    <p id="subscriptionMessage" class="inline-message" role="status" aria-live="polite">Subscription details load from your account.</p>
+                </div>
+            </section>
+
+            <section id="help" class="panel profile-panel dashboard-page" data-dashboard-page="help" aria-labelledby="helpTitle">
+                <div class="panel-heading"><div><span class="eyebrow">WE’RE HERE TO HELP</span><h2 id="helpTitle">Contact support</h2><p>Email our support team and your mail app will open a draft addressed to devops@shaunco.ai.</p></div></div>
+                <a class="button button-primary" href="mailto:devops@shaunco.ai?subject=BlipLink%20support%20request&amp;body=Hello%20BlipLink%20support%2C%0A%0AI%20need%20help%20with%20my%20account.%0A">Email support</a>
+                <a class="button button-secondary" href="https://wa.me/77770665790" target="_blank" rel="noopener noreferrer">Chat with support on WhatsApp</a>
+            </section>
+
+            <section id="cardLeads" class="panel leads-panel dashboard-page" data-dashboard-page="leads" aria-labelledby="leadsTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">CARD ACTIVITY</span>
+                        <h2 id="leadsTitle">Leads</h2>
+                        <p>Contacts shared by visitors from any of your public cards.</p>
+                    </div>
+                    <button id="refreshLeadsButton" class="button button-secondary button-small" type="button">Refresh</button>
+                </div>
+                <p id="leadsMessage" class="inline-message" role="status" aria-live="polite">Loading your leads…</p>
+                <div id="leadsList" class="leads-list"></div>
+            </section>
+            <section id="crmPage" class="panel leads-panel dashboard-page" data-dashboard-page="crm" aria-labelledby="crmTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">SALES PIPELINE</span>
+                        <h2 id="crmTitle">CRM</h2>
+                        <p>Track each saved lead, its stage, notes, and next follow-up.</p>
+                    </div>
+                    <button id="refreshCrmButton" class="button button-secondary button-small" type="button">Refresh</button>
+                </div>
+                <p id="crmMessage" class="inline-message" role="status" aria-live="polite">Loading your CRM…</p>
+                <div id="crmList" class="crm-list"></div>
+            </section>
+            <section id="companyPage" class="panel leads-panel dashboard-page" data-dashboard-page="company" aria-labelledby="companyTitle">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">COMPANY WORKSPACE</span>
+                        <h2 id="companyTitle">Company profiles</h2>
+                        <p>Manage multiple employee cards, edit their details, and control whether each card is public.</p>
+                    </div>
+                    <button id="addProfileButton" class="button button-primary button-small" type="button">Add profile</button>
+                </div>
+                <div id="companyProfilesList" class="company-profiles-list"></div>
+            </section>
+            <footer class="dashboard-footer">© 2026 BlipLink · Company dashboard</footer>
+        </main>
+    </div>
+</body>
+</html>

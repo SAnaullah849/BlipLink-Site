@@ -10,12 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=19">
+    <link rel="stylesheet" href="dashboard.css?v=20">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="dashboard.js?v=20" defer></script>
+    <script src="dashboard.js?v=21" defer></script>
 </head>
-<body>
+<body data-page="overview">
     <div id="dashboardView" class="dashboard-shell" hidden>
         <button id="drawerBackdrop" class="drawer-backdrop" type="button" aria-label="Close dashboard menu" hidden></button>
         <aside id="dashboardSidebar" class="sidebar">
@@ -25,35 +25,35 @@
             </a>
             <span class="sidebar-label">WORKSPACE</span>
             <nav class="side-nav" aria-label="Dashboard">
-                <a class="side-nav-link active" href="#overview" data-nav="overview">
+                <a class="side-nav-link active" href="index.html" data-nav="overview">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="11" width="7" height="10" rx="2"/><rect x="3" y="14" width="8" height="7" rx="2"/></svg>
                     Overview
                 </a>
-                <a class="side-nav-link" href="#profile" data-nav="profile">
+                <a class="side-nav-link" href="profile.html" data-nav="profile">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
                     My profile
                 </a>
-                <a class="side-nav-link" href="#social" data-nav="social">
+                <a class="side-nav-link" href="social.html" data-nav="social">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
                     Social links
                 </a>
-                <a class="side-nav-link" href="#leads" data-nav="leads">
+                <a class="side-nav-link" href="leads.html" data-nav="leads">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m-3-3h6"/></svg>
                     Leads
                 </a>
-                <a class="side-nav-link" href="#crm" data-nav="crm">
+                <a class="side-nav-link" href="crm.html" data-nav="crm">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h5M7 16h7"/></svg>
                     CRM
                 </a>
-                <a class="side-nav-link" href="#company" data-nav="company">
+                <a class="side-nav-link" href="company.html" data-nav="company">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V5l7-3 7 3v16M9 9h.01M15 9h.01M9 13h.01M15 13h.01M10 21v-4h4v4"/></svg>
                     Company
                 </a>
-                <a class="side-nav-link" href="#subscription" data-nav="subscription">
+                <a class="side-nav-link" href="subscription.html" data-nav="subscription">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
                     Subscription
                 </a>
-                <a class="side-nav-link" href="#help" data-nav="help">
+                <a class="side-nav-link" href="help.html" data-nav="help">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.6 9a2.5 2.5 0 1 1 4.7 1.2c-.8 1.2-2.3 1.4-2.3 3M12 17h.01"/></svg>
                     Help
                 </a>
@@ -93,7 +93,7 @@
                                 <button id="readAllNotifications" class="notification-read-all" type="button">Read all</button>
                             </div>
                             <div id="notificationList" class="notification-list"><p class="inline-message">New leads will appear here.</p></div>
-                            <a href="#leads" class="notification-view-all">View all leads</a>
+                            <a href="leads.html" class="notification-view-all">View all leads</a>
                         </section>
                     </div>
                     <button id="accountMenuButton" class="account-chip" type="button" aria-label="Open profile menu" aria-controls="accountMenu" aria-expanded="false">
@@ -119,7 +119,7 @@
                                 <h2>Welcome back, <strong id="overviewName">there</strong></h2>
                                 <p>Here’s how your digital profiles are performing.</p>
                             </div>
-                            <a class="button button-primary" href="#company">Manage profiles <span aria-hidden="true">→</span></a>
+                            <a class="button button-primary" href="company.html">Manage profiles <span aria-hidden="true">→</span></a>
                         </div>
                         <div class="analytics-summary">
                             <article class="panel analytics-stat">
@@ -210,7 +210,7 @@
                         <section class="panel overview-leads-card">
                             <div class="overview-alert-heading">
                                 <h2>Recent leads</h2>
-                                <a href="#leads">View all</a>
+                                <a href="leads.html">View all</a>
                             </div>
                             <div id="overviewRecentLeads" class="overview-recent-leads">
                                 <p class="inline-message">Loading leads…</p>

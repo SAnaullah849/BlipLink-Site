@@ -2,6 +2,8 @@
 
 The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL, and Supabase Storage. Public account registration is not provided. A BlipLink administrator invites company users through Supabase; invitees set their password from the secure email link before signing in.
 
+Each dashboard section has its own HTML route: index.html (Overview), profile.html, social.html, leads.html, crm.html, company.html, subscription.html, and help.html. All routes share the same signed-in dashboard session and sidebar navigation.
+
 ## Supabase setup
 
 The dashboard frontend is configured for the BlipLink Supabase project in [`config.js`](./config.js). Its `sb_publishable_...` key is intended for browser use; never put a Supabase secret/service-role key in this file.
