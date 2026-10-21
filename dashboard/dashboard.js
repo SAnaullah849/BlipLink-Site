@@ -43,6 +43,7 @@
     document.addEventListener('DOMContentLoaded', initialize);
 
     async function initialize() {
+        showPage(window.location.hash.slice(1) || document.body.dataset.page || 'overview');
         byId('signOutButton').addEventListener('click', handleSignOut);
         byId('profileSignOutButton').addEventListener('click', handleSignOut);
         byId('mobileNavigationToggle').addEventListener('click', toggleMobileNavigation);
