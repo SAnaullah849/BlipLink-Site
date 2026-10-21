@@ -1,4 +1,6 @@
--- Run this file in the Supabase SQL Editor before using the company dashboard.
+-- Run this file in the Supabase SQL Editor before using the dashboard.
+-- Then run account-access.sql for individual/company types, profile allowances,
+-- and administration. Run bootstrap-admin.sql once to enable the first admin.
 -- Create company accounts by invitation in Supabase Authentication. Public
 -- sign-ups must remain disabled in the Supabase Auth settings. The trigger
 -- below creates a company profile for invited users when Auth creates them.

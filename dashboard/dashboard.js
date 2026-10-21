@@ -38,6 +38,8 @@
     let realtimeChannel;
     let notificationLeads = [];
     let customLinksAvailable = null;
+    let accountAccess = null;
+    let creatingProfile = false;
 
     const byId = id => document.getElementById(id);
 
@@ -127,6 +129,8 @@
 
         currentUser = data.session.user;
         showDashboard();
+        await loadAccountAccess();
+        loadAdministratorNavigation();
         await loadProfiles(sessionStorage.getItem('bliplink-active-profile-' + currentUser.id));
         initializeAnalyticsFilters();
         await loadLeads();
@@ -145,8 +149,62 @@
 
             if (session.user.id !== currentUser?.id) {
                 currentUser = session.user;
-                window.setTimeout(() => loadProfiles(), 0);
+                accountAccess = null;
+                window.setTimeout(async () => {
+                    await loadAccountAccess();
+                    loadAdministratorNavigation();
+                    await loadProfiles();
+                }, 0);
             }
+        });
+    }
+
+    async function loadAccountAccess() {
+        try {
+            const { data, error } = await supabaseClient.from('account_access')
+                .select('account_type, profile_limit').eq('user_id', currentUser.id).single();
+            if (error || !['individual', 'company'].includes(data?.account_type) ||
+                !Number.isInteger(data.profile_limit) || data.profile_limit < 1) {
+                throw new Error('Account allowance unavailable');
+            }
+            accountAccess = data;
+        } catch {
+            accountAccess = null;
+        }
+        renderAccountAllowance();
+    }
+
+    async function loadAdministratorNavigation() {
+        const link = byId('adminNavigationLink');
+        if (!link) return;
+        link.hidden = true;
+        try {
+            const { data, error } = await supabaseClient.from('app_admins')
+                .select('user_id').eq('user_id', currentUser.id).maybeSingle();
+            link.hidden = Boolean(error) || !data;
+        } catch { /* Older database setups do not expose administration. */ }
+    }
+
+    function renderAccountAllowance() {
+        const individual = accountAccess?.account_type === 'individual';
+        const notice = byId('accountAllowance');
+        if (notice) {
+            notice.textContent = accountAccess
+                ? `${individual ? 'Individual professional' : 'Company account'} · ${profiles.length} of ${accountAccess.profile_limit} profiles used.`
+                : 'Profile allowance is unavailable. Contact your administrator to finish account setup. Existing profiles remain available.';
+        }
+        const button = byId('addProfileButton');
+        if (button) {
+            button.disabled = creatingProfile || !accountAccess || profiles.length >= accountAccess.profile_limit;
+            button.title = !accountAccess ? 'Contact your administrator to configure account access.'
+                : button.disabled ? 'Your profile allowance is full. Contact your administrator for more profiles.' : '';
+        }
+        if (byId('profileManagementTitle')) byId('profileManagementTitle').textContent = individual ? 'Your professional profile' : 'Manage profiles';
+        if (byId('profileManagementDescription')) byId('profileManagementDescription').textContent = individual
+            ? 'Your individual account includes one professional profile.' : 'Create and manage profiles within your company allowance.';
+        document.querySelectorAll('[data-nav="company"]').forEach(link => { link.hidden = individual; });
+        document.querySelectorAll('[data-account-workspace]').forEach(label => {
+            label.textContent = individual ? 'PROFESSIONAL WORKSPACE' : 'COMPANY WORKSPACE';
         });
     }
 
@@ -281,11 +339,20 @@
     }
 
     async function createProfile() {
+        if (!currentUser || creatingProfile) return;
         if (profileDirty && !window.confirm('Discard unsaved changes to this profile?')) return;
         const button = byId('addProfileButton');
+        creatingProfile = true;
         button.disabled = true;
         button.textContent = 'Creating…';
         try {
+            await loadAccountAccess();
+            if (!accountAccess || profiles.length >= accountAccess.profile_limit) {
+                showDashboardMessage(accountAccess
+                    ? 'Your profile allowance is full. Contact your administrator to increase it.'
+                    : 'Your profile allowance is unavailable. Contact your administrator.', 'error');
+                return;
+            }
             const { data, error } = await supabaseClient
                 .from('company_profiles')
                 .insert({ user_id: currentUser.id, full_name: '', contact_email: currentUser.email || '' })
@@ -303,7 +370,8 @@
             showDashboardMessage(error.message || 'Unable to create a profile.', 'error');
             console.error('Company profile creation failed:', error);
         } finally {
-            button.disabled = false;
+            creatingProfile = false;
+            renderAccountAllowance();
             button.textContent = 'Add profile';
         }
     }
@@ -320,6 +388,7 @@
     }
 
     function renderCompanyProfiles() {
+        renderAccountAllowance();
         renderProfileRows(byId('companyProfilesList'));
     }
 
@@ -1748,7 +1817,8 @@
 
     function showPage(section) {
         const validPages = new Set(['overview', 'profile', 'social', 'leads', 'crm', 'company', 'subscription', 'help']);
-        const page = validPages.has(section) ? section : 'overview';
+        let page = validPages.has(section) ? section : 'overview';
+        if (page === 'company' && accountAccess?.account_type === 'individual') page = 'profile';
         document.querySelectorAll('[data-dashboard-page]').forEach(element => {
             element.hidden = element.dataset.dashboardPage !== page;
         });
@@ -1768,7 +1838,7 @@
             help: 'Help',
         };
         byId('dashboardPageTitle').textContent = titles[page];
-        document.title = `${titles[page]} | BlipLink Company Dashboard`;
+        document.title = `${titles[page]} | BlipLink Dashboard`;
     }
 
     function getInitials(value) {

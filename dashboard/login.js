@@ -69,7 +69,7 @@
     function showInvitationForm(email) {
         byId('loginTitle').textContent = 'Finish setting up your account';
         document.querySelector('.login-heading > p').textContent =
-            'Choose a password to activate your BlipLink company account.';
+            'Choose a password to activate your BlipLink account.';
         byId('loginForm').hidden = true;
         byId('invitationForm').hidden = false;
         byId('invitationEmail').value = email;
@@ -80,7 +80,7 @@
     function showInvitationError(message) {
         byId('loginTitle').textContent = 'Invitation link unavailable';
         document.querySelector('.login-heading > p').textContent =
-            'This company account invitation needs to be renewed.';
+            'This account invitation needs to be renewed.';
         byId('loginForm').hidden = true;
         byId('invitationForm').hidden = true;
         byId('invitationNotice').textContent = message;

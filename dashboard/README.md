@@ -1,6 +1,32 @@
-# BlipLink Company Dashboard
+# BlipLink Dashboard
 
-The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL, and Supabase Storage. Public account registration is not provided. A BlipLink administrator invites company users through Supabase; invitees set their password from the secure email link before signing in.
+The dashboard is a static frontend backed by Supabase Authentication, PostgreSQL, and Supabase Storage, with Vercel API routes for account administration and analytics. Public account registration is not provided. Administrators invite individual professionals and companies; invitees set their password from the secure email link before signing in.
+
+## Individual and company accounts
+
+- **Individual professional:** one profile, with profile editing, social links, leads, CRM, and analytics.
+- **Company:** an administrator chooses the total profile allowance, including the initial profile. For example, an allowance of 10 supports 10 profiles under one login.
+- **Administrator:** a separate permission on an existing account, independent of its individual/company type. Administrators can invite users, change account type and allowance, and transfer administrator access.
+
+### Enable account administration
+
+1. Run [`schema.sql`](./schema.sql) in Supabase SQL Editor, then [`account-access.sql`](./account-access.sql). Always rerun these in this order when applying both. Existing accounts remain companies and retain all profiles and card URLs. Their initial allowance equals their current profile count (at least one); an administrator can increase it afterward. New Auth users default to individual accounts with one profile until an administrator changes them.
+2. Ensure `devops@shaunco.ai` exists in Supabase Authentication. Run [`bootstrap-admin.sql`](./bootstrap-admin.sql) once to grant this existing user administrator access. This script does not change passwords or send email.
+3. Configure Vercel's server-side `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as described below, and deploy. Keep the existing Supabase Site URL/Redirect URL pointed at your deployed `/login.html` so invitations return to the password-setup page.
+4. Sign in as `devops@shaunco.ai`, open **Account administration** in the sidebar, or visit `/dashboard/admin.html`. Choose the email and account type; company accounts also receive the profile allowance you enter. **Send invitation** sends the Supabase invitation and saves the selected allowance.
+5. In **Manage accounts**, edit the type or allowance and choose **Save access**. Users see the updated allowance on their next dashboard refresh. Profiles cannot be created above the allowance, even through direct database requests. You must remove extra profiles before lowering an allowance below current usage or converting a multi-profile company to an individual.
+
+Account type and allowances live in `public.account_access`; ordinary users can read only their own record and cannot modify it. Administrator membership lives in `public.app_admins`; ordinary users cannot grant membership. The server verifies each token with Supabase Auth and checks administrator membership before using the service key. Quota checks lock each account row to serialize competing inserts and limit changes. User-editable Auth metadata grants no privileges.
+
+### Change the administrator later
+
+The initial email is not hardcoded into application authorization. In the admin page, invite the replacement user if needed, enable **Administrator access** for their account, and click **Save admin access**. Sign in as the replacement administrator to verify access, then remove the old account's administrator permission. The API prevents removal of the last administrator. Changing the email of the same Auth user through Supabase Authentication also preserves administrator access because membership uses the user's UUID.
+
+If an invitation succeeds but saving its allowance fails, the page tells you to refresh the list and edit that account. Do this instead of sending another invitation. If the migration has not been applied, existing profiles can still be edited, but creating additional profiles remains disabled until account access is configured.
+
+### Tests
+
+Run `npm ci` and `npm test`. Tests cover startup on all dashboard routes, verified administrator authorization, invitations and quota updates, real PostgreSQL trigger/RLS behavior through PGlite, and administrator transfers. With Playwright available and Microsoft Edge installed, run `node tests/verify-account-ui.cjs` for mocked browser checks without sending real invitations. `BLIPLINK_PLAYWRIGHT` can point to a bundled Playwright module and `BLIPLINK_QA_OUTPUT` can choose the screenshot output directory; otherwise screenshots go to the system temporary directory.
 
 Each dashboard section has its own HTML route: index.html (Overview), profile.html, social.html, leads.html, crm.html, company.html, subscription.html, and help.html. All routes share the same signed-in dashboard session and sidebar navigation.
 
