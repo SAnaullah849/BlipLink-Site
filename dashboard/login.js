@@ -343,10 +343,12 @@
 
     function togglePassword(button) {
         const input = byId(button.dataset.passwordTarget);
-        const isVisible = input.type === 'text';
-        input.type = isVisible ? 'password' : 'text';
-        button.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
-        button.setAttribute('aria-pressed', String(!isVisible));
+        const showPassword = input.type === 'password';
+        input.type = showPassword ? 'text' : 'password';
+        button.querySelector('[data-eye-visible]').hidden = !showPassword;
+        button.querySelector('[data-eye-hidden]').hidden = showPassword;
+        button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
+        button.setAttribute('aria-pressed', String(showPassword));
     }
 
     function goToDashboard() {

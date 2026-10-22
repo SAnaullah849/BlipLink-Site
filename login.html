@@ -11,11 +11,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard/dashboard.css?v=13">
-    <link rel="stylesheet" href="dashboard/auth.css?v=2">
+    <link rel="stylesheet" href="dashboard/auth.css?v=3">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="dashboard/config.js"></script>
     <script src="dashboard/auth-client.js?v=1"></script>
-    <script src="dashboard/login.js?v=6" defer></script>
+    <script src="dashboard/login.js?v=8" defer></script>
 </head>
 <body>
     <main class="login-screen">
@@ -37,7 +37,10 @@
                 <label for="loginPassword">Password</label>
                 <div class="password-field">
                     <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
-                    <button class="password-visibility" type="button" data-password-target="loginPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                    <button class="password-visibility" type="button" data-password-target="loginPassword" aria-label="Show password" aria-pressed="false">
+                        <svg data-eye-visible hidden viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg data-eye-hidden viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a16.4 16.4 0 0 1-4.1 4.8"></path><path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.7-1.2"></path></svg>
+                    </button>
                 </div>
                 <div class="login-options">
                     <label class="remember-option"><input id="rememberMe" type="checkbox" checked> <span>Remember me</span></label>
@@ -68,12 +71,18 @@
                 <label for="newPassword">New password</label>
                 <div class="password-field">
                     <input id="newPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
-                    <button class="password-visibility" type="button" data-password-target="newPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                    <button class="password-visibility" type="button" data-password-target="newPassword" aria-label="Show password" aria-pressed="false">
+                        <svg data-eye-visible hidden viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg data-eye-hidden viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a16.4 16.4 0 0 1-4.1 4.8"></path><path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.7-1.2"></path></svg>
+                    </button>
                 </div>
                 <label for="confirmNewPassword">Confirm new password</label>
                 <div class="password-field">
                     <input id="confirmNewPassword" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
-                    <button class="password-visibility" type="button" data-password-target="confirmNewPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                    <button class="password-visibility" type="button" data-password-target="confirmNewPassword" aria-label="Show password" aria-pressed="false">
+                        <svg data-eye-visible hidden viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg data-eye-hidden viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a16.4 16.4 0 0 1-4.1 4.8"></path><path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.7-1.2"></path></svg>
+                    </button>
                 </div>
                 <button id="newPasswordButton" class="button button-primary button-full" type="submit">Update password</button>
                 <p id="newPasswordMessage" class="form-message" role="alert" aria-live="polite"></p>
@@ -84,12 +93,18 @@
                 <label for="invitationPassword">Create password</label>
                 <div class="password-field">
                     <input id="invitationPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
-                    <button class="password-visibility" type="button" data-password-target="invitationPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                    <button class="password-visibility" type="button" data-password-target="invitationPassword" aria-label="Show password" aria-pressed="false">
+                        <svg data-eye-visible hidden viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg data-eye-hidden viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a16.4 16.4 0 0 1-4.1 4.8"></path><path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.7-1.2"></path></svg>
+                    </button>
                 </div>
                 <label for="invitationPasswordConfirm">Confirm password</label>
                 <div class="password-field">
                     <input id="invitationPasswordConfirm" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
-                    <button class="password-visibility" type="button" data-password-target="invitationPasswordConfirm" aria-label="Show password" aria-pressed="false">◉</button>
+                    <button class="password-visibility" type="button" data-password-target="invitationPasswordConfirm" aria-label="Show password" aria-pressed="false">
+                        <svg data-eye-visible hidden viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg data-eye-hidden viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a16.4 16.4 0 0 1-4.1 4.8"></path><path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.7-1.2"></path></svg>
+                    </button>
                 </div>
                 <button id="invitationButton" class="button button-primary button-full" type="submit">Set password</button>
                 <p id="invitationMessage" class="form-message" role="alert" aria-live="polite"></p>
