@@ -513,7 +513,7 @@
         if (!currentUser) return;
         const message = byId('leadsMessage');
         const list = byId('leadsList');
-        message.textContent = 'Loading your leads…';
+        message.textContent = 'Loading contact requests…';
         list.replaceChildren();
 
         try {
@@ -528,7 +528,7 @@
                 if (error.code === 'PGRST205' || error.code === '42P01') {
                     message.textContent = 'Apply the latest dashboard/setup.sql in Supabase to enable contact exchanges.';
                 } else {
-                    message.textContent = `Unable to load leads: ${error.message}`;
+                    message.textContent = `Unable to load contact requests: ${error.message}`;
                     console.error('Contact exchange load failed:', error);
                 }
                 return;
@@ -546,17 +546,17 @@
                 leadsCache = [];
                 initializeNotificationReadState(leadsCache);
                 renderRecentLeads();
-                message.textContent = 'No leads yet. Contact details shared from any of your cards will appear here.';
+                message.textContent = 'No contacts yet. When someone uses “Exchange contact” on one of your public ID cards, their details will appear here.';
                 return;
             }
 
             leadsCache = data;
             initializeNotificationReadState(leadsCache);
             renderRecentLeads();
-            message.textContent = `${data.length} recent ${data.length === 1 ? 'lead' : 'leads'}`;
+            message.textContent = `${data.length} contact ${data.length === 1 ? 'request' : 'requests'}`;
             list.replaceChildren(...data.map(lead => createLeadCard(lead, savedIds.has(String(lead.id)))));
         } catch (error) {
-            message.textContent = error.message || 'Unable to load your leads. Please try again.';
+            message.textContent = error.message || 'Unable to load contact requests. Please try again.';
             console.error('Contact exchange request failed:', error);
         }
     }
@@ -600,7 +600,7 @@
         const saveButton = document.createElement('button');
         saveButton.className = saved ? 'button button-secondary button-small' : 'button button-primary button-small';
         saveButton.type = 'button';
-        saveButton.textContent = saved ? 'Saved to CRM' : 'Save lead';
+        saveButton.textContent = saved ? 'Saved to CRM' : 'Save contact';
         saveButton.disabled = saved;
         saveButton.addEventListener('click', () => saveLeadToCrm(lead, saveButton));
         article.append(saveButton);
@@ -628,7 +628,7 @@
             await loadCrmLeads();
         } catch (error) {
             button.disabled = false;
-            button.textContent = 'Save lead';
+            button.textContent = 'Save contact';
             showDashboardMessage(`Unable to save lead to CRM: ${error.message}`, 'error');
             console.error('CRM lead save failed:', error);
         }
@@ -649,7 +649,7 @@
                 .limit(200);
             if (error) throw new Error(error.message);
             if (!data.length) {
-                message.textContent = 'Your CRM is empty. Save a contact from the Leads page to add it to your pipeline.';
+                message.textContent = 'Your CRM is empty. Save a contact from the Contacts page to add it to your pipeline.';
                 return;
             }
             message.textContent = `${data.length} ${data.length === 1 ? 'lead' : 'leads'} in your pipeline`;
@@ -925,13 +925,13 @@
         badge.hidden = unreadCount === 0;
         byId('readAllNotifications').hidden = unreadCount === 0;
         byId('notificationCount').textContent = unreadCount
-            ? `${unreadCount} new ${unreadCount === 1 ? 'lead' : 'leads'}`
+            ? `${unreadCount} new contact ${unreadCount === 1 ? 'request' : 'requests'}`
             : 'No new alerts';
         const list = byId('notificationList');
         if (!unreadLeads.length) {
             const empty = document.createElement('p');
             empty.className = 'inline-message';
-            empty.textContent = 'No new notifications. Your leads are still saved on the Leads page.';
+            empty.textContent = 'No new notifications. Contact requests are saved on the Contacts page.';
             list.replaceChildren(empty);
             return;
         }
@@ -1096,7 +1096,7 @@
             overview: 'Overview',
             profile: 'My Team',
             theme: 'Theme',
-            leads: 'Leads',
+            leads: 'Contacts',
             crm: 'CRM',
             company: 'Company',
             subscription: 'Subscription',
