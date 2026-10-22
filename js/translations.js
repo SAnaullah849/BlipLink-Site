@@ -1,8 +1,8 @@
 const translations = {
   en: {
     seo: {
-      title: "BlipLink | The Smarter Way to Connect",
-      description: "BlipLink is a professional networking platform for sharing your identity, making meaningful connections, and growing your network with digital profiles and NFC.",
+      title: "BlipLink | Digital ID Cards & Contact Exchange",
+      description: "Create a customizable digital ID card, share it by QR or NFC, exchange contact details with consent, and manage new connections in BlipLink.",
     },
     nav: {
       products: "Products",
@@ -16,7 +16,7 @@ const translations = {
     hero: {
       eyebrow: "THE SMARTER WAY TO CONNECT",
       title: "Your identity.<br>One tap away.",
-      description: "Create, share, and manage your professional identity with BlipLink.",
+      description: "Build a personal digital ID card, share it by QR or NFC, and let new connections exchange contact details with you.",
       ctaPrimary: "Create Your BlipLink",
       ctaSecondary: "For Companies",
       profileName: "Oliver Bennett",
@@ -31,14 +31,14 @@ const translations = {
     },
     products: {
       title: "Everything you need to connect smarter.",
-      subtitle: "BlipLink combines digital identity with physical products.",
+      subtitle: "Create your digital ID, exchange details with consent, and keep new connections organized.",
       items: [
-        { name: "Digital Business Card", desc: "Your complete professional identity, always ready to share." },
+        { name: "Digital ID Card", desc: "A customizable professional profile with your contact details, links, QR code, and save-to-contacts option." },
         { name: "NFC Business Card", desc: "Premium physical cards that share your profile with a tap." },
-        { name: "NFC Phone Sticker", desc: "Turn your phone into a powerful networking tool." },
-        { name: "Review Card", desc: "Turn customer interactions into reviews instantly." },
-        { name: "Digital Profile", desc: "Your central hub for all professional links." },
-        { name: "QR Sharing", desc: "Instant access to your identity via scannable codes." },
+        { name: "Exchange Contact", desc: "Visitors can share their details with you through your public card after giving consent." },
+        { name: "Contact Requests", desc: "Review incoming exchanges in your BlipLink workspace and follow up by email or phone." },
+        { name: "Company Workspace", desc: "Manage team profiles, shared company branding, card activity, and saved CRM contacts." },
+        { name: "Review & NFC Cards", desc: "Explore physical cards and review tools designed to make in-person connections easier." },
       ],
     },
     howItWorks: {
@@ -52,14 +52,15 @@ const translations = {
     },
     business: {
       title: "Power your team's professional identity.",
-      description: "BlipLink helps businesses create and manage digital identities for their teams.",
+      description: "Give your team consistent digital ID cards, collect consented contact exchanges, and review card engagement from one workspace.",
       features: [
         "Employee digital business cards",
         "Centralized management",
         "Company branding",
         "Team management",
-        "Lead collection",
-        "Admin controls",
+        "Consent-based contact exchange",
+        "Card views, taps, and contact analytics",
+        "CRM follow-up pipeline",
       ],
       cta: "Talk to BlipLink",
       dashboard: "Admin Dashboard",
@@ -85,7 +86,9 @@ const translations = {
     faq: {
       title: "Frequently Asked Questions",
       items: [
-        { q: "What is BlipLink?", a: "BlipLink is a digital networking platform for professional identities." },
+        { q: "What is BlipLink?", a: "BlipLink lets people and companies create and share customizable digital ID cards." },
+        { q: "How does Exchange Contact work?", a: "A visitor can choose Exchange contact on a public card, enter their details, and consent to share them with the card owner. The owner can review the request in their BlipLink workspace." },
+        { q: "Who can see details shared through Exchange Contact?", a: "The card owner can view submitted contact details in their account. The information is not displayed on the public card." },
         { q: "Do I need an app?", a: "No, BlipLink works entirely in the browser." },
         { q: "Does NFC work with iPhone?", a: "Yes, it works with all modern NFC-enabled iPhones." },
       ],
@@ -136,8 +139,8 @@ const translations = {
   },
   ru: {
     seo: {
-      title: "BlipLink | Умный способ быть на связи",
-      description: "BlipLink — платформа для профессионального общения, обмена профилями и развития деловых связей с помощью цифровых профилей и NFC.",
+      title: "BlipLink | Цифровые ID-карты и обмен контактами",
+      description: "Создайте цифровую ID-карту, делитесь ею по QR-коду или NFC, обменивайтесь контактами с согласия и управляйте новыми связями в BlipLink.",
     },
     nav: {
       products: "Продукты",
@@ -151,7 +154,7 @@ const translations = {
     hero: {
       eyebrow: "УМНЫЙ СПОСОБ СОЗДАВАТЬ СВЯЗИ",
       title: "Ваша личность.<br>В одном касании.",
-      description: "Создавайте, делитесь и управляйте своим профессиональным профилем с BlipLink.",
+      description: "Создайте личную цифровую ID-карту, делитесь ею по QR-коду или NFC и обменивайтесь контактами с новыми знакомыми.",
       ctaPrimary: "Создать BlipLink",
       ctaSecondary: "Для компаний",
       profileName: "Oliver Bennett",
@@ -166,14 +169,14 @@ const translations = {
     },
     products: {
       title: "Все, что нужно для эффективного нетворкинга.",
-      subtitle: "BlipLink объединяет цифровую идентичность с физическими продуктами.",
+      subtitle: "Создайте цифровую ID-карту, обменивайтесь контактами с согласия и упорядочивайте новые связи.",
       items: [
-        { name: "Цифровая визитка", desc: "Ваш полный профессиональный профиль, всегда готовый к отправке." },
+        { name: "Цифровая ID-карта", desc: "Настраиваемый профиль с контактами, ссылками, QR-кодом и сохранением в адресную книгу." },
         { name: "NFC Визитка", desc: "Премиальные физические карты, передающие профиль одним касанием." },
-        { name: "NFC Стикер на телефон", desc: "Превратите ваш телефон в мощный инструмент нетворкинга." },
-        { name: "Карта отзывов", desc: "Мгновенно превращайте взаимодействия с клиентами в отзывы." },
-        { name: "Цифровой профиль", desc: "Центральный хаб для всех ваших профессиональных ссылок." },
-        { name: "QR-шеринг", desc: "Мгновенный доступ к вашей личности через сканируемые коды." },
+        { name: "Обмен контактами", desc: "Посетители могут с согласия отправить свои контактные данные владельцу публичной карты." },
+        { name: "Запросы контактов", desc: "Просматривайте входящие обмены в рабочем пространстве BlipLink и связывайтесь по телефону или почте." },
+        { name: "Рабочее пространство компании", desc: "Управляйте профилями команды, брендингом, активностью карт и контактами CRM." },
+        { name: "Отзывы и NFC-карты", desc: "Ознакомьтесь с физическими картами и инструментами для отзывов и встреч." },
       ],
     },
     howItWorks: {
@@ -187,14 +190,15 @@ const translations = {
     },
     business: {
       title: "Усильте профессиональный имидж вашей команды.",
-      description: "BlipLink помогает компаниям создавать и управлять цифровыми профилями для своих сотрудников.",
+      description: "Создавайте единые цифровые ID-карты команды, собирайте контакты с согласия и отслеживайте активность в одном рабочем пространстве.",
       features: [
         "Цифровые визитки для сотрудников",
         "Централизованное управление",
         "Брендинг компании",
         "Управление командой",
-        "Сбор лидов",
-        "Админ-панель",
+        "Обмен контактами с согласием",
+        "Аналитика просмотров, нажатий и контактов",
+        "CRM для последующих действий",
       ],
       cta: "Связаться с BlipLink",
       dashboard: "Панель управления",
@@ -220,7 +224,9 @@ const translations = {
     faq: {
       title: "Часто задаваемые вопросы",
       items: [
-        { q: "Что такое BlipLink?", a: "BlipLink — это платформа цифрового нетворкинга для профессиональных профилей." },
+        { q: "Что такое BlipLink?", a: "BlipLink позволяет людям и компаниям создавать и делиться настраиваемыми цифровыми ID-картами." },
+        { q: "Как работает обмен контактами?", a: "Посетитель выбирает «Обмен контактами» на публичной карте, вводит данные и подтверждает их отправку владельцу карты. Запрос появляется в рабочем пространстве BlipLink владельца." },
+        { q: "Кто видит данные, отправленные через обмен контактами?", a: "Владелец карты может просмотреть данные в своей учётной записи. Они не отображаются на публичной карте." },
         { q: "Нужно ли приложение?", a: "Нет, BlipLink работает полностью в браузере." },
         { q: "Работает ли NFC с iPhone?", a: "Да, работает со всеми современными iPhone с поддержкой NFC." },
       ],
@@ -271,8 +277,8 @@ const translations = {
   },
   ar: {
     seo: {
-      title: "BlipLink | الطريقة الأذكى للتواصل",
-      description: "BlipLink منصة للتواصل المهني ومشاركة الهوية وبناء علاقات عمل أقوى عبر الملفات الشخصية الرقمية وتقنية NFC.",
+      title: "BlipLink | بطاقات هوية رقمية وتبادل جهات الاتصال",
+      description: "أنشئ بطاقة هوية رقمية قابلة للتخصيص، وشاركها عبر QR أو NFC، وتبادل بيانات الاتصال بموافقة، وأدر علاقاتك الجديدة عبر BlipLink.",
     },
     nav: {
       products: "المنتجات",
@@ -286,7 +292,7 @@ const translations = {
     hero: {
       eyebrow: "الطريقة الأذكى للتواصل",
       title: "هويتك المهنية.<br>بلمسة واحدة.",
-      description: "قم بإنشاء وإدارة هويتك المهنية الرقمية بكل سهولة مع BlipLink.",
+      description: "أنشئ بطاقة هوية رقمية شخصية، وشاركها عبر QR أو NFC، ودع معارفك الجدد يتبادلون بيانات الاتصال معك.",
       ctaPrimary: "أنشئ حسابك الآن",
       ctaSecondary: "للشركات",
       profileName: "Oliver Bennett",
@@ -301,14 +307,14 @@ const translations = {
     },
     products: {
       title: "كل ما تحتاجه للتواصل بذكاء.",
-      subtitle: "يجمع BlipLink بين الهوية الرقمية والمنتجات المادية.",
+      subtitle: "أنشئ هويتك الرقمية، وتبادل بيانات الاتصال بموافقة، ونظّم علاقاتك الجديدة.",
       items: [
-        { name: "بطاقة عمل رقمية", desc: "هويتك المهنية الكاملة، جاهزة للمشاركة في أي وقت." },
+        { name: "بطاقة هوية رقمية", desc: "ملف مهني قابل للتخصيص مع بيانات الاتصال والروابط ورمز QR وخيار حفظ جهة الاتصال." },
         { name: "بطاقة NFC", desc: "بطاقات مادية فاخرة تشارك ملفك الشخصي بلمسة واحدة." },
-        { name: "ملصق NFC للهاتف", desc: "حول هاتفك إلى أداة تواصل احترافية وقوية." },
-        { name: "بطاقة التقييمات", desc: "حول تفاعلات العملاء إلى تقييمات إيجابية فوراً." },
-        { name: "الملف الشخصي الرقمي", desc: "المركز الرئيسي لجميع روابطك ومعلوماتك المهنية." },
-        { name: "مشاركة QR", desc: "وصول فوري لهويتك عبر الرموز القابلة للمسح." },
+        { name: "تبادل جهات الاتصال", desc: "يمكن للزوار إرسال بياناتهم إلى مالك البطاقة العامة بعد الموافقة على مشاركتها." },
+        { name: "طلبات التواصل", desc: "راجع عمليات التبادل الواردة في مساحة عمل BlipLink وتواصل عبر الهاتف أو البريد." },
+        { name: "مساحة عمل الشركات", desc: "أدر ملفات الفريق وهوية الشركة ونشاط البطاقات وجهات اتصال CRM من مكان واحد." },
+        { name: "بطاقات التقييم وNFC", desc: "استكشف البطاقات المادية وأدوات التقييم المصممة لتسهيل التواصل المباشر." },
       ],
     },
     howItWorks: {
@@ -322,14 +328,15 @@ const translations = {
     },
     business: {
       title: "عزز الهوية المهنية لفريقك.",
-      description: "يساعد BlipLink الشركات على إنشاء وإدارة الهويات الرقمية لموظفيها.",
+      description: "أنشئ بطاقات هوية رقمية متناسقة للفريق، واجمع بيانات الاتصال بموافقة، وتابع تفاعل العملاء من مساحة واحدة.",
       features: [
         "بطاقات عمل رقمية للموظفين",
         "إدارة مركزية شاملة",
         "تخصيص الهوية البصرية للشركة",
         "إدارة الفريق والموظفين",
-        "جمع بيانات العملاء",
-        "لوحة تحكم إدارية",
+        "تبادل جهات الاتصال بموافقة",
+        "تحليلات المشاهدات والنقرات وجهات الاتصال",
+        "مسار متابعة CRM",
       ],
       cta: "تواصل مع BlipLink",
       dashboard: "لوحة تحكم الإدارة",
@@ -355,7 +362,9 @@ const translations = {
     faq: {
       title: "الأسئلة الشائعة",
       items: [
-        { q: "ما هو BlipLink؟", a: "BlipLink هي منصة تواصل رقمي للهويات المهنية." },
+        { q: "ما هو BlipLink؟", a: "يتيح BlipLink للأفراد والشركات إنشاء بطاقات هوية رقمية قابلة للتخصيص ومشاركتها." },
+        { q: "كيف يعمل تبادل جهات الاتصال؟", a: "يختار الزائر «تبادل جهة الاتصال» في البطاقة العامة، ويدخل بياناته، ثم يوافق على مشاركتها مع مالك البطاقة. يظهر الطلب في مساحة عمل BlipLink الخاصة بالمالك." },
+        { q: "من يمكنه رؤية البيانات التي تتم مشاركتها؟", a: "يمكن لمالك البطاقة رؤية البيانات المرسلة في حسابه. ولا تظهر هذه البيانات على البطاقة العامة." },
         { q: "هل أحتاج إلى تطبيق؟", a: "لا، BlipLink يعمل بالكامل عبر المتصفح." },
         { q: "هل تعمل تقنية NFC مع آيفون؟", a: "نعم، تعمل مع جميع أجهزة آيفون الحديثة التي تدعم NFC." },
       ],

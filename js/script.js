@@ -166,7 +166,7 @@ function updatePageQrCode() {
 }
 
 function getProdIcon(index) {
-    const icons = ['📱', '💳', '🏷️', '⭐', '👤', '🔳'];
+    const icons = ['🪪', '💳', '🔄', '📇', '🏢', '⭐'];
     return icons[index] || '✨';
 }
 
