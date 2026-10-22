@@ -13,6 +13,18 @@
 .personal-tabs button { flex: 1; padding: 14px 10px; border: 0; border-radius: 10px; background: transparent; color: #7b8799; font: 700 13px 'DM Sans', sans-serif; cursor: pointer; }
 .personal-tabs button[aria-selected="true"] { background: #fff; color: #087bff; box-shadow: 0 2px 8px #17375a0d; }
 .personal-tab-panel { padding: clamp(20px, 3vw, 32px); }
+.personal-contacts-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 16px; }
+.personal-contacts-toolbar .inline-message { margin: 0; }
+.personal-contacts-actions { display: flex; flex: 0 0 auto; gap: 8px; }
+.personal-contacts-list { display: grid; gap: 12px; }
+.personal-contact-card { min-width: 0; padding: 17px; border: 1px solid #e5eaf2; border-radius: 14px; background: #fff; }
+.personal-contact-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.personal-contact-heading h3 { margin: 0; color: #172b4d; font-size: 15px; }
+.personal-contact-heading time, .personal-contact-detail { color: #8290a4; font-size: 11px; }
+.personal-contact-detail { margin: 8px 0 0; }
+.personal-contact-links { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-size: 12px; }
+.personal-contact-links a { color: #087bff; text-decoration: none; overflow-wrap: anywhere; }
+.personal-contact-message { margin: 13px 0 0; padding: 12px; border-radius: 10px; background: #f6f8fb; color: #52647e; font-size: 12px; line-height: 1.6; white-space: pre-wrap; }
 .personal-section-heading { margin-bottom: 24px; }
 .personal-section-heading h2 { margin: 0 0 7px; font-size: 20px; letter-spacing: -.5px; }
 .personal-section-heading p, .personal-section-note { margin: 0; color: #8390a2; font-size: 12px; line-height: 1.7; }
@@ -53,4 +65,4 @@
 .personal-footer a { color: #7c92b0; text-decoration: none; }
 @media (max-width: 900px) { .personal-workspace { grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; } .personal-presets { grid-template-columns: repeat(3, minmax(0, 1fr)); } .personal-fields { grid-template-columns: 1fr; } .personal-photo-fields { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .personal-workspace { grid-template-columns: 1fr; } .personal-main { padding-top: 26px; } .personal-header { gap: 10px; padding: 13px 16px; } .personal-header .brand-wordmark { width: 90px; } .personal-header-actions { gap: 12px; } .personal-header-actions .button { padding: 10px 13px; font-size: 11px; } .personal-header-actions > a { display: none; } .personal-intro { align-items: start; flex-direction: column; } .personal-preview-column { position: static; } .personal-preview-frame iframe { max-height: none; height: 810px; } .personal-fields { grid-template-columns: 1fr 1fr; } .personal-presets { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
-@media (max-width: 420px) { .personal-fields { grid-template-columns: 1fr; } .personal-presets { gap: 5px; } .personal-preset { padding: 5px; font-size: 9px; } .personal-colors { grid-template-columns: 1fr 1fr; gap: 7px; } }
+@media (max-width: 420px) { .personal-fields { grid-template-columns: 1fr; } .personal-presets { gap: 5px; } .personal-preset { padding: 5px; font-size: 9px; } .personal-colors { grid-template-columns: 1fr 1fr; gap: 7px; } .personal-contacts-toolbar { align-items: start; flex-direction: column; } }

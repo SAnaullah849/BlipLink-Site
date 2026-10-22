@@ -10,12 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css?v=20">
-    <link rel="stylesheet" href="personal.css?v=1">
+    <link rel="stylesheet" href="personal.css?v=2">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="card-theme.js?v=2" defer></script>
     <script src="access-state.js?v=1" defer></script>
-    <script src="personal.js?v=2" defer></script>
+    <script src="personal.js?v=3" defer></script>
 </head>
 <body class="personal-page">
     <header class="personal-header">
@@ -32,6 +32,7 @@
                     <button id="detailsTab" type="button" role="tab" aria-selected="true" aria-controls="detailsPanel" data-personal-tab="details">Profile</button>
                     <button id="designTab" type="button" role="tab" aria-selected="false" aria-controls="designPanel" data-personal-tab="design" tabindex="-1">Design</button>
                     <button id="linksTab" type="button" role="tab" aria-selected="false" aria-controls="linksPanel" data-personal-tab="links" tabindex="-1">Links</button>
+                    <button id="contactsTab" type="button" role="tab" aria-selected="false" aria-controls="contactsPanel" data-personal-tab="contacts" tabindex="-1">Contacts</button>
                 </div>
                 <form id="personalCardForm" novalidate>
                     <section id="detailsPanel" class="personal-tab-panel" role="tabpanel" aria-labelledby="detailsTab">
@@ -64,6 +65,17 @@
                         <div id="personalSocialFields" class="personal-fields"></div>
                     </section>
                 </form>
+                <section id="contactsPanel" class="personal-tab-panel personal-contacts-panel" role="tabpanel" aria-labelledby="contactsTab" hidden>
+                    <div class="personal-section-heading">
+                        <h2>Your contacts</h2>
+                        <p>When someone taps <strong>Exchange contact</strong> on your public ID card, their details show up here.</p>
+                    </div>
+                    <div class="personal-contacts-toolbar">
+                        <p id="personalContactsMessage" class="inline-message" role="status" aria-live="polite">Loading contact requests…</p>
+                        <div class="personal-contacts-actions"><a id="openPersonalContactsCard" class="button button-primary button-small" target="_blank" rel="noopener noreferrer">Open my ID card</a><button id="refreshPersonalContacts" class="button button-secondary button-small" type="button">Refresh</button></div>
+                    </div>
+                    <div id="personalContactsList" class="personal-contacts-list"></div>
+                </section>
             </section>
             <aside class="personal-preview-column" aria-label="Live card preview">
                 <div class="personal-preview-heading"><span class="eyebrow">LIVE PREVIEW</span><span>Updates as you edit</span></div>

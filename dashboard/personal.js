@@ -51,7 +51,15 @@
             fillTheme(profile.card_theme);
             byId('personalWorkspace').hidden = false;
             byId('personalSaveState').textContent = 'All changes saved';
+            byId('openPersonalContactsCard').href = publicCardUrl();
             applyAccessState();
+            await loadPersonalContacts();
+            client.channel(`personal-contact-exchanges-${user.id}`)
+                .on('postgres_changes', {
+                    event: 'INSERT', schema: 'public', table: 'card_contact_exchanges',
+                    filter: `card_owner_id=eq.${user.id}`,
+                }, () => { void loadPersonalContacts(); })
+                .subscribe();
             showMessage(themeReady ? '' : 'Your profile is ready to edit. Design saving needs a one-time setup by your administrator.', themeReady ? 'info' : 'error');
             selectTab(window.location.hash.slice(1));
             postPreview();
@@ -89,6 +97,7 @@
                 event.preventDefault(); selectTab(tabs[next].dataset.personalTab); tabs[next].focus();
             });
         });
+        byId('refreshPersonalContacts').addEventListener('click', loadPersonalContacts);
         byId('resetPersonalTheme').addEventListener('click', () => usePreset('signature'));
         for (const [kind, inputId, removeId] of [['avatar', 'personalPhotoInput', 'removePersonalPhoto'], ['banner', 'personalBannerInput', 'removePersonalBanner']]) {
             byId(inputId).addEventListener('change', () => selectImage(kind, byId(inputId)));
@@ -196,11 +205,75 @@
     function clearPresetSelection() { document.querySelectorAll('[data-preset]').forEach(button => button.setAttribute('aria-pressed', 'false')); }
     function markDirty() { if (!profile) return; dirty = true; byId('personalSaveState').textContent = 'Unsaved changes'; postPreview(); }
     function selectTab(value) {
-        const name = ['details', 'design', 'links'].includes(value) ? value : 'details';
+        const name = ['details', 'design', 'links', 'contacts'].includes(value) ? value : 'details';
         document.querySelectorAll('[data-personal-tab]').forEach(tab => {
             const selected = tab.dataset.personalTab === name; tab.setAttribute('aria-selected', String(selected)); tab.tabIndex = selected ? 0 : -1;
             byId(tab.getAttribute('aria-controls')).hidden = !selected;
         });
+    }
+    async function loadPersonalContacts() {
+        if (!client || !user) return;
+        const message = byId('personalContactsMessage');
+        const list = byId('personalContactsList');
+        const refresh = byId('refreshPersonalContacts');
+        refresh.disabled = true;
+        message.textContent = 'Loading contact requests…';
+        list.replaceChildren();
+        try {
+            const { data, error } = await client.from('card_contact_exchanges')
+                .select('id, visitor_name, visitor_phone, visitor_email, visitor_company, visitor_role, visitor_services, visitor_message, created_at')
+                .eq('card_owner_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(100);
+            if (error) {
+                if (error.code === 'PGRST205' || error.code === '42P01') {
+                    message.textContent = 'Contact exchange storage is not enabled yet. Ask your administrator to apply dashboard/setup.sql in Supabase.';
+                } else {
+                    throw new Error(error.message);
+                }
+                return;
+            }
+            if (!data?.length) {
+                message.textContent = 'No contacts yet. Share your ID card and invite people to exchange contact details.';
+                return;
+            }
+            message.textContent = `${data.length} contact ${data.length === 1 ? 'request' : 'requests'}`;
+            list.replaceChildren(...data.map(createPersonalContactCard));
+        } catch (error) {
+            message.textContent = `Unable to load contacts: ${error.message}`;
+        } finally {
+            refresh.disabled = false;
+        }
+    }
+    function createPersonalContactCard(contact) {
+        const article = document.createElement('article');
+        article.className = 'personal-contact-card';
+        const heading = document.createElement('div');
+        heading.className = 'personal-contact-heading';
+        const name = document.createElement('h3');
+        name.textContent = contact.visitor_name;
+        const date = document.createElement('time');
+        date.dateTime = contact.created_at;
+        date.textContent = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(new Date(contact.created_at));
+        heading.append(name, date);
+        article.append(heading);
+        const detail = [contact.visitor_role, contact.visitor_company].filter(Boolean).join(' · ');
+        if (detail) appendPersonalContactText(article, 'personal-contact-detail', detail);
+        if (contact.visitor_services?.length) appendPersonalContactText(article, 'personal-contact-detail', `Interested in: ${contact.visitor_services.join(', ')}`);
+        const contactLinks = document.createElement('div');
+        contactLinks.className = 'personal-contact-links';
+        if (contact.visitor_email) {
+            const email = document.createElement('a'); email.href = `mailto:${contact.visitor_email}`; email.textContent = contact.visitor_email; contactLinks.append(email);
+        }
+        if (contact.visitor_phone) {
+            const phone = document.createElement('a'); phone.href = `tel:${contact.visitor_phone}`; phone.textContent = contact.visitor_phone; contactLinks.append(phone);
+        }
+        if (contactLinks.childElementCount) article.append(contactLinks);
+        if (contact.visitor_message) appendPersonalContactText(article, 'personal-contact-message', contact.visitor_message);
+        return article;
+    }
+    function appendPersonalContactText(container, className, text) {
+        const element = document.createElement('p'); element.className = className; element.textContent = text; container.append(element);
     }
     function readProfile() {
         return Object.fromEntries(fields.map(field => [field, byId('personalCardForm').elements.namedItem(field).value.trim()]));
