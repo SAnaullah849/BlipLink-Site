@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const dashboardDirectory = path.join(__dirname, '..', 'dashboard');
 const source = fs.readFileSync(path.join(dashboardDirectory, 'dashboard.js'), 'utf8');
-const pages = ['index', 'profile', 'social', 'company', 'leads', 'crm', 'subscription', 'help'];
+const pages = ['index', 'profile', 'theme', 'company', 'leads', 'crm', 'subscription', 'help'];
 
 // Use each page's actual element IDs so missing controls behave as they do in a browser.
 function createPage(page, sessionResult) {
@@ -65,7 +65,7 @@ for (const page of pages) {
         assert.equal(view.elements.get('dashboardMessage').hidden, false);
         assert.match(view.elements.get('dashboardMessage').textContent, /configuration is unavailable/);
         const selectedPage = page === 'index' ? 'overview' : page;
-        assert.equal(view.elements.get('dashboardPageTitle').textContent.toLowerCase(), page === 'social' ? 'social links' : selectedPage);
+        assert.equal(view.elements.get('dashboardPageTitle').textContent.toLowerCase(), page === 'profile' ? 'my team' : selectedPage);
         const sections = view.sections;
         assert.ok(sections.some(element => !element.hidden));
         for (const section of sections) {

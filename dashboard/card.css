@@ -588,3 +588,8 @@ body.card-preview-mode { min-height: 0; }
 .card-preview-mode .public-card { animation: none; }
 .card-preview-mode #publicCard a, .card-preview-mode #publicCard button { pointer-events: none; }
 .card-theme-surface[data-page-tone="dark"] .public-card-brand img:last-child { filter: brightness(0) invert(1); }
+.public-alternate,.public-department { margin:5px 0; color:var(--card-muted,#697991); font-size:14px; }
+.public-company-links { margin:20px 0; text-align:left; }
+.public-company-links h2 { margin:16px 0 10px; font:700 12px var(--card-font,"DM Sans",sans-serif); color:var(--card-muted,#697991); }
+.public-company-links section > div { display:flex; flex-wrap:wrap; gap:8px; }
+.public-company-links a { padding:10px 13px; border:1px solid currentColor; border-radius:var(--card-button-radius,12px); color:var(--card-accent,#087bff); font-size:12px; text-decoration:none; overflow-wrap:anywhere; }

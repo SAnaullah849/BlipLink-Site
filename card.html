@@ -16,11 +16,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard/card.css?v=11">
+    <link rel="stylesheet" href="dashboard/card.css?v=12">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="dashboard/config.js"></script>
-    <script src="dashboard/card-theme.js?v=1" defer></script>
-    <script src="dashboard/card.js?v=14" defer></script>
+    <script src="dashboard/card-theme.js?v=2" defer></script>
+    <script src="dashboard/card.js?v=15" defer></script>
 </head>
 <body>
     <main class="public-card-shell">
@@ -37,12 +37,16 @@
                     <span id="publicInitials">BL</span>
                 </div>
                 <h1 id="publicName"></h1>
+                <p id="publicAlternateName" class="public-alternate" dir="auto" hidden></p>
                 <p id="publicRole" class="public-role"></p>
+                <p id="publicAlternateRole" class="public-alternate" dir="auto" hidden></p>
+                <p id="publicDepartment" class="public-department" hidden></p>
                 <p id="publicCompany" class="public-company"></p>
                 <p id="publicBio" class="public-bio"></p>
                 <p id="cardFeedback" class="card-feedback" role="status" aria-live="polite"></p>
                 <div id="publicActions" class="public-contact-details"></div>
                 <nav id="publicSocials" class="public-socials" aria-label="Social profiles"></nav>
+                <div id="publicCompanyLinks" class="public-company-links" hidden></div>
                 <section class="card-qr-section" aria-label="Share card QR code">
                     <img id="cardQrCode" alt="QR code linking to this business card" width="136" height="136">
                     <span>Scan to open this profile</span>

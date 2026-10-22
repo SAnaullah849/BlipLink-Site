@@ -20,7 +20,7 @@ Users retain their profiles and designs while paused. The individual editor beco
 
 - `/login.html` handles email/password sign-in and invitation password setup.
 - `/dashboard/personal.html` gives individuals Profile, Design, and Links tabs, one card, image uploads, live preview, and sharing. Old company dashboard routes redirect individuals here before company data is loaded.
-- `/dashboard/index.html`, `profile.html`, `social.html`, `leads.html`, `crm.html`, `company.html`, `subscription.html`, and `help.html` make up the company dashboard. Expired accounts can view access information and help.
+- `/dashboard/index.html`, `profile.html` (My Team), `theme.html`, `leads.html`, `crm.html`, `company.html`, `subscription.html`, and `help.html` make up the company dashboard. `social.html` redirects to Company. Expired accounts can view access information and help.
 - `/card.html?id=<profile-id>` renders available public cards. Existing IDs are preserved.
 
 The in-app admin page, API, membership table, and admin-grant functions have been removed. Account management happens only in Supabase.
@@ -31,6 +31,14 @@ The in-app admin page, API, membership table, and admin-grant functions have bee
 
 ## Auth, hosting, and storage
 
+### Company identity and shared themes
+
+`company_branding` holds one company identity per Auth owner, separate from the employee quota. Its RLS allows only that company's owner to read it, and only active company owners to insert or update. Individuals cannot access this table. On upgrade, the oldest employee card supplies the initial company details; `ON CONFLICT` and an existence check preserve later customization. New companies create their branding record on their first save. No employee profile or card ID is deleted or reassigned.
+
+Company cards derive their shared company name, banner, address, website, wallets, company links and theme when the public RPCs run. An update therefore applies to all existing and future employee cards without copying company values into each employee record. A trigger rejects employee writes to shared company fields, including banner and card theme. Employees retain their own photo, personal contacts, LinkedIn, WhatsApp, introduction, department, optional alternate language name/role, secondary phone and booking link. Appearance RPCs expose only the public fields of available, unlocked, named cards.
+
+Banner positioning is stored as a bounded vertical percentage. Company image paths must belong to the owner. Links accept HTTPS and are rendered as text, never HTML. The preview iframe accepts messages only from the same-origin parent. Preview mode performs no analytics or contact exchange writes. Removing a team member does not delete legacy image files, because the company or another card may still reference them.
+
 Keep public registration disabled in Supabase Auth. Set the project Site URL and allowed Redirect URL to the deployed `/login.html` (currently `https://bliplink.vercel.app/login.html`). Keep the standard invitation confirmation link in the Supabase email template. Database setup cannot change these project-level Auth settings.
 
 `config.js` contains only the public project URL and publishable key. Vercel needs server-side `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for `/api/track-event`. The service key never reaches the browser. Analytics use trusted hosting country/city headers and store aggregate counts, not raw IP addresses.
@@ -39,7 +47,7 @@ The public `profile-photos` bucket supports JPG, PNG, WebP, and GIF uploads up t
 
 ## Maintaining and testing
 
-SQL source components are `schema.sql`, `account-access.sql`, `card-themes.sql`, and `account-settings.sql`. After editing a component, run `npm run db:build` to regenerate `setup.sql`. A test verifies that the generated setup matches its sources.
+SQL source components are `schema.sql`, `account-access.sql`, `card-themes.sql`, `account-settings.sql`, and `company-branding.sql`. After editing a component, run `npm run db:build` to regenerate `setup.sql`. A test verifies that the generated setup matches its sources.
 
 Run `npm ci` and `npm test`. PGlite runs the complete database installation, provisioning, RLS, quota, expiry, renewal, and repeat-upgrade checks against PostgreSQL. Startup checks cover every company route; theme/access helpers have focused tests.
 

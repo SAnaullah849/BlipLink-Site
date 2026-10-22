@@ -53,6 +53,17 @@ Changing a company to an individual, or lowering its allowance, is rejected if t
 
 Payments remain manual. Monthly/yearly access controls duration; it does not charge a customer or renew automatically.
 
+## Company dashboard update
+
+To enable **My Team**, **Company**, and **Theme**, run the complete updated [dashboard/setup.sql](dashboard/setup.sql) once in Supabase **SQL Editor**, then refresh the dashboard. This is an upgrade: existing employee cards, public URLs, account allowances, and subscription dates stay in place.
+
+- **Overview** shows the company identity instead of a selected employee.
+- **My Team** has searchable employee cards, sorting and status filters. Edit a person's name, role, department, contact information, LinkedIn, booking link, introduction, and photo here. Alternate language names and job titles are supported.
+- **Company** manages the company name, logo, shared banner and its position, company contact information, social media, app links, and wallet pass links. The old Social links page redirects here.
+- **Theme** customizes the shared card colors, fonts, layout, shapes, spacing and visible sections, with a live preview using an actual team member. Saving applies the design to every current and future employee card.
+
+Company information is stored separately in `company_branding`; it does not use an employee profile slot. Existing companies start with a copy of the oldest employee card's company fields, so check the company name, logo, and banner after upgrading. Employees' original records remain intact. Company branding is always used by company public cards; individual accounts keep their own card designs.
+
 ## Development and hosting
 
 The site is deployed on Vercel. Its public Supabase configuration is in `dashboard/config.js`. Public card analytics use the server-only `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` variables in Vercel; never put the service key into browser code.

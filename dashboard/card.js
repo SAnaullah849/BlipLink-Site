@@ -72,7 +72,8 @@
                 event.data?.type !== 'bliplink-card-preview' || !event.data.profile) return;
             cardProfile = event.data.profile;
             cardProfile.full_name = String(cardProfile.full_name || 'Your name');
-            appearance = { theme: event.data.theme, account_type: 'individual' };
+            appearance = { ...(event.data.appearance || {}), theme: event.data.theme,
+                account_type: event.data.appearance?.account_type === 'company' ? 'company' : 'individual' };
             renderCard(client);
         });
         window.parent.postMessage({ type: 'bliplink-card-preview-ready' }, window.location.origin);
@@ -83,6 +84,10 @@
         setOptionalText('publicRole', cardProfile.job_title);
         setOptionalText('publicCompany', cardProfile.company_name);
         setOptionalText('publicBio', cardProfile.bio);
+        const personal = appearance?.personal_details || {};
+        setOptionalText('publicAlternateName', personal.alternate_name);
+        setOptionalText('publicAlternateRole', personal.alternate_job_title);
+        setOptionalText('publicDepartment', personal.department);
         setAddressLink('publicAddress', cardProfile.address);
         byId('publicInitials').textContent = getInitials(cardProfile.full_name);
         const cardUrl = previewMode
@@ -110,6 +115,8 @@
             const { data } = client.storage.from('profile-photos').getPublicUrl(cardProfile.banner_path);
             const banner = byId('publicBanner');
             banner.src = data.publicUrl;
+            const position = Number(appearance?.banner_position ?? 50);
+            banner.style.objectPosition = `center ${Number.isFinite(position) ? Math.max(0, Math.min(100, position)) : 50}%`;
             banner.hidden = false;
             banner.onerror = () => {
                 banner.hidden = true;
@@ -131,7 +138,9 @@
         const actions = [
             ['Email', cardProfile.contact_email, 'email'],
             ['Phone', cardProfile.phone, 'phone'],
+            ['Secondary phone', personal.secondary_phone, 'phone'],
             ['Website', cardProfile.website_url, 'website'],
+            ['Book a meeting', personal.booking_url, 'website'],
         ].filter(([, value]) => value);
         byId('publicActions').replaceChildren(...actions.map(([label, value, type]) => {
             const item = document.createElement('p');
@@ -183,6 +192,7 @@
         shareButton.append(createIcon('share'));
         shareButton.addEventListener('click', shareCard);
         byId('publicSocials').replaceChildren(...socialLinks, shareButton);
+        renderCompanyLinks(appearance?.company_links);
 
         const title = `${cardProfile.full_name} | BlipLink`;
         document.title = title;
@@ -200,8 +210,7 @@
         byId('saveContactButton').hidden = !(cardProfile.contact_email || cardProfile.phone || cardProfile.website_url);
         byId('saveContactButton').onclick = downloadContact;
 
-        if (appearance && window.BlipLinkCardTheme &&
-            (appearance.account_type === 'individual' || Object.keys(appearance.theme || {}).length)) {
+        if (appearance && window.BlipLinkCardTheme) {
             window.BlipLinkCardTheme.apply(byId('publicCard'), appearance.theme, {
                 surface: document.body, individual: appearance.account_type === 'individual',
             });
@@ -215,6 +224,22 @@
             byId('publicCard').addEventListener('click', event => {
                 if (event.target.closest('a, button')) void recordCardEvent(cardProfile.profile_id, 'tap');
             });
+        }
+    }
+
+    function renderCompanyLinks(value) {
+        const container = byId('publicCompanyLinks');
+        const links = Array.isArray(value) ? value.filter(item => item && typeof item.label === 'string' && safeWebUrl(item.url) !== '#') : [];
+        container.replaceChildren(); container.hidden = !links.length;
+        for (const [category, title] of [['social', 'Company social media'], ['play_store', 'Google Play'], ['app_store', 'App Store'], ['web_app', 'Company apps']]) {
+            const entries = links.filter(item => item.category === category); if (!entries.length) continue;
+            const group = document.createElement('section'), heading = document.createElement('h2'), list = document.createElement('div');
+            heading.textContent = title; group.append(heading, list);
+            for (const item of entries) {
+                const link = document.createElement('a'); link.textContent = item.label; link.href = safeWebUrl(item.url);
+                link.target = '_blank'; link.rel = 'noopener noreferrer'; list.append(link);
+            }
+            container.append(group);
         }
     }
 
@@ -257,6 +282,7 @@
             cardProfile.company_name ? `ORG:${escapeVCard(cardProfile.company_name)}` : '',
             cardProfile.contact_email ? `EMAIL;TYPE=WORK:${escapeVCard(cardProfile.contact_email)}` : '',
             cardProfile.phone ? `TEL;TYPE=WORK,VOICE:${escapeVCard(cardProfile.phone)}` : '',
+            appearance?.personal_details?.secondary_phone ? `TEL;TYPE=CELL,VOICE:${escapeVCard(appearance.personal_details.secondary_phone)}` : '',
             cardProfile.website_url ? `URL:${escapeVCard(cardProfile.website_url)}` : '',
             cardProfile.address ? `ADR;TYPE=WORK:;;${escapeVCard(cardProfile.address)}` : '',
             'END:VCARD',

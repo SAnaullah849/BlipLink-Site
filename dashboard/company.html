@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#f5f7fb">
-    <title>Company Profile | BlipLink</title>
+    <title>Company | BlipLink</title>
     <link rel="icon" type="image/png" href="../assets/logo-symbol.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard.css?v=20">
+    <link rel="stylesheet" href="dashboard.css?v=21">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="access-state.js?v=1" defer></script>
-    <script src="dashboard.js?v=28" defer></script>
+    <script src="card-theme.js?v=2" defer></script>
+    <script src="theme-editor.js?v=1" defer></script>
+    <script src="dashboard.js?v=29" defer></script>
 </head>
 <body data-page="company">
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -32,12 +34,9 @@
                 </a>
                 <a class="side-nav-link" href="profile.html" data-nav="profile">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-                    My profile
+                    My Team
                 </a>
-                <a class="side-nav-link" href="social.html" data-nav="social">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.72-1.72"/></svg>
-                    Social links
-                </a>
+                <a class="side-nav-link" href="theme.html" data-nav="theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Theme</a>
                 <a class="side-nav-link" href="leads.html" data-nav="leads">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6m-3-3h6"/></svg>
                     Leads
@@ -121,7 +120,7 @@
                                 <h2>Welcome back, <strong id="overviewName">there</strong></h2>
                                 <p>Here’s how your digital profiles are performing.</p>
                             </div>
-                            <a class="button button-primary" href="profile.html">Manage profiles <span aria-hidden="true">→</span></a>
+                            <a class="button button-primary" href="profile.html">Manage team <span aria-hidden="true">→</span></a>
                         </div>
                         <div class="analytics-summary">
                             <article class="panel analytics-stat">
@@ -170,49 +169,7 @@
                         </section>
                     </div>
                     <aside class="overview-aside">
-                        <section class="panel preview-panel overview-profile-card" aria-label="Profile preview">
-                            <div class="preview-heading">
-                                <span class="eyebrow">LIVE PREVIEW</span>
-                                <span id="overviewPreviewStatus" class="preview-status"><i></i>Your profile</span>
-                            </div>
-                            <div class="preview-card">
-                                <div class="preview-cover">
-                                    <img id="overviewBanner" alt="" hidden>
-                                </div>
-                                <div class="preview-content">
-                                    <div class="preview-photo-frame">
-                                        <img id="overviewPhoto" alt="" hidden>
-                                        <span id="overviewPhotoFallback">BL</span>
-                                    </div>
-                                    <h2 id="overviewCardTitle">Your name</h2>
-                                    <p id="overviewCardRole">Your job title</p>
-                                    <span id="overviewCompany" class="preview-company" hidden>Your company</span>
-                                    <p id="overviewBio" class="preview-bio" hidden></p>
-                                    <div id="overviewContacts" class="preview-contacts"></div>
-                                    <div id="overviewSocials" class="preview-socials"></div>
-                                    <div class="preview-qr">
-                                        <img id="overviewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
-                                        <span id="overviewQrPlaceholder">Save your profile to create its QR code.</span>
-                                        <span>Scan to open this card</span>
-                                    </div>
-                                    <a id="overviewAddress" class="preview-address" target="_blank" rel="noopener noreferrer" hidden></a>
-                                </div>
-                            </div>
-                            <div class="preview-actions overview-preview-actions">
-                                <a id="overviewViewCard" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer" aria-disabled="true">
-                                    View card <span aria-hidden="true">↗</span>
-                                </a>
-                                <button id="overviewCopyCardLink" class="button button-secondary" type="button">Copy link</button>
-                            </div>
-                            <p id="overviewCardLinkText" class="card-link-text" aria-live="polite"></p>
-                            <p class="preview-hint">Your saved profile appears here just as it does in the editor preview.</p>
-                            <div id="overviewWalletPreview" class="wallet-preview" aria-label="Digital wallet passes" hidden>
-                                <a id="overviewAppleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Apple Wallet</a>
-                                <a id="overviewGoogleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Google Wallet</a>
-                                <span id="overviewWalletPlaceholder">Add wallet pass links to show wallet buttons on your card.</span>
-                            </div>
-                            <p class="wallet-setup-hint">Paste pass links from your Apple or Google Wallet issuer.</p>
-                        </section>
+<section class="panel preview-panel overview-profile-card" aria-label="Company profile"><div class="preview-heading"><span class="eyebrow">YOUR COMPANY</span><a href="company.html" class="text-button">Edit company →</a></div><div class="preview-card"><div class="preview-cover"><img id="overviewBanner" alt="Company banner" hidden></div><div class="preview-content"><div class="preview-photo-frame"><img id="overviewPhoto" alt="Company logo" hidden><span id="overviewPhotoFallback">BL</span></div><h2 id="overviewCardTitle">Your company</h2><p id="overviewBio" class="preview-bio"></p><div id="overviewContacts" class="preview-contacts"></div><a id="overviewAddress" class="preview-address" target="_blank" rel="noopener noreferrer" hidden></a><div id="overviewSocials" class="preview-socials"></div></div></div><p class="preview-hint">One company identity, shared across your team.</p><a class="button button-secondary" href="company.html">Manage company</a></section>
                         <section class="panel overview-leads-card">
                             <div class="overview-alert-heading">
                                 <h2>Recent leads</h2>
@@ -226,186 +183,31 @@
                 </div>
             </section>
 
-            <div class="dashboard-grid dashboard-page" data-dashboard-page="profile">
-                <section id="profileEditor" class="panel profile-panel">
-                    <div class="panel-heading">
-                        <div>
-                            <span class="eyebrow">PROFILE DETAILS</span>
-                            <h2>Edit your profile</h2>
-                            <p>These details appear on your BlipLink profile.</p>
-                        </div>
-                        <span id="saveState" class="save-state">Changes save when you click Save</span>
-                    </div>
-
-                    <form id="profileForm">
-                        <div class="photo-editor">
-                            <div class="profile-photo-frame">
-                                <img id="profilePhoto" alt="Profile photo preview" hidden>
-                                <span id="photoFallback" class="photo-fallback">BL</span>
-                            </div>
-                            <div class="photo-controls">
-                                <strong>Profile photo</strong>
-                                <span>JPG, PNG, WebP or GIF · up to 5 MB</span>
-                                <div class="photo-actions">
-                                    <label class="button button-secondary button-small" for="photoInput">Upload photo</label>
-                                    <button id="removePhotoButton" class="text-button" type="button" hidden>Remove</button>
-                                </div>
-                                <input id="photoInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
-                                <p id="photoMessage" class="inline-message" aria-live="polite"></p>
-                            </div>
-                        </div>
-                        <div class="photo-editor banner-editor">
-                            <div id="bannerPhotoPreview" class="banner-photo-preview" role="img" aria-label="Card banner preview"></div>
-                            <div class="photo-controls">
-                                <strong>Card banner</strong>
-                                <span>JPG, PNG, WebP or GIF · up to 5 MB</span>
-                                <div class="photo-actions">
-                                    <label class="button button-secondary button-small" for="bannerInput">Upload banner</label>
-                                    <button id="removeBannerButton" class="text-button" type="button" hidden>Remove</button>
-                                </div>
-                                <input id="bannerInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif">
-                                <p id="bannerMessage" class="inline-message" aria-live="polite"></p>
-                            </div>
-                        </div>
-
-                        <div class="form-grid">
-                            <div class="field">
-                                <label for="fullName">Full name</label>
-                                <input id="fullName" name="full_name" autocomplete="name" maxlength="100" placeholder="Your name" required>
-                            </div>
-                            <div class="field">
-                                <label for="jobTitle">Job title</label>
-                                <input id="jobTitle" name="job_title" maxlength="100" placeholder="e.g. Managing Director">
-                            </div>
-                            <div class="field">
-                                <label for="companyName">Company</label>
-                                <input id="companyName" name="company_name" maxlength="120" placeholder="Company name">
-                            </div>
-                            <div class="field">
-                                <label for="contactEmail">Contact email</label>
-                                <input id="contactEmail" name="contact_email" type="email" autocomplete="email" maxlength="254" placeholder="hello@company.com">
-                            </div>
-                            <div class="field">
-                                <label for="phone">Phone</label>
-                                <input id="phone" name="phone" type="tel" autocomplete="tel" maxlength="40" placeholder="+1 555 000 0000">
-                            </div>
-                            <div class="field field-full">
-                                <label for="address">Business address</label>
-                                <input id="address" name="address" autocomplete="street-address" maxlength="300" placeholder="Street, city, country">
-                            </div>
-                            <div class="field">
-                                <label for="websiteUrl">Website</label>
-                                <input id="websiteUrl" name="website_url" type="url" inputmode="url" maxlength="500" placeholder="https://company.com">
-                            </div>
-                            <div class="field field-full">
-                                <label for="bio">About</label>
-                                <textarea id="bio" name="bio" rows="4" maxlength="500" placeholder="A short introduction about you and your work"></textarea>
-                                <span class="field-hint"><span id="bioCount">0</span>/500</span>
-                            </div>
-                        </div>
-
-                        <div class="form-footer">
-                            <p id="profileMessage" class="form-message" role="alert" aria-live="polite"></p>
-                            <button id="saveProfileButton" class="button button-primary" type="submit">Save changes</button>
-                        </div>
-                    </form>
-                </section>
-
-                <aside class="panel preview-panel" aria-label="Profile preview">
-                    <div class="preview-heading">
-                        <span class="eyebrow">LIVE PREVIEW</span>
-                        <span class="preview-status"><i></i> Your profile</span>
-                    </div>
-                    <div class="preview-card">
-                        <div class="preview-cover"><img id="previewBanner" alt="" hidden></div>
-                        <div class="preview-content">
-                            <div class="preview-photo-frame">
-                                <img id="previewPhoto" alt="" hidden>
-                                <span id="previewPhotoFallback">BL</span>
-                            </div>
-                            <h2 id="previewName">Your name</h2>
-                            <p id="previewRole">Your job title</p>
-                            <span id="previewCompany" class="preview-company">Your company</span>
-                            <p id="previewBio" class="preview-bio">Your introduction will appear here.</p>
-                            <div id="previewContacts" class="preview-contacts"></div>
-                            <div id="previewSocials" class="preview-socials"></div>
-                            <div class="preview-qr">
-                                <img id="previewQrCode" alt="QR code for your public profile" width="88" height="88" hidden>
-                                <span id="previewQrPlaceholder">Save your profile to create its QR code.</span>
-                                <span>Scan to open this card</span>
-                            </div>
-                            <a id="previewAddress" class="preview-address" target="_blank" rel="noopener noreferrer" hidden></a>
-                        </div>
-                    </div>
-                    <div class="preview-actions">
-                        <a id="viewCardButton" class="button button-primary" href="../card.html" target="_blank" rel="noopener noreferrer">
-                            View card <span aria-hidden="true">↗</span>
-                        </a>
-                        <button id="copyCardLinkButton" class="button button-secondary" type="button">Copy link</button>
-                        <button id="printCardButton" class="button button-secondary" type="button">Print card</button>
-                    </div>
-                    <p id="cardLinkText" class="card-link-text" aria-live="polite">Save your profile to activate its card link.</p>
-                    <p class="preview-hint">Your changes appear in this preview as you edit.</p>
-                    <div id="walletPreview" class="wallet-preview" aria-label="Digital wallet passes" hidden>
-                        <a id="previewAppleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Apple Wallet</a>
-                        <a id="previewGoogleWallet" href="#" target="_blank" rel="noopener noreferrer" hidden>Add to Google Wallet</a>
-                        <span id="previewWalletPlaceholder">Add wallet pass links to show wallet buttons on your card.</span>
-                    </div>
-                    <p class="wallet-setup-hint">Paste pass links from your Apple or Google Wallet issuer.</p>
-                </aside>
-            </div>
-
-            <section id="socialLinks" class="panel profile-panel dashboard-page" data-dashboard-page="social" aria-labelledby="socialLinksTitle">
-                <div class="panel-heading">
-                    <div>
-                        <span class="eyebrow">STAY CONNECTED</span>
-                        <h2 id="socialLinksTitle">Social links and passes</h2>
-                        <p>These links appear on the selected public profile.</p>
-                    </div>
-                </div>
-                <div class="form-grid social-grid">
-                    <div class="field">
-                        <label for="linkedinUrl">LinkedIn</label>
-                        <input id="linkedinUrl" form="profileForm" name="linkedin_url" type="url" inputmode="url" maxlength="500" placeholder="https://linkedin.com/in/yourname">
-                    </div>
-                    <div class="field">
-                        <label for="instagramUrl">Instagram</label>
-                        <input id="instagramUrl" form="profileForm" name="instagram_url" type="url" inputmode="url" maxlength="500" placeholder="https://instagram.com/yourname">
-                    </div>
-                    <div class="field">
-                        <label for="xUrl">X</label>
-                        <input id="xUrl" form="profileForm" name="x_url" type="url" inputmode="url" maxlength="500" placeholder="https://x.com/yourname">
-                    </div>
-                    <div class="field">
-                        <label for="facebookUrl">Facebook</label>
-                        <input id="facebookUrl" form="profileForm" name="facebook_url" type="url" inputmode="url" maxlength="500" placeholder="https://facebook.com/yourname">
-                    </div>
-                    <div class="field">
-                        <label for="tiktokUrl">TikTok</label>
-                        <input id="tiktokUrl" form="profileForm" name="tiktok_url" type="url" inputmode="url" maxlength="500" placeholder="https://tiktok.com/@yourname">
-                    </div>
-                    <div class="field"><label for="githubUrl">GitHub</label><input id="githubUrl" form="profileForm" name="github_url" type="url" inputmode="url" maxlength="500" placeholder="https://github.com/username"></div>
-                    <div class="field"><label for="telegramUrl">Telegram</label><input id="telegramUrl" form="profileForm" name="telegram_url" type="url" inputmode="url" maxlength="500" placeholder="https://t.me/username"></div>
-                    <div class="field"><label for="discordUrl">Discord</label><input id="discordUrl" form="profileForm" name="discord_url" type="url" inputmode="url" maxlength="500" placeholder="https://discord.com/users/your-id"></div>
-                    <div class="field"><label for="snapchatUrl">Snapchat</label><input id="snapchatUrl" form="profileForm" name="snapchat_url" type="url" inputmode="url" maxlength="500" placeholder="https://www.snapchat.com/add/username"></div>
-                    <div class="field">
-                        <label for="whatsappNumber">WhatsApp number</label>
-                        <input id="whatsappNumber" form="profileForm" name="whatsapp_url" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="+1 555 123 4567">
-                        <span class="field-hint">Include your country code. Your card will open a WhatsApp chat for this number.</span>
-                    </div>
-                    <div class="field">
-                        <label for="appleWalletUrl">Apple Wallet pass link</label>
-                        <input id="appleWalletUrl" form="profileForm" name="apple_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
-                    </div>
-                    <div class="field">
-                        <label for="googleWalletUrl">Google Wallet pass link</label>
-                        <input id="googleWalletUrl" form="profileForm" name="google_wallet_url" type="url" inputmode="url" maxlength="500" placeholder="https://...">
-                    </div>
-                </div>
-                <div class="form-footer">
-                    <p class="field-hint">Social links are saved together with the selected profile.</p>
-                    <button class="button button-primary" type="submit" form="profileForm">Save social links</button>
-                </div>
+            <section id="teamPage" class="dashboard-page" data-dashboard-page="profile" aria-labelledby="profileManagementTitle">
+                <div class="team-heading"><div><span class="eyebrow">PEOPLE &amp; CARDS</span><h2 id="profileManagementTitle">My Team</h2><p id="profileManagementDescription">A personal card for every team member. One consistent company identity.</p></div><button id="addProfileButton" class="button button-primary" type="button" disabled>＋ Add team member</button></div>
+                <div class="team-summary"><span id="teamCount">0 team members</span><span id="teamAvailable">Loading allowance…</span><a href="theme.html">Customize all cards →</a></div>
+                <div class="panel team-toolbar"><label>Search team<input id="teamSearch" type="search" placeholder="Name, email, or department"></label><label>Sort by<select id="teamSort"><option value="name">Name A–Z</option><option value="newest">Newest first</option><option value="oldest">Oldest first</option></select></label><label>Card status<select id="teamFilter"><option value="all">All cards</option><option value="public">Public</option><option value="draft">Draft</option><option value="locked">Locked</option></select></label></div>
+                <p id="teamResultCount" class="field-hint" aria-live="polite"></p><div id="companyProfilesList" class="team-grid"></div>
+                <dialog id="teamEditorDialog" class="company-dialog team-editor-dialog" aria-labelledby="teamEditorTitle"><div class="company-dialog-heading"><div><span class="eyebrow">TEAM MEMBER</span><h2 id="teamEditorTitle">Edit employee card</h2><p class="field-hint">Company details, banner and theme are shared across your team.</p></div><button type="button" class="company-dialog-close" data-close-team aria-label="Close employee editor">×</button></div>
+                    <div class="team-editor-layout"><form id="profileForm"><div class="photo-editor"><div class="profile-photo-frame"><img id="profilePhoto" alt="Employee photo" hidden><span id="photoFallback">BL</span></div><div class="photo-controls"><strong>Employee photo</strong><span>JPG, PNG, WebP or GIF · up to 5 MB</span><div class="photo-actions"><label class="button button-secondary button-small" for="photoInput">Change photo</label><button id="removePhotoButton" type="button" class="text-button" hidden>Remove</button></div><input id="photoInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><p id="photoMessage" class="inline-message" role="status"></p></div></div>
+                        <div class="form-grid"><label class="field">Full name<input id="full_name" name="full_name" type="text" maxlength="100" required ></label>
+<label class="field">Name in another language<input id="alternate_name" name="alternate_name" type="text" maxlength="100"  dir="auto"></label>
+<label class="field">Job title<input id="job_title" name="job_title" type="text" maxlength="100"  ></label>
+<label class="field">Job title in another language<input id="alternate_job_title" name="alternate_job_title" type="text" maxlength="100"  dir="auto"></label>
+<label class="field">Department<input id="department" name="department" type="text" maxlength="100"  ></label>
+<label class="field">Work email<input id="contact_email" name="contact_email" type="email" maxlength="254"  ></label>
+<label class="field">Phone<input id="phone" name="phone" type="tel" maxlength="40"  ></label>
+<label class="field">Secondary phone<input id="secondary_phone" name="secondary_phone" type="tel" maxlength="40"  ></label>
+<label class="field">Personal LinkedIn<input id="linkedin_url" name="linkedin_url" type="url" maxlength="500"  ></label>
+<label class="field">Personal booking link<input id="booking_url" name="booking_url" type="url" maxlength="500"  ></label>
+<label class="field">WhatsApp number (with country code)<input id="whatsapp_url" name="whatsapp_url" type="tel" maxlength="40"  ></label><label class="field field-full">About this person<textarea id="bio" name="bio" maxlength="500" rows="3"></textarea><span class="field-hint"><span id="bioCount">0</span>/500</span></label></div>
+                        <div class="team-inheritance-note">Shared company branding is managed in <a href="company.html">Company</a> and <a href="theme.html">Theme</a>.</div><p id="profileMessage" class="form-message" role="status"></p><div class="form-footer"><span id="saveState" class="save-state">All changes saved</span><button type="button" class="button button-secondary" data-close-team>Cancel</button><button id="saveProfileButton" class="button button-primary" type="submit">Save changes</button></div>
+                    </form><aside class="team-preview"><span class="eyebrow">CARD PREVIEW</span><iframe id="teamPreviewFrame" src="../card.html?preview=1" title="Employee card preview"></iframe><div class="team-preview-actions"><a id="viewCardButton" class="button button-secondary" target="_blank" rel="noopener noreferrer">View card</a><button id="copyCardLinkButton" class="button button-secondary" type="button">Copy link</button></div><p id="cardLinkText" class="card-link-text"></p></aside></div>
+                </dialog>
+            </section>
+            <section id="themePage" class="dashboard-page" data-dashboard-page="theme" aria-labelledby="companyThemeTitle"><div class="team-heading"><div><span class="eyebrow">YOUR BRAND, EVERY CARD</span><h2 id="companyThemeTitle">Team card theme</h2><p>Customize once. Apply to every current and future team member.</p></div><span id="companyThemeState" class="save-state">All changes saved</span></div>
+                <div class="company-theme-layout"><form id="companyThemeForm" class="panel company-theme-form"><div class="panel-heading"><div><h3>Start with a style</h3><p>Choose a preset, then make it yours.</p></div><button id="resetCompanyTheme" class="text-button" type="button">Reset theme</button></div><div id="companyThemePresets" class="theme-presets"></div><h3>Brand colors</h3><div id="companyThemeColors" class="theme-colors"></div><h3>Layout &amp; typography</h3><div id="companyThemeLayout" class="form-grid theme-layout-controls"></div><h3>Card sections</h3><div id="companyThemeVisibility" class="theme-visibility"></div><p class="team-inheritance-note">The shared cover image is edited in <a href="company.html">Company</a>.</p><p id="companyThemeMessage" class="inline-message" role="status"></p><div class="form-footer"><button id="saveCompanyTheme" class="button button-primary" type="submit" disabled>Apply to all team cards</button></div></form>
+                    <aside class="team-preview theme-preview"><label class="field">Preview team member<select id="themePreviewMember"></select></label><iframe id="companyThemePreviewFrame" src="../card.html?preview=1" title="Company theme preview"></iframe><p class="field-hint">Preview your changes before applying them to the whole team.</p></aside></div>
             </section>
 
             <section id="subscription" class="panel profile-panel dashboard-page" data-dashboard-page="subscription" aria-labelledby="subscriptionTitle">
@@ -449,28 +251,15 @@
                 <div id="crmList" class="crm-list"></div>
             </section>
             <section id="companyPage" class="company-page dashboard-page" data-dashboard-page="company" aria-labelledby="companyTitle">
-                <div class="company-cover"><img id="companyBanner" alt="" hidden><a class="company-cover-action" href="profile.html">Change banner</a></div>
-                <div class="company-identity"><div class="company-logo"><img id="companyLogo" alt="" hidden><span id="companyLogoFallback">BL</span><a class="company-logo-action" href="profile.html" aria-label="Change company logo">✎</a></div><h2 id="companyTitle">Company name</h2><button class="company-edit-button" type="button" data-company-action="details">Edit profile</button></div>
-                <div class="company-details-grid">
-                    <article class="company-detail-card"><span>Company email</span><a id="companyEmail" href="#">Add company email</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
-                    <article class="company-detail-card"><span>Phone</span><a id="companyPhone" href="#">Add phone number</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
-                    <article class="company-detail-card"><span>Address</span><a id="companyAddress" href="#">Add address</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
-                    <article class="company-detail-card"><span>Website</span><a id="companyWebsite" href="#">Add website</a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article>
-                </div>
-                <p id="companyLinksNotice" class="company-links-notice" role="status" hidden></p>
-                <div class="company-links-grid">
-                    <section class="company-link-group"><div class="company-link-heading"><h3>Social media</h3><div><a class="company-manage-link" href="social.html">Manage</a><button type="button" class="company-add-link" data-company-add-link="social">＋ Add new</button></div></div><div id="companySocialLinks" class="company-link-items"></div></section>
-                    <section class="company-link-group"><div class="company-link-heading"><h3>Play Store</h3><button type="button" class="company-add-link" data-company-add-link="play_store">＋ Add new</button></div><div id="companyPlayLinks" class="company-link-items"></div></section>
-                    <section class="company-link-group"><div class="company-link-heading"><h3>App Store</h3><button type="button" class="company-add-link" data-company-add-link="app_store">＋ Add new</button></div><div id="companyAppLinks" class="company-link-items"></div></section>
-                    <section class="company-link-group"><div class="company-link-heading"><h3>Web apps</h3><button type="button" class="company-add-link" data-company-add-link="web_app">＋ Add new</button></div><div id="companyWebLinks" class="company-link-items"></div></section>
-                    <section class="company-link-group company-wallet-group"><div class="company-link-heading"><div><h3>Apple Wallet &amp; Google Wallet</h3><p>Use pass URLs from your wallet provider.</p></div><button type="button" class="company-add-link" data-company-action="wallets">Manage</button></div><div id="companyWalletLinks" class="company-link-items"></div></section>
-                </div>
-                <div class="company-manage-row"><span>Manage employee cards and profile visibility</span><a class="button button-primary button-small" href="profile.html">Manage profiles</a></div>
-                <dialog id="companyProfileDialog" class="company-dialog"><form id="companyDetailsForm"><div class="company-dialog-heading"><div><span class="eyebrow">COMPANY PROFILE</span><h2>Edit company details</h2></div><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields">
-                    <label>Company name<input id="companyEditName" maxlength="120"></label><label>Company email<input id="companyEditEmail" type="email" maxlength="254"></label><label>Phone<input id="companyEditPhone" type="tel" maxlength="40"></label><label>Website<input id="companyEditWebsite" type="url" maxlength="500"></label><label class="company-dialog-full">Address<input id="companyEditAddress" maxlength="300"></label><label class="company-dialog-full">Short description<textarea id="companyEditBio" maxlength="500" rows="3"></textarea></label>
-                </div><p id="companyDetailsMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyDetails" class="button button-primary">Save changes</button></div></form></dialog>
-                <dialog id="companyLinkDialog" class="company-dialog"><form id="companyLinkForm"><div class="company-dialog-heading"><div><span class="eyebrow">COMPANY LINKS</span><h2 id="companyLinkDialogTitle">Add link</h2></div><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields"><label>Link name<input id="companyLinkLabel" maxlength="80" required placeholder="e.g. Main app"></label><label>Link URL<input id="companyLinkUrl" type="url" maxlength="500" required placeholder="https://"></label></div><p id="companyLinkMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-danger" id="deleteCompanyLink" hidden>Delete</button><span></span><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyLink" class="button button-primary">Save link</button></div></form></dialog>
-                <dialog id="companyWalletDialog" class="company-dialog"><form id="companyWalletForm"><div class="company-dialog-heading"><div><span class="eyebrow">WALLET PASSES</span><h2>Apple &amp; Google Wallet</h2></div><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields"><label>Apple Wallet pass URL<input id="companyEditAppleWallet" type="url" maxlength="500" placeholder="https://"></label><label>Google Wallet pass URL<input id="companyEditGoogleWallet" type="url" maxlength="500" placeholder="https://"></label></div><p class="field-hint">Paste pass links generated by your wallet provider.</p><p id="companyWalletMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyWallets" class="button button-primary">Save wallet links</button></div></form></dialog>
+                <div class="company-cover"><img id="companyBanner" alt="Company banner" hidden><div class="company-cover-tools"><label class="company-cover-action" for="companyBannerInput">Change banner</label><button id="removeCompanyBanner" type="button" class="company-cover-action">Remove</button></div></div>
+                <div class="company-identity"><div class="company-logo"><img id="companyLogo" alt="Company logo" hidden><span id="companyLogoFallback">BL</span></div><div><span class="eyebrow">COMPANY PROFILE</span><h2 id="companyTitle">Your company</h2></div><button class="company-edit-button" type="button" data-company-action="details">Edit company details</button></div>
+                <div class="company-brand-controls"><label class="button button-secondary button-small" for="companyLogoInput">Change logo</label><button id="removeCompanyLogo" class="text-button" type="button">Remove logo</button><label class="company-position">Banner position<input id="companyBannerPosition" type="range" min="0" max="100" value="50"><output id="companyBannerPositionValue">50%</output></label><button id="saveCompanyPosition" class="button button-secondary button-small" type="button">Save position</button><input id="companyBannerInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif"><input id="companyLogoInput" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp,image/gif"></div>
+                <p id="companyImageMessage" class="inline-message company-padded" role="status"></p><p id="companyBio" class="company-padded"></p><p class="company-padded field-hint">Your banner, company information, links and theme are shared by every employee card. Each employee keeps their own photo and personal contact details.</p>
+                <div class="company-details-grid"><article class="company-detail-card"><span>Email</span><a id="companyEmail"></a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article><article class="company-detail-card"><span>Phone</span><a id="companyPhone"></a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article><article class="company-detail-card"><span>Address</span><a id="companyAddress"></a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article><article class="company-detail-card"><span>Website</span><a id="companyWebsite"></a><button type="button" class="company-inline-edit" data-company-action="details">Edit</button></article></div>
+                <div class="company-links-grid"><section class="company-link-group"><div class="company-link-heading"><h3>Social media</h3><button type="button" class="company-add-link" data-company-add-link="social">＋ Add link</button></div><div id="companySocialLinks" class="company-link-items"></div></section><section class="company-link-group"><div class="company-link-heading"><h3>Play Store</h3><button type="button" class="company-add-link" data-company-add-link="play_store">＋ Add link</button></div><div id="companyPlayLinks" class="company-link-items"></div></section><section class="company-link-group"><div class="company-link-heading"><h3>App Store</h3><button type="button" class="company-add-link" data-company-add-link="app_store">＋ Add link</button></div><div id="companyAppLinks" class="company-link-items"></div></section><section class="company-link-group"><div class="company-link-heading"><h3>Web apps</h3><button type="button" class="company-add-link" data-company-add-link="web_app">＋ Add link</button></div><div id="companyWebLinks" class="company-link-items"></div></section><section class="company-link-group company-wallet-group"><div class="company-link-heading"><div><h3>Wallet passes</h3><p>Add pass links supplied by your wallet provider.</p></div><button type="button" class="company-add-link" data-company-action="wallets">Manage</button></div><div id="companyWalletLinks" class="company-link-items"></div></section></div>
+                <dialog id="companyProfileDialog" class="company-dialog" aria-labelledby="companyEditTitle"><form id="companyDetailsForm"><div class="company-dialog-heading"><h2 id="companyEditTitle">Edit company details</h2><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields"><label>Company name<input name="name" type="text" maxlength="120" required></label><label>Company email<input name="contact_email" type="email" maxlength="254" ></label><label>Phone<input name="phone" type="tel" maxlength="40" ></label><label>Website<input name="website_url" type="url" maxlength="500" ></label><label>Address<input name="address" type="text" maxlength="300" ></label><label class="company-dialog-full">Company description<textarea name="bio" rows="3" maxlength="500"></textarea></label></div><p id="companyDetailsMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyDetails" class="button button-primary">Save changes</button></div></form></dialog>
+                <dialog id="companyLinkDialog" class="company-dialog" aria-labelledby="companyLinkDialogTitle"><form id="companyLinkForm"><div class="company-dialog-heading"><h2 id="companyLinkDialogTitle">Add link</h2><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields"><label>Link name<input id="companyLinkLabel" maxlength="80" required placeholder="e.g. LinkedIn"></label><label>Link URL<input id="companyLinkUrl" type="url" maxlength="500" required placeholder="https://"></label></div><p id="companyLinkMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-danger" id="deleteCompanyLink" hidden>Delete</button><span></span><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyLink" class="button button-primary">Save link</button></div></form></dialog>
+                <dialog id="companyWalletDialog" class="company-dialog" aria-labelledby="companyWalletTitle"><form id="companyWalletForm"><div class="company-dialog-heading"><h2 id="companyWalletTitle">Wallet pass links</h2><button type="button" class="company-dialog-close" data-close-company-dialog aria-label="Close">×</button></div><div class="company-dialog-fields"><label>Apple Wallet<input name="apple_wallet_url" type="url" maxlength="500" placeholder="https://"></label><label>Google Wallet<input name="google_wallet_url" type="url" maxlength="500" placeholder="https://"></label></div><p id="companyWalletMessage" class="inline-message" role="status"></p><div class="company-dialog-actions"><button type="button" class="button button-secondary" data-close-company-dialog>Cancel</button><button type="submit" id="saveCompanyWallets" class="button button-primary">Save wallet links</button></div></form></dialog>
             </section>
             <footer class="dashboard-footer">© 2026 BlipLink · Dashboard</footer>
         </main>

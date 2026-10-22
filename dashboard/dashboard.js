@@ -2,28 +2,7 @@
     const PHOTO_BUCKET = 'profile-photos';
     const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
     const ALLOWED_PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-    const PROFILE_FIELDS = [
-        'full_name',
-        'job_title',
-        'company_name',
-        'contact_email',
-        'phone',
-        'address',
-        'website_url',
-        'whatsapp_url',
-        'bio',
-        'linkedin_url',
-        'instagram_url',
-        'x_url',
-        'facebook_url',
-        'tiktok_url',
-        'github_url',
-        'telegram_url',
-        'discord_url',
-        'snapchat_url',
-        'apple_wallet_url',
-        'google_wallet_url',
-    ];
+    const PROFILE_FIELDS = ['full_name', 'job_title', 'contact_email', 'phone', 'bio', 'linkedin_url', 'whatsapp_url', 'department', 'alternate_name', 'alternate_job_title', 'secondary_phone', 'booking_url'];
 
     let supabaseClient;
     let currentUser;
@@ -33,13 +12,12 @@
     let profileDirty = false;
     let selectedPhoto = null;
     let removePhoto = false;
-    let selectedBanner = null;
-    let removeBanner = false;
     let realtimeChannel;
     let notificationLeads = [];
-    let customLinksAvailable = null;
     let accountAccess = null;
     let creatingProfile = false;
+    let company = {}, companyReady = false, companyExists = false, companyThemeEditor, themeDirty = false;
+    let selectedPhotoUrl = null, companyLinkSaving = false;
 
     const byId = id => document.getElementById(id);
 
@@ -60,45 +38,41 @@
         });
         byId('profileForm').addEventListener('submit', handleProfileSave);
         byId('copyCardLinkButton').addEventListener('click', handleCopyCardLink);
-        byId('printCardButton').addEventListener('click', () => window.print());
-        byId('overviewCopyCardLink').addEventListener('click', handleOverviewCopyCardLink);
         byId('refreshLeadsButton').addEventListener('click', loadLeads);
         byId('refreshCrmButton').addEventListener('click', loadCrmLeads);
-        byId('addProfileButton')?.addEventListener('click', createProfile);
+        byId('addProfileButton').addEventListener('click', createProfile);
         document.querySelectorAll('[data-company-action=details]').forEach(button => button.addEventListener('click', openCompanyDetailsDialog));
         document.querySelectorAll('[data-company-action=wallets]').forEach(button => button.addEventListener('click', openCompanyWalletDialog));
         document.querySelectorAll('[data-company-add-link]').forEach(button => button.addEventListener('click', () => openCompanyLinkDialog(button.dataset.companyAddLink)));
         document.querySelectorAll('[data-close-company-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
+        document.querySelectorAll('[data-close-team]').forEach(button => button.addEventListener('click', closeTeamEditor));
+        byId('teamEditorDialog').addEventListener('cancel', event => { event.preventDefault(); closeTeamEditor(); });
         byId('companyDetailsForm').addEventListener('submit', saveCompanyDetails);
         byId('companyWalletForm').addEventListener('submit', saveCompanyWallets);
         byId('companyLinkForm').addEventListener('submit', saveCompanyLink);
         byId('deleteCompanyLink').addEventListener('click', deleteCompanyLink);
+        byId('companyBannerInput').addEventListener('change', event => changeCompanyImage('banner', event.target));
+        byId('companyLogoInput').addEventListener('change', event => changeCompanyImage('logo', event.target));
+        byId('removeCompanyBanner').addEventListener('click', event => removeCompanyImage('banner', event.target));
+        byId('removeCompanyLogo').addEventListener('click', event => removeCompanyImage('logo', event.target));
+        byId('companyBannerPosition').addEventListener('input', event => { byId('companyBanner').style.objectPosition = 'center ' + event.target.value + '%'; byId('companyBannerPositionValue').value = event.target.value + '%'; });
+        byId('saveCompanyPosition').addEventListener('click', saveCompanyPosition);
+        byId('companyThemeForm').addEventListener('submit', saveCompanyTheme);
+        byId('resetCompanyTheme').addEventListener('click', () => { companyThemeEditor.fill({}); themeDirty = true; byId('companyThemeState').textContent = 'Unsaved changes'; updatePreview(); });
+        byId('themePreviewMember').addEventListener('change', updatePreview);
+        for (const id of ['teamSearch', 'teamSort', 'teamFilter']) byId(id).addEventListener('input', () => renderProfileRows(byId('companyProfilesList')));
+        for (const id of ['teamPreviewFrame', 'companyThemePreviewFrame']) byId(id).addEventListener('load', updatePreview);
+        window.addEventListener('message', event => { if (event.origin === window.location.origin && event.data?.type === 'bliplink-card-preview-ready' && ['teamPreviewFrame', 'companyThemePreviewFrame'].some(id => event.source === byId(id).contentWindow)) updatePreview(); });
         byId('applyAnalyticsFilter').addEventListener('click', loadAnalytics);
         byId('photoInput').addEventListener('change', handlePhotoSelection);
         byId('removePhotoButton').addEventListener('click', handlePhotoRemoval);
-        byId('bannerInput').addEventListener('change', handleBannerSelection);
-        byId('removeBannerButton').addEventListener('click', handleBannerRemoval);
         byId('bio').addEventListener('input', updateBioCount);
-        document.querySelectorAll('.side-nav-link[data-nav]').forEach(link => {
-            link.addEventListener('click', closeMobileNavigation);
-        });
+        byId('profileForm').addEventListener('input', () => { profileDirty = true; setSaveState('Unsaved changes'); updatePreview(); });
+        document.querySelectorAll('.side-nav-link[data-nav]').forEach(link => link.addEventListener('click', closeMobileNavigation));
         window.addEventListener('hashchange', () => showPage(window.location.hash.slice(1) || document.body.dataset.page || 'overview'));
-        document.addEventListener('keydown', event => {
-            if (event.key === 'Escape') {
-                closeMobileNavigation();
-                closeAccountMenu();
-                closeNotifications();
-            }
-        });
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 640) closeMobileNavigation();
-        });
-        document.querySelectorAll('#profileForm input, #profileForm textarea, [form="profileForm"]').forEach(input => {
-            input.addEventListener('input', () => {
-                profileDirty = true;
-                updatePreview();
-            });
-        });
+        document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeMobileNavigation(); closeAccountMenu(); closeNotifications(); } });
+        window.addEventListener('resize', () => { if (window.innerWidth > 640) closeMobileNavigation(); });
+        window.addEventListener('beforeunload', event => { if (profileDirty || themeDirty) { event.preventDefault(); event.returnValue = ''; } });
 
         const config = window.BLIPLINK_SUPABASE_CONFIG;
         if (!window.supabase?.createClient || !config?.url || !config?.anonKey) {
@@ -198,9 +172,12 @@
             button.title = !accountAccess?.can_edit ? 'Contact support to activate or renew your access.'
                 : button.disabled ? 'Your profile allowance is full. Contact your administrator for more profiles.' : '';
         }
-        if (byId('profileManagementTitle')) byId('profileManagementTitle').textContent = individual ? 'Your professional profile' : 'Manage profiles';
-        if (byId('profileManagementDescription')) byId('profileManagementDescription').textContent = individual
-            ? 'Your individual account includes one professional profile.' : 'Create and manage profiles within your company allowance.';
+        if (byId('profileManagementTitle')) byId('profileManagementTitle').textContent = 'My Team';
+        if (byId('profileManagementDescription')) byId('profileManagementDescription').textContent = 'Manage employee details and personal photos. Company branding is shared across every card.';
+        byId('saveCompanyTheme').disabled = !companyReady || !accountAccess?.can_edit;
+        for (const id of ['profileForm','companyThemeForm','companyPage']) byId(id).inert = !accountAccess?.can_edit;
+        if (!accountAccess?.can_edit && byId('teamEditorDialog').open) { profileDirty = false; byId('teamEditorDialog').close(); }
+        if (!accountAccess?.can_edit) document.querySelectorAll('#companyPage dialog[open]').forEach(dialog=>dialog.close());
         document.querySelectorAll('[data-nav]').forEach(link => {
             link.hidden = (!accountAccess?.can_edit && !['subscription', 'help'].includes(link.dataset.nav)) || (individual && link.dataset.nav === 'company');
         });
@@ -253,11 +230,15 @@
     }
 
     async function handleSignOut() {
+        if ((profileDirty || themeDirty) && !window.confirm('Sign out and discard your unsaved changes?')) return;
+        const pending = { profileDirty, themeDirty };
+        profileDirty = false; themeDirty = false;
         const button = byId('signOutButton');
         button.disabled = true;
         const { error } = await supabaseClient.auth.signOut();
         button.disabled = false;
         if (error) {
+            profileDirty = pending.profileDirty; themeDirty = pending.themeDirty;
             showDashboardMessage(`Unable to sign out: ${error.message}`, 'error');
             return;
         }
@@ -267,831 +248,266 @@
 
     async function loadProfiles(selectedProfileId) {
         if (!currentUser) return;
-        const selectedFields = ['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at', 'is_locked'].join(',');
-        const { data, error } = await supabaseClient
-            .from('company_profiles')
-            .select(selectedFields)
-            .eq('user_id', currentUser.id)
-            .order('created_at', { ascending: true });
-
-        if (error) {
-            showDashboardMessage(`Unable to load company profiles: ${error.message}`, 'error');
-            console.error('Company profiles load failed:', error);
-            return;
-        }
-
+        const { data, error } = await supabaseClient.from('company_profiles').select('*')
+            .eq('user_id', currentUser.id).order('created_at', { ascending: true });
+        if (error) { showDashboardMessage(`Unable to load your team: ${error.message}`, 'error'); return; }
         profiles = data || [];
-        byId('usedProfiles').textContent = profiles.length.toLocaleString();
-        if (!profiles.length) {
-            const { data: createdProfile, error: createError } = await supabaseClient
-                .from('company_profiles')
-                .insert({
-                    user_id: currentUser.id,
-                    full_name: currentUser.user_metadata?.full_name || '',
-                    contact_email: currentUser.email || '',
-                })
-                .select(selectedFields)
-                .single();
-            if (createError) {
-                showDashboardMessage(`Unable to initialize your company profile: ${createError.message}`, 'error');
-                console.error('Company profile initialization failed:', createError);
-                return;
-            }
-            profiles = [createdProfile];
-        }
-
+        profile = profiles.find(item => item.id === selectedProfileId) || profiles[0] || {};
         refreshAnalyticsProfileOptions();
-        const activeProfile = profiles.find(item => item.id === selectedProfileId) || profiles[0];
-        await loadProfile(activeProfile);
+        await loadCompany();
         renderCompanyProfiles();
+    }
+
+    async function loadCompany() {
+        const { data, error } = await supabaseClient.from('company_branding').select('*').eq('user_id', currentUser.id).maybeSingle();
+        companyReady = !error;
+        company = data || { user_id: currentUser.id, name: '', custom_links: [], card_theme: {}, banner_position: 50 };
+        companyExists = Boolean(data);
+        if (error) showDashboardMessage('Company setup needs an update. Run the latest dashboard/setup.sql in Supabase, then refresh this page.', 'error');
+        if (!companyThemeEditor) {
+            companyThemeEditor = window.BlipLinkThemeEditor.mount(byId('companyThemeForm'), () => {
+                themeDirty = true; byId('companyThemeState').textContent = 'Unsaved changes'; updatePreview();
+            });
+        }
+        companyThemeEditor.fill(company.card_theme);
+        byId('saveCompanyTheme').disabled = !companyReady || !accountAccess?.can_edit;
+        renderCompanyProfile(); renderOverviewProfile(); refreshThemeMembers(); updatePreview();
+    }
+
+    function refreshThemeMembers() {
+        const select = byId('themePreviewMember'), selected = select.value;
+        select.replaceChildren(...profiles.map(item => new Option(item.full_name || 'Draft team member', item.id)));
+        if (profiles.some(item => item.id === selected)) select.value = selected;
     }
 
     async function loadProfile(nextProfile) {
         if (!nextProfile) return;
+        if (profileDirty && !window.confirm('Discard unsaved employee changes?')) return;
         profile = nextProfile;
-        sessionStorage.setItem('bliplink-active-profile-' + currentUser.id, nextProfile.id);
-        PROFILE_FIELDS.forEach(field => {
-            byId(field === 'full_name' ? 'fullName' :
-                field === 'job_title' ? 'jobTitle' :
-                field === 'company_name' ? 'companyName' :
-                field === 'contact_email' ? 'contactEmail' :
-                field === 'website_url' ? 'websiteUrl' :
-                field === 'linkedin_url' ? 'linkedinUrl' :
-                field === 'instagram_url' ? 'instagramUrl' :
-                field === 'whatsapp_url' ? 'whatsappNumber' :
-                field === 'apple_wallet_url' ? 'appleWalletUrl' :
-                field === 'google_wallet_url' ? 'googleWalletUrl' :
-                field === 'x_url' ? 'xUrl' :
-                field === 'facebook_url' ? 'facebookUrl' :
-                field === 'tiktok_url' ? 'tiktokUrl' :
-                field === 'github_url' ? 'githubUrl' :
-                field === 'telegram_url' ? 'telegramUrl' :
-                field === 'discord_url' ? 'discordUrl' :
-                field === 'snapchat_url' ? 'snapchatUrl' : field).value =
-                    field === 'whatsapp_url' ? getWhatsAppNumber(profile[field]) : (profile[field] || '');
-        });
+        sessionStorage.setItem('bliplink-active-profile-' + currentUser.id, profile.id);
+        clearSelectedPhoto(); removePhoto = false;
+        for (const key of PROFILE_FIELDS) byId(key).value = key === 'whatsapp_url' ? getWhatsAppNumber(profile[key]) : (profile[key] || '');
+        byId('photoInput').value = ''; byId('photoMessage').textContent = ''; byId('profileMessage').textContent = '';
+        profileDirty = false; setSaveState('All changes saved'); updateBioCount();
+        setPhotoImages(imageUrl(profile.avatar_path));
+        byId('removePhotoButton').hidden = !profile.avatar_path;
+        byId('teamEditorTitle').textContent = profile.full_name ? `Edit ${profile.full_name}` : 'Add employee details';
+        updatePreview(); updateCardLink(); byId('teamEditorDialog').showModal();
+    }
 
-        byId('bioCount').textContent = String((profile.bio || '').length);
-        updatePreview();
-        await updatePhotoPreview(profile.avatar_path);
-        await updateBannerPreview(profile.banner_path);
-        if ((window.location.hash.slice(1) || document.body.dataset.page) === 'company') await loadCompanyCustomLinks(nextProfile.id);
-        renderCompanyProfile();
-        updateCardLink();
-        showDashboard();
-        profileDirty = false;
-        showDashboardMessage(profile.full_name ? 'Your profile is up to date.' : 'Add your details, then save your profile.', 'success');
+    function closeTeamEditor() {
+        if (profileDirty && !window.confirm('Discard unsaved employee changes?')) return;
+        profileDirty = false; clearSelectedPhoto(); byId('teamEditorDialog').close();
     }
 
     async function createProfile() {
         if (!currentUser || creatingProfile) return;
-        if (profileDirty && !window.confirm('Discard unsaved changes to this profile?')) return;
-        const button = byId('addProfileButton');
-        creatingProfile = true;
-        button.disabled = true;
-        button.textContent = 'Creating…';
+        creatingProfile = true; renderAccountAllowance();
         try {
             await loadAccountAccess();
-            if (!accountAccess?.can_edit || profiles.length >= accountAccess.profile_limit) {
-                showDashboardMessage(accountAccess
-                    ? 'Your profile allowance is full. Contact your administrator to increase it.'
-                    : 'Your profile allowance is unavailable. Contact your administrator.', 'error');
-                return;
-            }
-            const { data, error } = await supabaseClient
-                .from('company_profiles')
-                .insert({ user_id: currentUser.id, full_name: '', contact_email: currentUser.email || '' })
-                .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at', 'is_locked'].join(','))
-                .single();
-            if (error) throw new Error(`Unable to create profile: ${error.message}`);
-            profiles.push(data);
-            byId('usedProfiles').textContent = profiles.length.toLocaleString();
-            refreshAnalyticsProfileOptions();
+            if (!accountAccess?.can_edit || profiles.length >= accountAccess.profile_limit) throw new Error('Your team allowance is full or access is paused. Contact support to update it.');
+            const { data, error } = await supabaseClient.from('company_profiles')
+                .insert({ user_id: currentUser.id, full_name: '' }).select('*').single();
+            if (error) throw error;
+            profiles.push(data); renderCompanyProfiles(); refreshAnalyticsProfileOptions();
             await loadProfile(data);
-            renderCompanyProfiles();
-            await loadAnalytics();
-            window.location.href = 'profile.html';
-        } catch (error) {
-            showDashboardMessage(error.message || 'Unable to create a profile.', 'error');
-            console.error('Company profile creation failed:', error);
-        } finally {
-            creatingProfile = false;
-            renderAccountAllowance();
-            button.textContent = 'Add profile';
-        }
+        } catch (error) { showDashboardMessage(error.message || 'Unable to add a team member.', 'error'); }
+        finally { creatingProfile = false; renderAccountAllowance(); }
     }
 
-    async function loadCompanyCustomLinks(profileId) {
-        const notice = byId('companyLinksNotice');
-        const { data, error } = await supabaseClient.from('company_profiles').select('custom_links').eq('id', profileId).eq('user_id', currentUser.id).maybeSingle();
-        if (error) {
-            profile.custom_links = []; customLinksAvailable = false;
-            notice.textContent = 'Run the latest dashboard/schema.sql in Supabase to enable saved social, store, and app links.'; notice.hidden = false;
-            return;
-        }
-        customLinksAvailable = true; profile.custom_links = data?.custom_links || []; notice.hidden = true;
+    function imageUrl(path) {
+        return path ? supabaseClient.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl : '';
+    }
+    function setImage(id, path) {
+        const element = byId(id), url = imageUrl(path);
+        element.hidden = !url;
+        if (url) { element.src = url; element.onerror = () => { element.hidden = true; }; }
+        else element.removeAttribute('src');
     }
 
     function renderCompanyProfiles() {
-        renderAccountAllowance();
-        renderProfileRows(byId('companyProfilesList'));
-    }
-
-    function renderCompanyProfile() {
-        if (!byId('companyTitle')) return;
-        const companyName = profile.company_name || profile.full_name || 'Company name';
-        byId('companyTitle').textContent = companyName;
-        const logo = byId('companyLogo'); const logoSource = byId('profilePhoto').src;
-        logo.hidden = !profile.avatar_path || !logoSource;
-        if (logo.hidden) logo.removeAttribute('src'); else logo.src = logoSource;
-        byId('companyLogoFallback').textContent = getInitials(companyName);
-        byId('companyLogoFallback').hidden = !logo.hidden;
-        const banner = byId('companyBanner'); const bannerSource = byId('previewBanner').src;
-        banner.hidden = !profile.banner_path || !bannerSource;
-        if (banner.hidden) banner.removeAttribute('src'); else banner.src = bannerSource;
-        setCompanyContact('companyEmail', profile.contact_email, value => 'mailto:' + value, 'Add company email');
-        setCompanyContact('companyPhone', profile.phone, value => 'tel:' + value.replace(/[^0-9+]/g, ''), 'Add phone number');
-        setCompanyContact('companyAddress', profile.address, value => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(value), 'Add address');
-        setCompanyContact('companyWebsite', profile.website_url, value => safePreviewUrl(value), 'Add website');
-        const social = [['LinkedIn',profile.linkedin_url],['Instagram',profile.instagram_url],['X',profile.x_url],['Facebook',profile.facebook_url],['TikTok',profile.tiktok_url],['GitHub',profile.github_url],['Telegram',profile.telegram_url],['Discord',profile.discord_url],['Snapchat',profile.snapchat_url],['WhatsApp',profile.whatsapp_url]].filter(([,url])=>url);
-        const socialBox = byId('companySocialLinks');
-        socialBox.replaceChildren(...social.map(([label,url])=>makeCompanyLink(label,url)));
-        if (!social.length && !(profile.custom_links||[]).some(item=>item.category==='social')) socialBox.append(companyEmptyState('Add a social profile to show it here.'));
-        renderCustomCompanyLinks('social',socialBox);
-        renderCustomCompanyLinks('play_store',byId('companyPlayLinks'));
-        renderCustomCompanyLinks('app_store',byId('companyAppLinks'));
-        renderCustomCompanyLinks('web_app',byId('companyWebLinks'));
-        const wallets=[['Apple Wallet',profile.apple_wallet_url],['Google Wallet',profile.google_wallet_url]].filter(([,url])=>url);
-        const walletBox=byId('companyWalletLinks');
-        walletBox.replaceChildren(...wallets.map(([label,url])=>makeCompanyLink(label,url)));
-        if(!wallets.length) walletBox.append(companyEmptyState('Add issuer pass URLs to show wallet buttons.'));
-    }
-
-    function renderCustomCompanyLinks(category,container) {
-        const items=(Array.isArray(profile.custom_links)?profile.custom_links:[]).filter(item=>item.category===category);
-        if(!container)return;
-        items.forEach(item=>{const row=document.createElement('div');row.className='company-link-entry';row.append(makeCompanyLink(item.label||'Open link',item.url));
-            const edit=document.createElement('button');edit.type='button';edit.className='company-link-edit';edit.textContent='Edit';
-            edit.addEventListener('click',()=>openCompanyLinkDialog(category,item));row.append(edit);container.append(row);});
-        if(!items.length && category!=='social') container.append(companyEmptyState('No links added yet.'));
-    }
-    function openCompanyDetailsDialog(){
-        byId('companyEditName').value=profile.company_name||'';byId('companyEditEmail').value=profile.contact_email||'';
-        byId('companyEditPhone').value=profile.phone||'';byId('companyEditWebsite').value=profile.website_url||'';
-        byId('companyEditAddress').value=profile.address||'';byId('companyEditBio').value=profile.bio||'';
-        byId('companyDetailsMessage').textContent='';byId('companyProfileDialog').showModal();
-    }
-    function openCompanyWalletDialog(){
-        byId('companyEditAppleWallet').value=profile.apple_wallet_url||'';byId('companyEditGoogleWallet').value=profile.google_wallet_url||'';
-        byId('companyWalletMessage').textContent='';byId('companyWalletDialog').showModal();
-    }
-    function openCompanyLinkDialog(category,item){
-        const dialog=byId('companyLinkDialog');dialog.dataset.category=category;dialog.dataset.linkId=item?.id||'';
-        byId('companyLinkDialogTitle').textContent=item?'Edit link':'Add '+category.replace('_',' ')+' link';
-        byId('companyLinkLabel').value=item?.label||'';byId('companyLinkUrl').value=item?.url||'';
-        byId('companyLinkMessage').textContent='';byId('deleteCompanyLink').hidden=!item;dialog.showModal();
-    }
-    function companySchemaError(error){return /custom_links|PGRST204|42703|schema cache/i.test(error?.message||'')?'Run the updated dashboard/schema.sql in Supabase to enable custom company links.':(error?.message||'Unable to save changes.');}
-    async function saveCompanyDetails(event){
-        event.preventDefault();const button=byId('saveCompanyDetails'),message=byId('companyDetailsMessage');button.disabled=true;button.textContent='Saving…';message.textContent='';
-        const patch={company_name:byId('companyEditName').value.trim(),contact_email:byId('companyEditEmail').value.trim()||null,phone:byId('companyEditPhone').value.trim()||null,website_url:byId('companyEditWebsite').value.trim()||null,address:byId('companyEditAddress').value.trim()||null,bio:byId('companyEditBio').value.trim()||null,updated_at:new Date().toISOString()};
-        try{const {data,error}=await supabaseClient.from('company_profiles').update(patch).eq('id',profile.id).eq('user_id',currentUser.id).select(['id','user_id',...PROFILE_FIELDS,'avatar_path','banner_path','created_at','is_locked'].join(',')).single();if(error)throw error;
-            data.custom_links=profile.custom_links||[];profile=data;profiles=profiles.map(item=>item.id===data.id?data:item);
-            byId('companyName').value=data.company_name||'';byId('contactEmail').value=data.contact_email||'';byId('phone').value=data.phone||'';byId('websiteUrl').value=data.website_url||'';byId('address').value=data.address||'';byId('bio').value=data.bio||'';
-            updatePreview();renderCompanyProfile();renderCompanyProfiles();byId('companyProfileDialog').close();showDashboardMessage('Company profile saved.','success');
-        }catch(error){message.textContent=companySchemaError(error);}finally{button.disabled=false;button.textContent='Save changes';}
-    }
-    async function saveCompanyWallets(event){
-        event.preventDefault();const button=byId('saveCompanyWallets'),message=byId('companyWalletMessage');button.disabled=true;button.textContent='Saving…';message.textContent='';
-        const patch={apple_wallet_url:byId('companyEditAppleWallet').value.trim()||null,google_wallet_url:byId('companyEditGoogleWallet').value.trim()||null,updated_at:new Date().toISOString()};
-        try{const {data,error}=await supabaseClient.from('company_profiles').update(patch).eq('id',profile.id).eq('user_id',currentUser.id).select(['id','user_id',...PROFILE_FIELDS,'avatar_path','banner_path','created_at','is_locked'].join(',')).single();if(error)throw error;
-            data.custom_links=profile.custom_links||[];profile=data;profiles=profiles.map(item=>item.id===data.id?data:item);byId('appleWalletUrl').value=data.apple_wallet_url||'';byId('googleWalletUrl').value=data.google_wallet_url||'';
-            updatePreview();renderCompanyProfile();byId('companyWalletDialog').close();showDashboardMessage('Wallet pass links saved.','success');
-        }catch(error){message.textContent=companySchemaError(error);}finally{button.disabled=false;button.textContent='Save wallet links';}
-    }
-    async function saveCompanyLink(event){
-        event.preventDefault();const dialog=byId('companyLinkDialog'),button=byId('saveCompanyLink'),message=byId('companyLinkMessage');button.disabled=true;button.textContent='Saving…';message.textContent='';
-        const category=dialog.dataset.category,label=byId('companyLinkLabel').value.trim(),url=byId('companyLinkUrl').value.trim();
-        try{if(customLinksAvailable===false)throw new Error('Run the latest dashboard/schema.sql in Supabase to enable saved company links.');const parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol))throw new Error('Use an http or https link.');
-            const links=Array.isArray(profile.custom_links)?[...profile.custom_links]:[],id=dialog.dataset.linkId;
-            const next=id?links.map(item=>item.id===id?{...item,label,url,category}:item):[...links,{id:crypto.randomUUID(),label,url,category}];
-            const {data,error}=await supabaseClient.from('company_profiles').update({custom_links:next,updated_at:new Date().toISOString()}).eq('id',profile.id).eq('user_id',currentUser.id).select('custom_links').single();if(error)throw error;
-            profile.custom_links=data.custom_links||next;profiles=profiles.map(item=>item.id===profile.id?{...item,custom_links:profile.custom_links}:item);renderCompanyProfile();dialog.close();
-        }catch(error){message.textContent=companySchemaError(error);}finally{button.disabled=false;button.textContent='Save link';}
-    }
-    async function deleteCompanyLink(){
-        if(customLinksAvailable===false){byId('companyLinkMessage').textContent='Run the latest dashboard/schema.sql in Supabase to enable saved company links.';return;}
-        const dialog=byId('companyLinkDialog'),id=dialog.dataset.linkId;if(!id)return;const button=byId('deleteCompanyLink');button.disabled=true;
-        try{const next=(Array.isArray(profile.custom_links)?profile.custom_links:[]).filter(item=>item.id!==id);
-            const {data,error}=await supabaseClient.from('company_profiles').update({custom_links:next,updated_at:new Date().toISOString()}).eq('id',profile.id).eq('user_id',currentUser.id).select('custom_links').single();if(error)throw error;
-            profile.custom_links=data.custom_links||next;profiles=profiles.map(item=>item.id===profile.id?{...item,custom_links:profile.custom_links}:item);renderCompanyProfile();dialog.close();
-        }catch(error){byId('companyLinkMessage').textContent=companySchemaError(error);}finally{button.disabled=false;}
-    }
-    function setCompanyContact(id,value,hrefForValue,emptyText) {
-        const link=byId(id); link.textContent=value || emptyText;
-        link.href=value ? hrefForValue(value) : 'profile.html';
-        link.target=(id==='companyAddress'||id==='companyWebsite') ? '_blank' : '';
-        link.rel=link.target ? 'noopener noreferrer' : '';
-    }
-
-    function makeCompanyLink(label,url) {
-        const link=document.createElement('a'); link.className='company-link-item';
-        link.href=safePreviewUrl(url); link.target='_blank'; link.rel='noopener noreferrer'; link.textContent=label; return link;
-    }
-
-    function companyEmptyState(text) {
-        const p=document.createElement('p'); p.className='company-empty-state'; p.textContent=text; return p;
+        renderAccountAllowance(); renderProfileRows(byId('companyProfilesList')); refreshThemeMembers();
+        byId('usedProfiles').textContent = profiles.length.toLocaleString();
+        byId('teamCount').textContent = `${profiles.length} team member${profiles.length === 1 ? '' : 's'}`;
+        byId('teamAvailable').textContent = `${Math.max(0, (accountAccess?.profile_limit || 0) - profiles.length)} available · ${accountAccess?.profile_limit || 0} total`;
     }
 
     function renderProfileRows(list) {
-        if (!list) return;
-        list.replaceChildren(...profiles.map(item => {
-            const row = document.createElement('article');
-            row.className = 'company-profile-row';
-            const details = document.createElement('div');
-            const name = document.createElement('strong');
-            name.textContent = item.full_name || 'Untitled profile';
-            const company = document.createElement('span');
-            company.textContent = item.company_name || 'Add company details';
-            details.append(name, company);
-            const actions = document.createElement('div');
-            actions.className = 'company-profile-actions';
-            const status = document.createElement('span');
-            const isPublic = !item.is_locked && Boolean(item.full_name.trim());
-            status.className = isPublic ? 'profile-state' : 'profile-state profile-state-locked';
-            status.textContent = item.is_locked ? 'Locked' : isPublic ? 'Public' : 'Draft';
-            const card = document.createElement('a');
-            card.className = 'button button-secondary button-small';
-            card.href = `../card.html?id=${encodeURIComponent(item.id)}`;
-            card.target = '_blank';
-            card.rel = 'noopener noreferrer';
-            card.textContent = 'View card';
-            card.hidden = !item.full_name || item.is_locked;
-            const edit = document.createElement('button');
-            edit.className = 'button button-primary button-small';
-            edit.type = 'button';
-            edit.textContent = item.id === profile.id ? 'Editing' : 'Edit';
-            edit.disabled = item.id === profile.id;
-            edit.addEventListener('click', async () => {
-                if (profileDirty && !window.confirm('Discard unsaved changes to this profile?')) return;
-                await loadProfile(item);
-                renderCompanyProfiles();
-                window.location.href = 'profile.html';
-            });
-            const lock = document.createElement('button');
-            lock.className = 'button button-secondary button-small';
-            lock.type = 'button';
-            lock.textContent = item.is_locked ? 'Unlock' : 'Lock';
-            lock.addEventListener('click', () => updateProfileLock(item));
-            const remove = document.createElement('button');
-            remove.className = 'button button-danger button-small';
-            remove.type = 'button';
-            remove.textContent = 'Delete';
-            remove.disabled = profiles.length <= 1;
-            remove.title = remove.disabled ? 'At least one profile must remain.' : 'Delete this profile';
-            remove.addEventListener('click', () => deleteProfile(item));
-            actions.append(status, card, edit, lock, remove);
-            row.append(details, actions);
-            return row;
+        const query = byId('teamSearch').value.trim().toLocaleLowerCase(), filter = byId('teamFilter').value, sort = byId('teamSort').value;
+        const status = item => item.is_locked ? 'locked' : item.full_name?.trim() ? 'public' : 'draft';
+        const visible = profiles.filter(item => (!query || [item.full_name, item.contact_email, item.department, item.job_title].some(value => value?.toLocaleLowerCase().includes(query))) && (filter === 'all' || filter === status(item)));
+        visible.sort((a, b) => sort === 'name' ? (a.full_name || '').localeCompare(b.full_name || '') : sort === 'newest' ? new Date(b.created_at) - new Date(a.created_at) : new Date(a.created_at) - new Date(b.created_at));
+        byId('teamResultCount').textContent = `Showing ${visible.length} of ${profiles.length} team members`;
+        list.replaceChildren(...visible.map(item => {
+            const card = document.createElement('article'); card.className = 'team-card';
+            const cover = document.createElement('div'); cover.className = 'team-card-cover';
+            const theme = window.BlipLinkCardTheme.normalize(company.card_theme);
+            cover.style.background = theme.coverStyle === 'solid' ? theme.coverStart : `linear-gradient(125deg, ${theme.coverStart}, ${theme.coverEnd})`;
+            if (company.banner_path) { const image = document.createElement('img'); image.src = imageUrl(company.banner_path); image.alt = ''; image.style.objectPosition = `center ${company.banner_position ?? 50}%`; cover.append(image); }
+            const content = document.createElement('div'); content.className = 'team-card-content';
+            const avatar = document.createElement('div'); avatar.className = 'team-card-avatar'; avatar.textContent = getInitials(item.full_name || 'Team');
+            if (item.avatar_path) { const image = document.createElement('img'); image.src = imageUrl(item.avatar_path); image.alt = item.full_name || 'Employee photo'; image.onerror = () => image.remove(); avatar.append(image); }
+            const name = document.createElement('h3'); name.textContent = item.full_name || 'New team member';
+            const role = document.createElement('p'); role.className = 'team-card-role'; role.textContent = [item.job_title, item.department].filter(Boolean).join(' · ') || 'Add job title and department';
+            const state = document.createElement('span'); state.className = `team-card-status status-${status(item)}`; state.textContent = status(item);
+            const details = document.createElement('p'); details.className = 'team-card-contact'; details.textContent = [item.contact_email, item.phone].filter(Boolean).join('\n');
+            const actions = document.createElement('div'); actions.className = 'team-card-actions';
+            const edit = actionButton('Edit card', () => loadProfile(item), 'button button-primary button-small');
+            const view = document.createElement('a'); view.className = 'button button-secondary button-small'; view.textContent = 'View card'; view.href = `../card.html?id=${encodeURIComponent(item.id)}`; view.target = '_blank'; view.rel = 'noopener noreferrer'; view.hidden = status(item) !== 'public';
+            const more = document.createElement('details'); more.className = 'team-card-more';
+            const summary = document.createElement('summary'); summary.textContent = 'More'; summary.setAttribute('aria-label', `More actions for ${item.full_name || 'draft member'}`);
+            const remove = actionButton('Delete member', () => deleteProfile(item), 'text-button team-delete'); remove.disabled = profiles.length <= 1;
+            more.append(summary, actionButton(item.is_locked ? 'Unlock card' : 'Lock card', () => updateProfileLock(item), 'text-button'), remove);
+            actions.append(edit, view, more); content.append(avatar, state, name, role, details, actions); card.append(cover, content); return card;
         }));
+        if (!visible.length) list.append(companyEmptyState(query || filter !== 'all' ? 'No team members match these filters.' : 'Your team starts here. Add a team member to create their card.'));
     }
+    function actionButton(label, handler, className) { const button = document.createElement('button'); button.type = 'button'; button.textContent = label; button.className = className; button.addEventListener('click', handler); return button; }
 
     async function updateProfileLock(item) {
-        const nextLocked = !item.is_locked;
-        const { data, error } = await supabaseClient
-            .from('company_profiles')
-            .update({ is_locked: nextLocked, updated_at: new Date().toISOString() })
-            .eq('id', item.id)
-            .eq('user_id', currentUser.id)
-            .select('id, is_locked')
-            .single();
-        if (error) {
-            showDashboardMessage(`Unable to ${nextLocked ? 'lock' : 'unlock'} profile: ${error.message}`, 'error');
-            console.error('Company profile lock update failed:', error);
-            return;
-        }
-        profiles = profiles.map(profileItem => profileItem.id === data.id
-            ? { ...profileItem, is_locked: data.is_locked }
-            : profileItem);
-        if (profile.id === data.id) {
-            profile = { ...profile, is_locked: data.is_locked };
-            renderOverviewProfile();
-            updateCardLink();
-        }
-        renderCompanyProfiles();
-        showDashboardMessage(nextLocked ? 'Profile locked. Its public card is now hidden.' : 'Profile unlocked and visible again.', 'success');
+        const { data, error } = await supabaseClient.from('company_profiles').update({ is_locked: !item.is_locked }).eq('id', item.id).eq('user_id', currentUser.id).select('*').single();
+        if (error) { showDashboardMessage(error.message, 'error'); return; }
+        profiles = profiles.map(row => row.id === data.id ? data : row);
+        if (profile.id === data.id) profile = data;
+        renderCompanyProfiles(); showDashboardMessage(data.is_locked ? 'Card locked. Its public link is hidden.' : 'Card unlocked.', 'success');
     }
-
     async function deleteProfile(item) {
-        if (profiles.length <= 1) {
-            showDashboardMessage('At least one company profile must remain.', 'error');
-            return;
-        }
-        if (item.id === profile.id && profileDirty &&
-            !window.confirm('This profile has unsaved changes. Discard them and delete the profile?')) return;
-        if (!window.confirm(`Permanently delete ${item.full_name || 'this profile'}? Its public card will stop working.`)) return;
-
-        const { error } = await supabaseClient.rpc('delete_company_profile', {
-            requested_profile_id: item.id,
-        });
-        if (error) {
-            showDashboardMessage(`Unable to delete profile: ${error.message}`, 'error');
-            console.error('Company profile delete failed:', error);
-            return;
-        }
-        const imagePaths = [item.avatar_path, item.banner_path].filter(Boolean);
-        if (imagePaths.length) {
-            const { error: storageError } = await supabaseClient.storage.from(PHOTO_BUCKET).remove(imagePaths);
-            if (storageError) {
-                console.error('Deleted profile images could not be removed:', storageError);
-                showDashboardMessage('Profile deleted, but its image files could not be removed. Contact support to clean them up.', 'error');
-            }
-        }
-        profiles = profiles.filter(profileItem => profileItem.id !== item.id);
-        byId('usedProfiles').textContent = profiles.length.toLocaleString();
-        refreshAnalyticsProfileOptions();
-        if (profile.id === item.id) await loadProfile(profiles[0]);
-        renderCompanyProfiles();
-        await loadAnalytics();
-        showDashboardMessage('Profile deleted.', 'success');
+        if (profiles.length <= 1) { showDashboardMessage('At least one team member must remain.', 'error'); return; }
+        if (!window.confirm(`Permanently delete ${item.full_name || 'this team member'}? Their public card will stop working.`)) return;
+        const { error } = await supabaseClient.rpc('delete_company_profile', { requested_profile_id: item.id });
+        if (error) { showDashboardMessage(error.message, 'error'); return; }
+        profiles = profiles.filter(row => row.id !== item.id);
+        if (profile.id === item.id) profile = profiles[0] || {};
+        // Shared company images may still reference legacy employee files.
+        // Leave files intact; deleting a team member must never remove branding.
+        renderCompanyProfiles(); refreshAnalyticsProfileOptions(); updatePreview(); await loadAnalytics();
+        showDashboardMessage('Team member deleted.', 'success');
     }
 
     async function handleProfileSave(event) {
-        event.preventDefault();
-        if (!currentUser) return;
-
-        const form = byId('profileForm');
-        if (!form.reportValidity()) return;
-
-        const button = byId('saveProfileButton');
-        const message = byId('profileMessage');
-        button.disabled = true;
-        button.textContent = 'Saving…';
-        message.textContent = '';
-        setSaveState('Saving changes…');
-
+        event.preventDefault(); if (!currentUser || !byId('profileForm').reportValidity()) return;
+        const button = byId('saveProfileButton'); button.disabled = true; button.textContent = 'Saving…';
+        let uploaded;
         try {
-            const values = Object.fromEntries(PROFILE_FIELDS.map(field => {
-                const inputId = {
-                    full_name: 'fullName',
-                    job_title: 'jobTitle',
-                    company_name: 'companyName',
-                    contact_email: 'contactEmail',
-                    website_url: 'websiteUrl',
-                    linkedin_url: 'linkedinUrl',
-                    instagram_url: 'instagramUrl',
-                    whatsapp_url: 'whatsappNumber',
-                    x_url: 'xUrl',
-                    facebook_url: 'facebookUrl',
-                    tiktok_url: 'tiktokUrl',
-                    github_url: 'githubUrl',
-                    telegram_url: 'telegramUrl',
-                    discord_url: 'discordUrl',
-                    snapchat_url: 'snapchatUrl',
-                    apple_wallet_url: 'appleWalletUrl',
-                    google_wallet_url: 'googleWalletUrl',
-                }[field] || field;
-                const value = byId(inputId).value.trim();
-                if (field === 'whatsapp_url') {
-                    return [field, value ? createWhatsAppLink(value, inputId) : null];
-                }
-                return [field, field.endsWith('_url') ? normalizeOptionalUrl(value, inputId) : (value || null)];
+            const patch = Object.fromEntries(PROFILE_FIELDS.map(key => {
+                const value = byId(key).value.trim();
+                return [key, key === 'whatsapp_url' && value ? createWhatsAppLink(value, key) : key.endsWith('_url') ? normalizeOptionalUrl(value, key) : key === 'full_name' || key === 'job_title' ? value : value || null];
             }));
-
-            let newAvatarPath = profile.avatar_path || null;
-            let newBannerPath = profile.banner_path || null;
-            if (selectedPhoto) {
-                newAvatarPath = `${currentUser.id}/${profile.id}/${crypto.randomUUID()}.${getImageExtension(selectedPhoto)}`;
-                const { error: uploadError } = await supabaseClient.storage
-                    .from(PHOTO_BUCKET)
-                    .upload(newAvatarPath, selectedPhoto, {
-                        cacheControl: '3600',
-                        contentType: selectedPhoto.type,
-                        upsert: false,
-                    });
-                if (uploadError) throw new Error(`Photo upload failed: ${uploadError.message}`);
-            } else if (removePhoto) {
-                newAvatarPath = null;
-            }
-
-            if (selectedBanner) {
-                newBannerPath = `${currentUser.id}/${profile.id}/${crypto.randomUUID()}.${getImageExtension(selectedBanner)}`;
-                const { error: uploadError } = await supabaseClient.storage
-                    .from(PHOTO_BUCKET)
-                    .upload(newBannerPath, selectedBanner, {
-                        cacheControl: '3600',
-                        contentType: selectedBanner.type,
-                        upsert: false,
-                    });
-                if (uploadError) throw new Error(`Banner upload failed: ${uploadError.message}`);
-            } else if (removeBanner) {
-                newBannerPath = null;
-            }
-
-            const nextProfile = {
-                id: profile.id,
-                user_id: currentUser.id,
-                ...values,
-                avatar_path: newAvatarPath,
-                banner_path: newBannerPath,
-                updated_at: new Date().toISOString(),
-            };
-            const { data, error } = await supabaseClient
-                .from('company_profiles')
-                .upsert(nextProfile, { onConflict: 'id' })
-                .select(['id', 'user_id', ...PROFILE_FIELDS, 'avatar_path', 'banner_path', 'created_at', 'is_locked'].join(','))
-                .single();
-
-            if (error) throw new Error(`Profile save failed: ${error.message}`);
-
-            const previousAvatarPath = profile.avatar_path;
-            const previousBannerPath = profile.banner_path;
-            profile = data;
-            profiles = profiles.map(item => item.id === data.id ? data : item);
-            profileDirty = false;
-            selectedPhoto = null;
-            removePhoto = false;
-            selectedBanner = null;
-            removeBanner = false;
-            byId('photoInput').value = '';
-            byId('bannerInput').value = '';
-            await updatePhotoPreview(profile.avatar_path);
-            await updateBannerPreview(profile.banner_path);
-            renderCompanyProfile();
-            renderCompanyProfiles();
-
-            const oldImagePaths = [previousAvatarPath, previousBannerPath].filter(Boolean);
-            const currentImagePaths = [profile.avatar_path, profile.banner_path];
-            const unusedImagePaths = oldImagePaths.filter(path => !currentImagePaths.includes(path));
-            if (unusedImagePaths.length) {
-                const { error: deleteError } = await supabaseClient.storage.from(PHOTO_BUCKET).remove(unusedImagePaths);
-                if (deleteError) console.warn('Old profile images could not be removed:', deleteError.message);
-            }
-
-            updatePreview();
-            showDashboard();
-            renderCompanyProfiles();
-            updateCardLink();
-            message.textContent = 'Your profile has been saved.';
-            setSaveState('Saved just now');
-            showDashboardMessage('Profile saved successfully.', 'success');
-            await loadLeads();
-            await loadAnalytics();
-        } catch (error) {
-            message.textContent = error.message || 'Unable to save your profile.';
-            setSaveState('Save failed');
-            console.error('Profile save failed:', error);
-        } finally {
-            button.disabled = false;
-            button.textContent = 'Save changes';
-        }
+            patch.avatar_path = profile.avatar_path || null;
+            if (selectedPhoto) { uploaded = await uploadImage(selectedPhoto, profile.id); patch.avatar_path = uploaded; }
+            else if (removePhoto) patch.avatar_path = null;
+            const { data, error } = await supabaseClient.from('company_profiles').update(patch).eq('id', profile.id).eq('user_id', currentUser.id).select('*').single();
+            if (error) throw error;
+            profile = data; profiles = profiles.map(row => row.id === data.id ? data : row); uploaded = null;
+            clearSelectedPhoto(); removePhoto = false; profileDirty = false;
+            setPhotoImages(imageUrl(profile.avatar_path)); renderCompanyProfiles(); updatePreview(); updateCardLink();
+            setSaveState('Saved just now'); byId('profileMessage').textContent = 'Employee card saved.';
+            byId('photoMessage').textContent = ''; byId('photoInput').value = '';
+            byId('removePhotoButton').hidden = !profile.avatar_path;
+        } catch (error) { byId('profileMessage').textContent = error.message || 'Unable to save employee card.'; setSaveState('Save failed'); }
+        finally { if (uploaded) await supabaseClient.storage.from(PHOTO_BUCKET).remove([uploaded]); button.disabled = false; button.textContent = 'Save changes'; }
     }
 
-    function normalizeOptionalUrl(value, inputId) {
-        if (!value) return null;
-        let parsed;
-        try {
-            parsed = new URL(value);
-        } catch {
-            throw new Error('Enter a complete URL starting with https://.');
-        }
-        if (parsed.protocol !== 'https:') {
-            byId(inputId).focus();
-            throw new Error('Profile links must use https://.');
-        }
-        return parsed.href;
+    async function uploadImage(file, folder) {
+        if (!ALLOWED_PHOTO_TYPES.has(file.type) || file.size > MAX_PHOTO_BYTES) throw new Error('Choose a JPG, PNG, WebP or GIF smaller than 5 MB.');
+        const extension = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' }[file.type];
+        const path = `${currentUser.id}/${folder}/${crypto.randomUUID()}.${extension}`;
+        const { error } = await supabaseClient.storage.from(PHOTO_BUCKET).upload(path, file, { cacheControl: '3600', contentType: file.type, upsert: false });
+        if (error) throw error; return path;
     }
-
-    function createWhatsAppLink(value, inputId) {
-        let digits = /^https?:\/\//i.test(value) ? getWhatsAppNumber(value) : value.replace(/[^0-9+]/g, '');
-        if (digits.startsWith('00')) digits = digits.slice(2);
-        if (digits.length < 7 || digits.length > 15) {
-            byId(inputId).focus();
-            throw new Error('Enter a valid WhatsApp number with country code (7–15 digits).');
-        }
-        return `https://wa.me/${digits}`;
-    }
-
-    function getWhatsAppNumber(value) {
-        if (!value) return '';
-        try {
-            const url = new URL(value);
-            if (url.hostname === 'wa.me') return normalizeWhatsAppDigits(url.pathname);
-            if (url.hostname === 'api.whatsapp.com' || url.hostname === 'www.whatsapp.com') {
-                return normalizeWhatsAppDigits(url.searchParams.get('phone') || '');
-            }
-        } catch {
-            return normalizeWhatsAppDigits(value);
-        }
-        return '';
-    }
-
-    function normalizeWhatsAppDigits(value) {
-        let digits = value.replace(/[^0-9+]/g, '');
-        if (digits.startsWith('00')) digits = digits.slice(2);
-        return digits;
-    }
-
+    function clearSelectedPhoto() { if (selectedPhotoUrl) URL.revokeObjectURL(selectedPhotoUrl); selectedPhotoUrl = null; selectedPhoto = null; }
     function handlePhotoSelection(event) {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
-            event.target.value = '';
-            byId('photoMessage').textContent = 'Choose a JPG, PNG, WebP, or GIF image.';
-            return;
-        }
-        if (file.size > MAX_PHOTO_BYTES) {
-            event.target.value = '';
-            byId('photoMessage').textContent = 'Choose an image smaller than 5 MB.';
-            return;
-        }
-
-        selectedPhoto = file;
-        profileDirty = true;
-        removePhoto = false;
-        const localUrl = URL.createObjectURL(file);
-        setPhotoImages(localUrl);
-        byId('removePhotoButton').hidden = false;
-        byId('photoMessage').textContent = 'Photo ready. Save changes to upload it.';
+        const file = event.target.files?.[0]; if (!file) return;
+        if (!ALLOWED_PHOTO_TYPES.has(file.type) || file.size > MAX_PHOTO_BYTES) { byId('photoMessage').textContent = 'Choose a JPG, PNG, WebP or GIF smaller than 5 MB.'; event.target.value = ''; return; }
+        clearSelectedPhoto(); selectedPhoto = file; selectedPhotoUrl = URL.createObjectURL(file); removePhoto = false; profileDirty = true;
+        setPhotoImages(selectedPhotoUrl); byId('removePhotoButton').hidden = false; byId('photoMessage').textContent = 'Photo ready. Save to apply.'; updatePreview();
     }
+    function handlePhotoRemoval() { clearSelectedPhoto(); removePhoto = true; profileDirty = true; setPhotoImages(''); byId('removePhotoButton').hidden = true; byId('photoInput').value = ''; updatePreview(); }
+    function setPhotoImages(url) { const image = byId('profilePhoto'); image.hidden = !url; if (url) image.src = url; else image.removeAttribute('src'); byId('photoFallback').hidden = Boolean(url); byId('photoFallback').textContent = getInitials(profile.full_name || 'Team'); }
 
-    function handlePhotoRemoval() {
-        selectedPhoto = null;
-        profileDirty = true;
-        removePhoto = true;
-        byId('photoInput').value = '';
-        setPhotoImages('');
-        byId('removePhotoButton').hidden = true;
-        byId('photoMessage').textContent = 'Photo will be removed when you save changes.';
+    function effectiveProfile(item, editing = false) {
+        const person = editing ? { ...item, ...Object.fromEntries(PROFILE_FIELDS.map(key => [key, byId(key).value.trim()])) } : item;
+        const result = { ...person, profile_id: person.id, company_name: company.name || '', address: company.address, website_url: company.website_url,
+            banner_path: company.banner_path, apple_wallet_url: company.apple_wallet_url, google_wallet_url: company.google_wallet_url };
+        for (const field of ['instagram_url', 'x_url', 'facebook_url', 'tiktok_url', 'github_url', 'telegram_url', 'discord_url', 'snapchat_url']) result[field] = null;
+        if (editing) { result.whatsapp_url = getWhatsAppNumber(result.whatsapp_url) ? `https://wa.me/${getWhatsAppNumber(result.whatsapp_url)}` : null; if (selectedPhotoUrl) result.avatar_preview_url = selectedPhotoUrl; if (removePhoto) result.avatar_path = null; }
+        return result;
     }
-
-    function handleBannerSelection(event) {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        if (!validateImage(file, byId('bannerMessage'))) {
-            event.target.value = '';
-            return;
-        }
-
-        selectedBanner = file;
-        profileDirty = true;
-        removeBanner = false;
-        setBannerImage(URL.createObjectURL(file));
-        byId('removeBannerButton').hidden = false;
-        byId('bannerMessage').textContent = 'Banner ready. Save changes to upload it.';
-    }
-
-    function handleBannerRemoval() {
-        selectedBanner = null;
-        profileDirty = true;
-        removeBanner = true;
-        byId('bannerInput').value = '';
-        setBannerImage('');
-        byId('removeBannerButton').hidden = true;
-        byId('bannerMessage').textContent = 'Banner will be removed when you save changes.';
-    }
-
-    function validateImage(file, message) {
-        if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
-            message.textContent = 'Choose a JPG, PNG, WebP, or GIF image.';
-            return false;
-        }
-        if (file.size > MAX_PHOTO_BYTES) {
-            message.textContent = 'Choose an image smaller than 5 MB.';
-            return false;
-        }
-        return true;
-    }
-
-    function getImageExtension(file) {
-        return {
-            'image/jpeg': 'jpg',
-            'image/png': 'png',
-            'image/webp': 'webp',
-            'image/gif': 'gif',
-        }[file.type];
-    }
-
-    async function updatePhotoPreview(path) {
-        if (!path) {
-            setPhotoImages('');
-            byId('removePhotoButton').hidden = true;
-            return;
-        }
-
-        const { data, error } = await supabaseClient.storage
-            .from(PHOTO_BUCKET)
-            .createSignedUrl(path, 60 * 60);
-        if (error) {
-            byId('photoMessage').textContent = `Unable to load your profile photo: ${error.message}`;
-            console.error('Profile photo preview failed:', error);
-            setPhotoImages('');
-            return;
-        }
-
-        setPhotoImages(data.signedUrl);
-        byId('removePhotoButton').hidden = false;
-    }
-
-    async function updateBannerPreview(path) {
-        if (!path) {
-            setBannerImage('');
-            byId('removeBannerButton').hidden = true;
-            return;
-        }
-
-        const { data, error } = await supabaseClient.storage
-            .from(PHOTO_BUCKET)
-            .createSignedUrl(path, 60 * 60);
-        if (error) {
-            byId('bannerMessage').textContent = `Unable to load your banner: ${error.message}`;
-            console.error('Profile banner preview failed:', error);
-            setBannerImage('');
-            return;
-        }
-
-        setBannerImage(data.signedUrl);
-        byId('removeBannerButton').hidden = false;
-    }
-
-    function setBannerImage(url) {
-        const image = byId('previewBanner');
-        const dashboardPreview = byId('bannerPhotoPreview');
-        if (!url) {
-            image.removeAttribute('src');
-            image.hidden = true;
-            dashboardPreview.style.backgroundImage = '';
-            return;
-        }
-        image.src = url;
-        image.hidden = false;
-        dashboardPreview.style.backgroundImage = `url("${url}")`;
-    }
-
-    function setPhotoImages(url) {
-        const images = [byId('profilePhoto'), byId('previewPhoto')];
-        images.forEach(image => {
-            if (url) {
-                image.src = url;
-                image.hidden = false;
-                image.onerror = () => {
-                    image.hidden = true;
-                };
-            } else {
-                image.removeAttribute('src');
-                image.hidden = true;
-            }
-        });
-        byId('photoFallback').hidden = Boolean(url);
-        byId('previewPhotoFallback').hidden = Boolean(url);
-    }
-
     function updatePreview() {
-        const name = byId('fullName').value.trim() || 'Your name';
-        const title = byId('jobTitle').value.trim() || 'Your job title';
-        const company = byId('companyName').value.trim();
-        const bio = byId('bio').value.trim();
-        byId('previewName').textContent = name;
-        byId('previewRole').textContent = title;
-        byId('previewCompany').textContent = company || 'Your company';
-        byId('previewCompany').hidden = !company;
-        byId('previewBio').textContent = bio || 'Your introduction will appear here.';
-        byId('previewBio').hidden = !bio;
-        byId('accountAvatar').textContent = getInitials(name);
-
-        const contactEntries = [
-            ['Email', byId('contactEmail').value.trim()],
-            ['Phone', byId('phone').value.trim()],
-            ['Website', byId('websiteUrl').value.trim()],
-        ].filter(([, value]) => value);
-        byId('previewContacts').replaceChildren(...contactEntries.map(([label, value]) => {
-            const detail = document.createElement('p');
-            detail.className = 'preview-contact';
-            detail.textContent = `${label}: ${value}`;
-            return detail;
-        }));
-        const address = byId('address').value.trim();
-        byId('previewAddress').textContent = address;
-        byId('previewAddress').hidden = !address;
-        if (address) {
-            byId('previewAddress').href =
-                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-        } else {
-            byId('previewAddress').removeAttribute('href');
-        }
-
-        const socialEntries = [
-            ['LinkedIn', byId('linkedinUrl').value.trim(), 'linkedin'],
-            ['Instagram', byId('instagramUrl').value.trim(), 'instagram'],
-            ['WhatsApp', getWhatsAppNumber(byId('whatsappNumber').value), 'whatsapp'],
-            ['X', byId('xUrl').value.trim(), 'x'],
-            ['Facebook', byId('facebookUrl').value.trim(), 'facebook'],
-            ['TikTok', byId('tiktokUrl').value.trim(), 'tiktok'],
-            ['GitHub', byId('githubUrl').value.trim(), 'github'],
-            ['Telegram', byId('telegramUrl').value.trim(), 'telegram'],
-            ['Discord', byId('discordUrl').value.trim(), 'discord'],
-            ['Snapchat', byId('snapchatUrl').value.trim(), 'snapchat'],
-        ].filter(([, value, icon]) =>
-            value && (icon !== 'whatsapp' || /^\d{7,15}$/.test(value)));
-        const socials = byId('previewSocials');
-        renderSocialLinks(socials, socialEntries);
-        const appleWalletAvailable = updateWalletPreview('previewAppleWallet', byId('appleWalletUrl').value.trim());
-        const googleWalletAvailable = updateWalletPreview('previewGoogleWallet', byId('googleWalletUrl').value.trim());
-        const hasWalletLink = appleWalletAvailable || googleWalletAvailable;
-        byId('previewWalletPlaceholder').hidden = Boolean(hasWalletLink);
-        byId('walletPreview').hidden = !hasWalletLink;
-        updateCardLink();
+        if (!companyThemeEditor) return;
+        const appearance = { account_type: 'company', company_links: company.custom_links || [], banner_position: company.banner_position ?? 50 };
+        const send = (id, item, theme, editing) => byId(id).contentWindow?.postMessage({ type: 'bliplink-card-preview', profile: effectiveProfile(item, editing), theme,
+            appearance: { ...appearance, personal_details: Object.fromEntries(['department', 'alternate_name', 'alternate_job_title', 'secondary_phone', 'booking_url'].map(key => [key, editing ? byId(key).value.trim() : item[key]])) } }, window.location.origin);
+        send('teamPreviewFrame', profile, company.card_theme, byId('teamEditorDialog').open);
+        send('companyThemePreviewFrame', profiles.find(item => item.id === byId('themePreviewMember').value) || profile, companyThemeEditor.read(), false);
     }
-
-    function updateWalletPreview(id, value) {
-        const link = byId(id);
-        const url = value ? safePreviewUrl(value) : '';
-        link.href = url || '#';
-        link.hidden = !url || url === '#';
-        return !link.hidden;
-    }
-
-    function safePreviewUrl(value) {
-        try {
-            const url = new URL(value);
-            return url.protocol === 'https:' ? url.href : '#';
-        } catch {
-            return '#';
-        }
-    }
-
     function updateCardLink() {
-        const link = byId('viewCardButton');
-        const text = byId('cardLinkText');
-        if (!currentUser) {
-            link.removeAttribute('href');
-            link.setAttribute('aria-disabled', 'true');
-            text.textContent = 'Your card link is not available yet.';
-            byId('previewQrCode').hidden = true;
-            byId('previewQrPlaceholder').hidden = false;
-            delete byId('previewQrCode').dataset.cardUrl;
-            return '';
-        }
-
-        if (!profile.id) {
-            link.removeAttribute('href');
-            link.setAttribute('aria-disabled', 'true');
-            text.textContent = 'Save this profile to activate its card link.';
-            byId('previewQrCode').hidden = true;
-            byId('previewQrPlaceholder').hidden = false;
-            delete byId('previewQrCode').dataset.cardUrl;
-            return '';
-        }
-
-        if (profile.is_locked) {
-            link.removeAttribute('href');
-            link.setAttribute('aria-disabled', 'true');
-            text.textContent = 'This profile is locked. Unlock it from My profiles before sharing its card.';
-            byId('previewQrCode').hidden = true;
-            byId('previewQrPlaceholder').hidden = false;
-            delete byId('previewQrCode').dataset.cardUrl;
-            return '';
-        }
-
-        const cardUrl = new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href;
-        if (!profile.full_name) {
-            link.removeAttribute('href');
-            link.setAttribute('aria-disabled', 'true');
-            text.textContent = 'Add your name and save your profile to publish your card.';
-            byId('previewQrCode').hidden = true;
-            byId('previewQrPlaceholder').hidden = false;
-            delete byId('previewQrCode').dataset.cardUrl;
-            return cardUrl;
-        }
-
-        link.href = cardUrl;
-        link.removeAttribute('aria-disabled');
-        text.textContent = cardUrl;
-        const qrCode = byId('previewQrCode');
-        if (qrCode.dataset.cardUrl !== cardUrl) {
-            qrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=176x176&margin=2&data=${encodeURIComponent(cardUrl)}`;
-            qrCode.dataset.cardUrl = cardUrl;
-        }
-        qrCode.hidden = false;
-        byId('previewQrPlaceholder').hidden = true;
-        return cardUrl;
+        const valid = accountAccess?.can_edit && profile.full_name?.trim() && !profile.is_locked;
+        const url = new URL(`../card.html?id=${encodeURIComponent(profile.id || '')}`, window.location.href).href;
+        const link = byId('viewCardButton'); link.href = valid ? url : '#'; link.setAttribute('aria-disabled', String(!valid));
+        byId('copyCardLinkButton').disabled = !valid; byId('cardLinkText').textContent = valid ? url : 'Save a name and unlock this card to share it.'; return valid ? url : '';
     }
+    async function handleCopyCardLink() { try { const url = updateCardLink(); if (url) { await navigator.clipboard.writeText(url); byId('profileMessage').textContent = 'Card link copied.'; } } catch { byId('profileMessage').textContent = 'Open the card and copy its browser address.'; } }
+    function safePreviewUrl(value) { try { const url = new URL(value); return url.protocol === 'https:' ? url.href : '#'; } catch { return '#'; } }
+    function normalizeOptionalUrl(value, inputId) { if (!value) return null; if (safePreviewUrl(value) === '#') { byId(inputId)?.focus(); throw new Error('Enter a complete link starting with https://.'); } return new URL(value).href; }
+    function getWhatsAppNumber(value) { if (!value) return ''; try { const url = new URL(value); return (url.hostname === 'wa.me' ? url.pathname : url.searchParams.get('phone') || '').replace(/\D/g, ''); } catch { return value.replace(/\D/g, '').replace(/^00/, ''); } }
+    function createWhatsAppLink(value, id) { const digits = getWhatsAppNumber(value); if (!/^\d{7,15}$/.test(digits)) { byId(id).focus(); throw new Error('Include the WhatsApp country code (7–15 digits).'); } return `https://wa.me/${digits}`; }
 
-    async function handleCopyCardLink() {
-        const cardUrl = updateCardLink();
-        if (!currentUser || !profile.full_name) {
-            byId('cardLinkText').textContent = 'Add your name and save your profile before sharing your card.';
-            return;
-        }
-
-        try {
-            await navigator.clipboard.writeText(cardUrl);
-            byId('cardLinkText').textContent = 'Card link copied to clipboard.';
-        } catch (error) {
-            byId('cardLinkText').textContent = 'Could not copy the link. Select and copy it from the link above.';
-            console.error('Card link copy failed:', error);
-        }
+    async function saveCompanyPatch(patch) {
+        if (!companyReady) throw new Error('Company setup is unavailable. Contact support to update the database.');
+        if (!accountAccess?.can_edit) throw new Error('Your access is paused. Contact support to renew.');
+        const query = companyExists ? supabaseClient.from('company_branding').update(patch).eq('user_id', currentUser.id)
+            : supabaseClient.from('company_branding').insert({ user_id: currentUser.id, ...patch });
+        const { data, error } = await query.select('*').single(); if (error) throw error;
+        company = data; companyExists = true;
+        renderCompanyProfile(); renderOverviewProfile(); renderCompanyProfiles(); updatePreview();
     }
+    function renderCompanyProfile() {
+        byId('companyTitle').textContent = company.name || 'Your company'; byId('companyBio').textContent = company.bio || '';
+        byId('companyLogoFallback').textContent = getInitials(company.name || 'Company'); byId('companyLogoFallback').hidden = Boolean(company.logo_path);
+        setImage('companyLogo', company.logo_path); setImage('companyBanner', company.banner_path);
+        byId('companyBanner').style.objectPosition = `center ${company.banner_position ?? 50}%`;
+        byId('companyBannerPosition').value = company.banner_position ?? 50; byId('companyBannerPositionValue').value = `${company.banner_position ?? 50}%`;
+        byId('removeCompanyLogo').hidden = !company.logo_path; byId('removeCompanyBanner').hidden = !company.banner_path;
+        for (const [id, key, makeUrl] of [['companyEmail', 'contact_email', value => `mailto:${value}`], ['companyPhone', 'phone', value => `tel:${value}`], ['companyAddress', 'address', value => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`], ['companyWebsite', 'website_url', safePreviewUrl]]) {
+            const link = byId(id); link.textContent = company[key] || 'Not added yet'; if (company[key]) link.href = makeUrl(company[key]); else link.removeAttribute('href');
+            if (id === 'companyWebsite' || id === 'companyAddress') { link.target = '_blank'; link.rel = 'noopener noreferrer'; }
+        }
+        for (const [category, id] of [['social', 'companySocialLinks'], ['play_store', 'companyPlayLinks'], ['app_store', 'companyAppLinks'], ['web_app', 'companyWebLinks']]) {
+            const box = byId(id), links = (company.custom_links || []).filter(item => item.category === category);
+            box.replaceChildren(...links.map(item => { const row = document.createElement('div'); row.className = 'company-link-entry'; row.append(makeCompanyLink(item.label, item.url), actionButton('Edit', () => openCompanyLinkDialog(category, item), 'company-link-edit')); return row; }));
+            if (!links.length) box.append(companyEmptyState('No links added yet.'));
+        }
+        const wallets = [['Apple Wallet', company.apple_wallet_url], ['Google Wallet', company.google_wallet_url]].filter(([, url]) => url);
+        byId('companyWalletLinks').replaceChildren(...wallets.map(([label, url]) => makeCompanyLink(label, url)));
+        if (!wallets.length) byId('companyWalletLinks').append(companyEmptyState('No wallet passes added yet.'));
+    }
+    function makeCompanyLink(label, url) { const link = document.createElement('a'); link.className = 'company-link-item'; link.textContent = label; link.href = safePreviewUrl(url); link.target = '_blank'; link.rel = 'noopener noreferrer'; return link; }
+    function companyEmptyState(text) { const p = document.createElement('p'); p.className = 'company-empty-state'; p.textContent = text; return p; }
+    function openCompanyDetailsDialog() { for (const key of ['name', 'contact_email', 'phone', 'website_url', 'address', 'bio']) byId('companyDetailsForm').elements.namedItem(key).value = company[key] || ''; byId('companyDetailsMessage').textContent = ''; byId('companyProfileDialog').showModal(); }
+    async function saveCompanyDetails(event) {
+        event.preventDefault(); const button = byId('saveCompanyDetails'); button.disabled = true;
+        try { const patch = Object.fromEntries(new FormData(byId('companyDetailsForm')).entries()); for (const key of Object.keys(patch)) patch[key] = patch[key].trim() || (key === 'name' ? '' : null); patch.website_url = normalizeOptionalUrl(patch.website_url); await saveCompanyPatch(patch); byId('companyProfileDialog').close(); showDashboardMessage('Company details saved for every team card.', 'success'); }
+        catch (error) { byId('companyDetailsMessage').textContent = error.message; } finally { button.disabled = false; }
+    }
+    function openCompanyWalletDialog() { for (const key of ['apple_wallet_url', 'google_wallet_url']) byId('companyWalletForm').elements.namedItem(key).value = company[key] || ''; byId('companyWalletMessage').textContent = ''; byId('companyWalletDialog').showModal(); }
+    async function saveCompanyWallets(event) { event.preventDefault(); const button = byId('saveCompanyWallets'); button.disabled = true; try { const patch = Object.fromEntries([...new FormData(byId('companyWalletForm')).entries()].map(([key, value]) => [key, normalizeOptionalUrl(value.trim())])); await saveCompanyPatch(patch); byId('companyWalletDialog').close(); } catch (error) { byId('companyWalletMessage').textContent = error.message; } finally { button.disabled = false; } }
+    function openCompanyLinkDialog(category, item) { const dialog = byId('companyLinkDialog'); dialog.dataset.category = category; dialog.dataset.linkId = item?.id || ''; byId('companyLinkDialogTitle').textContent = item ? 'Edit company link' : 'Add company link'; byId('companyLinkLabel').value = item?.label || ''; byId('companyLinkUrl').value = item?.url || ''; byId('deleteCompanyLink').hidden = !item; byId('companyLinkMessage').textContent = ''; dialog.showModal(); }
+    async function saveCompanyLink(event) {
+        event.preventDefault(); if (companyLinkSaving) return; companyLinkSaving = true; byId('saveCompanyLink').disabled = true; byId('deleteCompanyLink').disabled = true;
+        try { const dialog = byId('companyLinkDialog'), id = dialog.dataset.linkId || crypto.randomUUID(); const entry = { id, label: byId('companyLinkLabel').value.trim(), url: normalizeOptionalUrl(byId('companyLinkUrl').value.trim()), category: dialog.dataset.category }; const links = company.custom_links || []; await saveCompanyPatch({ custom_links: dialog.dataset.linkId ? links.map(item => item.id === id ? entry : item) : [...links, entry] }); dialog.close(); } catch (error) { byId('companyLinkMessage').textContent = error.message; } finally { companyLinkSaving = false; byId('saveCompanyLink').disabled = false; byId('deleteCompanyLink').disabled = false; }
+    }
+    async function deleteCompanyLink() { if (companyLinkSaving) return; const dialog = byId('companyLinkDialog'); if (!dialog.dataset.linkId || !window.confirm('Delete this company link from all team cards?')) return; companyLinkSaving = true; byId('deleteCompanyLink').disabled = true; byId('saveCompanyLink').disabled = true; try { await saveCompanyPatch({ custom_links: (company.custom_links || []).filter(item => item.id !== dialog.dataset.linkId) }); dialog.close(); } catch (error) { byId('companyLinkMessage').textContent = error.message; } finally { companyLinkSaving = false; byId('deleteCompanyLink').disabled = false; byId('saveCompanyLink').disabled = false; } }
+    async function changeCompanyImage(kind, input) {
+        const file = input.files?.[0]; if (!file) return;
+        input.disabled = true; let uploaded;
+        try { byId('companyImageMessage').textContent = 'Uploading image…'; uploaded = await uploadImage(file, 'company'); await saveCompanyPatch({ [`${kind}_path`]: uploaded }); uploaded = null; byId('companyImageMessage').textContent = kind === 'banner' ? 'Banner updated on all team cards.' : 'Company logo updated.'; }
+        catch (error) { byId('companyImageMessage').textContent = error.message; }
+        finally { if (uploaded) await supabaseClient.storage.from(PHOTO_BUCKET).remove([uploaded]); input.disabled = false; input.value = ''; }
+    }
+    async function removeCompanyImage(kind, button) { button.disabled = true; try { await saveCompanyPatch({ [`${kind}_path`]: null }); byId('companyImageMessage').textContent = 'Company image removed.'; } catch (error) { byId('companyImageMessage').textContent = error.message; } finally { button.disabled = false; } }
+    async function saveCompanyPosition() { const button = byId('saveCompanyPosition'); button.disabled = true; try { await saveCompanyPatch({ banner_position: Number(byId('companyBannerPosition').value) }); byId('companyImageMessage').textContent = 'Banner position saved for every card.'; } catch (error) { byId('companyImageMessage').textContent = error.message; } finally { button.disabled = false; } }
+    async function saveCompanyTheme(event) { event.preventDefault(); const button = byId('saveCompanyTheme'); button.disabled = true; try { await saveCompanyPatch({ card_theme: companyThemeEditor.read() }); themeDirty = false; byId('companyThemeState').textContent = 'All changes saved'; byId('companyThemeMessage').textContent = 'Theme applied to all current and future team cards.'; } catch (error) { byId('companyThemeMessage').textContent = error.message; } finally { button.disabled = !companyReady || !accountAccess?.can_edit; } }
 
     async function loadLeads() {
         if (!currentUser) return;
@@ -1110,7 +526,7 @@
 
             if (error) {
                 if (error.code === 'PGRST205' || error.code === '42P01') {
-                    message.textContent = 'Apply the latest dashboard/schema.sql in Supabase to enable contact exchanges.';
+                    message.textContent = 'Apply the latest dashboard/setup.sql in Supabase to enable contact exchanges.';
                 } else {
                     message.textContent = `Unable to load leads: ${error.message}`;
                     console.error('Contact exchange load failed:', error);
@@ -1360,7 +776,7 @@
         } catch (error) {
             const details = error.message || 'Unknown analytics error.';
             message.textContent = /PGRST202|PGRST204|42883|42P01|42703|schema cache/i.test(details)
-                ? `Apply the latest dashboard/schema.sql in Supabase to enable daily analytics. Details: ${details}`
+                ? `Apply the latest dashboard/setup.sql in Supabase to enable daily analytics. Details: ${details}`
                 : `Unable to load analytics: ${details}`;
             console.error('Card analytics load failed:', error);
         } finally {
@@ -1607,143 +1023,20 @@
     }
 
     function renderOverviewProfile() {
-        if (!byId('overviewCardTitle')) return;
-        const name = profile.full_name || 'Your name';
+        const name = company.name || 'Your company';
+        byId('overviewName').textContent = name;
+        byId('accountAvatar').textContent = getInitials(name);
         byId('overviewCardTitle').textContent = name;
-        byId('overviewCardRole').textContent = profile.job_title || 'Your job title';
-        byId('overviewCardRole').hidden = false;
-        byId('overviewCompany').textContent = profile.company_name || 'Your company';
-        byId('overviewCompany').hidden = !profile.company_name;
-        byId('overviewBio').textContent = profile.bio || '';
-        byId('overviewBio').hidden = !profile.bio;
+        byId('overviewBio').textContent = company.bio || '';
         byId('overviewPhotoFallback').textContent = getInitials(name);
-        setOverviewImage('overviewPhoto', profile.avatar_path);
-        setOverviewImage('overviewBanner', profile.banner_path);
-        const contactEntries = [
-            ['Email', profile.contact_email],
-            ['Phone', profile.phone],
-            ['Website', profile.website_url],
-        ].filter(([, value]) => value);
-        byId('overviewContacts').replaceChildren(...contactEntries.map(([label, value]) => {
-            const detail = document.createElement('p');
-            detail.className = 'preview-contact';
-            detail.textContent = `${label}: ${value}`;
-            return detail;
+        byId('overviewPhotoFallback').hidden = Boolean(company.logo_path);
+        setImage('overviewPhoto', company.logo_path); setImage('overviewBanner', company.banner_path);
+        byId('overviewBanner').style.objectPosition = 'center ' + (company.banner_position ?? 50) + '%';
+        byId('overviewContacts').replaceChildren(...[['Email',company.contact_email],['Phone',company.phone],['Website',company.website_url]].filter(([,value])=>value).map(([label,value])=>{
+            const p=document.createElement('p'); p.className='preview-contact'; const link=document.createElement('a'); link.textContent=value; link.href=label==='Email'?'mailto:'+value:label==='Phone'?'tel:'+value:safePreviewUrl(value); if(label==='Website'){link.target='_blank';link.rel='noopener noreferrer';} p.append(document.createTextNode(label+': '),link);return p;
         }));
-        const address = byId('overviewAddress');
-        address.textContent = profile.address || '';
-        address.hidden = !profile.address;
-        address.href = profile.address
-            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(profile.address)}`
-            : '#';
-        const socialEntries = [
-            ['LinkedIn', profile.linkedin_url, 'linkedin'],
-            ['Instagram', profile.instagram_url, 'instagram'],
-            ['WhatsApp', getWhatsAppNumber(profile.whatsapp_url), 'whatsapp'],
-            ['X', profile.x_url, 'x'],
-            ['Facebook', profile.facebook_url, 'facebook'],
-            ['TikTok', profile.tiktok_url, 'tiktok'],
-            ['GitHub', profile.github_url, 'github'],
-            ['Telegram', profile.telegram_url, 'telegram'],
-            ['Discord', profile.discord_url, 'discord'],
-            ['Snapchat', profile.snapchat_url, 'snapchat'],
-        ].filter(([, value, icon]) => value && (icon !== 'whatsapp' || /^\d{7,15}$/.test(value)));
-        renderSocialLinks(byId('overviewSocials'), socialEntries);
-        const isPublic = Boolean(profile.full_name && !profile.is_locked);
-        const status = byId('overviewPreviewStatus');
-        status.classList.toggle('preview-status-locked', !isPublic);
-        const statusDot = document.createElement('i');
-        status.replaceChildren(statusDot, document.createTextNode(profile.is_locked ? 'Locked' : isPublic ? 'Your profile' : 'Draft'));
-        const view = byId('overviewViewCard');
-        view.href = isPublic ? `../card.html?id=${encodeURIComponent(profile.id)}` : '#';
-        view.setAttribute('aria-disabled', String(!isPublic));
-        const cardUrl = isPublic
-            ? new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href
-            : '';
-        setOverviewQrCode(cardUrl);
-        byId('overviewCopyCardLink').disabled = !cardUrl;
-        byId('overviewCardLinkText').textContent = cardUrl;
-        const appleWalletAvailable = updateWalletPreview('overviewAppleWallet', profile.apple_wallet_url || '');
-        const googleWalletAvailable = updateWalletPreview('overviewGoogleWallet', profile.google_wallet_url || '');
-        const hasWalletLink = appleWalletAvailable || googleWalletAvailable;
-        byId('overviewWalletPlaceholder').hidden = Boolean(hasWalletLink);
-        byId('overviewWalletPreview').hidden = !hasWalletLink;
-    }
-
-    function renderSocialLinks(container, entries) {
-        const links = entries.map(([label, value, icon]) => {
-            const link = document.createElement('a');
-            link.className = 'preview-social';
-            link.href = icon === 'whatsapp' ? `https://wa.me/${value}` : safePreviewUrl(value);
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.dataset.social = icon;
-            link.setAttribute('aria-label', label);
-            link.title = label;
-            link.append(createBrandIcon(icon));
-            return link;
-        });
-        container.replaceChildren(...links);
-    }
-
-    function setOverviewQrCode(cardUrl) {
-        const image = byId('overviewQrCode');
-        const placeholder = byId('overviewQrPlaceholder');
-        if (!cardUrl) {
-            image.hidden = true;
-            image.removeAttribute('src');
-            delete image.dataset.cardUrl;
-            placeholder.hidden = false;
-            placeholder.textContent = profile.is_locked
-                ? 'Unlock this profile to activate its QR code.'
-                : 'Save your profile to create its QR code.';
-            return;
-        }
-        if (image.dataset.cardUrl !== cardUrl) {
-            image.src = `https://api.qrserver.com/v1/create-qr-code/?size=176x176&margin=2&data=${encodeURIComponent(cardUrl)}`;
-            image.dataset.cardUrl = cardUrl;
-        }
-        image.hidden = false;
-        placeholder.hidden = true;
-    }
-
-    function setOverviewImage(id, path) {
-        const image = byId(id);
-        const fallback = id === 'overviewPhoto' ? byId('overviewPhotoFallback') : null;
-        if (!path) {
-            image.removeAttribute('src');
-            image.hidden = true;
-            if (fallback) fallback.hidden = false;
-            return;
-        }
-        const { data } = supabaseClient.storage.from(PHOTO_BUCKET).getPublicUrl(path);
-        image.src = data.publicUrl;
-        image.hidden = false;
-        image.onerror = () => {
-            image.hidden = true;
-            if (fallback) fallback.hidden = false;
-        };
-        if (fallback) fallback.hidden = true;
-    }
-
-    async function handleOverviewCopyCardLink() {
-        const cardUrl = profile.id && profile.full_name && !profile.is_locked
-            ? new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href
-            : '';
-        const message = byId('overviewCardLinkText');
-        if (!cardUrl) {
-            message.textContent = profile.is_locked
-                ? 'Unlock this profile before sharing its card.'
-                : 'Add your name and save your profile before sharing its card.';
-            return;
-        }
-        try {
-            await navigator.clipboard.writeText(cardUrl);
-            message.textContent = 'Card link copied to clipboard.';
-        } catch (error) {
-            message.textContent = 'Could not copy the link. Select and copy it from the link above.';
-            console.error('Overview card link copy failed:', error);
-        }
+        const address=byId('overviewAddress'); address.textContent=company.address || ''; address.hidden=!company.address; address.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(company.address || '');
+        byId('overviewSocials').replaceChildren(...(company.custom_links || []).filter(item=>item.category==='social').map(item=>makeCompanyLink(item.label,item.url)));
     }
 
     function appendLeadText(parent, className, value) {
@@ -1784,7 +1077,8 @@
     }
 
     function showPage(section) {
-        const validPages = new Set(['overview', 'profile', 'social', 'leads', 'crm', 'company', 'subscription', 'help']);
+        const validPages = new Set(['overview', 'profile', 'theme', 'leads', 'crm', 'company', 'subscription', 'help']);
+        if (section === 'social') section = 'company';
         let page = validPages.has(section) ? section : 'overview';
         if (page === 'company' && accountAccess?.account_type === 'individual') page = 'profile';
         if (currentUser && !accountAccess?.can_edit && !['subscription', 'help'].includes(page)) page = 'subscription';
@@ -1798,8 +1092,8 @@
         });
         const titles = {
             overview: 'Overview',
-            profile: 'Profile',
-            social: 'Social links',
+            profile: 'My Team',
+            theme: 'Theme',
             leads: 'Leads',
             crm: 'CRM',
             company: 'Company',

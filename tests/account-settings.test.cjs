@@ -94,6 +94,7 @@ test('complete Supabase setup provisions, secures, expires, and renews accounts'
 
     const profileId = (await row('select id from company_profiles where user_id=$1 order by created_at limit 1', [company])).id;
     await db.query("update company_profiles set full_name='Company contact',card_theme=$1 where id=$2", [{ accentColor: '#cc2244' }, profileId]);
+    await db.query('insert into company_branding(user_id,card_theme) values($1,$2)', [company, { accentColor: '#cc2244' }]);
 
     await t.test('active public cards and appearance render without exposing private account settings', async () => {
         await db.exec('set role anon');

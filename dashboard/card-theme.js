@@ -78,6 +78,7 @@
             '.public-card-avatar': theme.showPhoto, '.public-card-cover': theme.showBanner,
             '.public-bio': theme.showBio, '.public-company': theme.showCompany,
             '.public-contact-details': theme.showContacts, '.public-socials': theme.showSocials,
+            '.public-company-links': theme.showSocials,
             '.card-qr-section': theme.showQr, '.public-address': theme.showAddress,
             '.wallet-actions': theme.showWallets, '#saveContactButton': theme.showSaveContact,
             '#exchangeContactButton': !options.individual,
