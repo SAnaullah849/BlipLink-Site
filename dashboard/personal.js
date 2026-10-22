@@ -150,6 +150,7 @@
         }
         const options = {
             layout: ['Layout', ['centered', 'Centered'], ['left', 'Left aligned'], ['compact', 'Compact']],
+            font: ['Font', ['sans', 'DM Sans'], ['manrope', 'Manrope'], ['serif', 'Classic serif'], ['system', 'System']],
             coverStyle: ['Cover style', ['gradient', 'Gradient'], ['solid', 'Solid color']],
             avatarShape: ['Photo shape', ['circle', 'Circle'], ['rounded', 'Rounded'], ['square', 'Square']],
             buttonShape: ['Button shape', ['rounded', 'Rounded'], ['pill', 'Pill'], ['square', 'Square']],
