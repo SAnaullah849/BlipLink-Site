@@ -1340,3 +1340,106 @@ html[dir="rtl"] .close {
         scroll-behavior: auto !important;
     }
 }
+
+/* Keep the profile card clear while the exchange and CRM cards animate beside it */
+.hero-grid { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: clamp(24px, 3vw, 44px); }
+.hero-content, .hero-visual, .hero-scene { min-width: 0; }
+.hero-scene {
+    width: 100%;
+    max-width: 760px;
+    height: 620px;
+    display: grid;
+    grid-template-columns: minmax(0, .8fr) minmax(200px, 1fr) minmax(0, .8fr);
+    align-items: center;
+    gap: 26px;
+}
+.hero-connection-lines, .connection-packet, .scene-orbit-dot { display: none; }
+.phone-mockup {
+    position: relative;
+    top: auto;
+    left: auto;
+    grid-column: 1;
+    justify-self: center;
+    width: min(100%, 220px);
+    min-height: 0;
+    transform: none;
+    animation: phone-float-in-place 6s ease-in-out infinite;
+}
+.phone-screen { min-height: 0; }
+.scene-card {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    padding: 14px 12px;
+}
+.scene-exchange {
+    top: auto;
+    left: auto;
+    grid-column: 2;
+    align-self: center;
+    animation: card-drift-left 6.5s ease-in-out infinite;
+}
+.scene-crm {
+    right: auto;
+    bottom: auto;
+    grid-column: 3;
+    align-self: center;
+    animation: card-drift-right 7s ease-in-out -1.5s infinite;
+}
+.phone-mockup::after, .scene-exchange::after {
+    content: "→";
+    position: absolute;
+    z-index: 5;
+    top: 50%;
+    right: -26px;
+    width: 26px;
+    color: #65def8;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 0 0 14px rgba(82, 211, 245, .75);
+    transform: translateY(-50%);
+    animation: arrow-signal 1.8s ease-in-out infinite;
+}
+.scene-caption {
+    position: static;
+    grid-column: 1 / -1;
+    justify-self: center;
+    right: auto;
+    bottom: auto;
+    transform: none;
+}
+@keyframes phone-float-in-place { 0%, 100% { transform: translateY(0) rotateY(-2deg); } 50% { transform: translateY(-8px) rotateY(2deg); } }
+@keyframes arrow-signal { 0%, 100% { opacity: .6; translate: 0 0; } 50% { opacity: 1; translate: 3px 0; } }
+
+@media (max-width: 1024px) {
+    .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+    .hero-scene { max-width: 780px; margin-inline: auto; }
+    .hero-visual { order: 1; min-height: 0; }
+}
+@media (max-width: 650px) {
+    .hero-scene {
+        height: auto;
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: center;
+        gap: 18px;
+        padding: 12px 0 20px;
+    }
+    .phone-mockup { grid-column: 1; grid-row: 1; width: min(280px, 100%); }
+    .scene-exchange { grid-column: 1; grid-row: 2; width: min(100%, 360px); }
+    .scene-crm { grid-column: 1; grid-row: 3; width: min(100%, 360px); }
+    .scene-card { padding: 16px; }
+    .phone-mockup::after, .scene-exchange::after {
+        top: auto;
+        right: auto;
+        bottom: -22px;
+        left: 50%;
+        transform: translateX(-50%) rotate(90deg);
+    }
+    .scene-caption { grid-column: 1; grid-row: 4; flex-wrap: wrap; justify-content: center; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .phone-mockup, .scene-card, .phone-mockup::after, .scene-exchange::after {
+        animation: none !important;
+    }
+}
