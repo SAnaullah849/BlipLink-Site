@@ -1340,3 +1340,96 @@ html[dir="rtl"] .close {
         scroll-behavior: auto !important;
     }
 }
+
+/* Clear, non-overlapping one-tap to CRM story */
+.hero-grid { grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); gap: clamp(30px, 4vw, 64px); }
+.hero-content, .hero-visual { min-width: 0; }
+.hero-title { max-width: 600px; }
+.hero-desc { max-width: 520px; }
+.hero-visual { min-height: 410px; padding: 0; overflow: visible; }
+.hero-scene {
+    width: 100%;
+    max-width: 760px;
+    height: auto;
+    margin-inline: auto;
+    padding: 28px 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+.flow-heading { display: grid; gap: 9px; padding-inline: 5px; }
+.flow-heading > span { color: #70dafa; font-size: 10px; font-weight: 800; letter-spacing: 1.6px; }
+.flow-heading > strong { color: #f3f8ff; font-size: clamp(16px, 1.6vw, 21px); line-height: 1.35; }
+.connection-flow { display: grid; grid-template-columns: minmax(0, 1fr) 32px minmax(0, 1fr) 32px minmax(0, 1fr); align-items: center; gap: 10px; }
+.flow-card {
+    min-width: 0;
+    min-height: 210px;
+    padding: 18px 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 18px;
+    border: 1px solid rgba(191, 220, 255, .2);
+    border-radius: 20px;
+    color: #f2f7ff;
+    background: linear-gradient(150deg, rgba(24, 51, 91, .96), rgba(11, 26, 56, .96));
+    box-shadow: 0 18px 50px rgba(0, 5, 25, .24), inset 0 1px rgba(255, 255, 255, .07);
+    backdrop-filter: blur(12px);
+    animation: flow-card-arrive .7s cubic-bezier(.2,.8,.2,1) both, flow-card-float 6s ease-in-out infinite;
+}
+.flow-card-lead { animation-delay: .18s, -1.8s; }
+.flow-card-crm { animation-delay: .36s, -3.2s; }
+.flow-card-head { min-height: 35px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.flow-icon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border: 1px solid rgba(255,255,255,.1); border-radius: 11px; font-size: 18px; font-weight: 800; }
+.flow-icon-id { color: #77e6ff; background: rgba(54, 195, 255, .13); }
+.flow-icon-lead { color: #64f0d6; background: rgba(70, 229, 195, .13); }
+.flow-icon-crm { color: #b7a6ff; background: rgba(137, 112, 255, .16); }
+.flow-step-label { color: #a9c3e1; font-size: 8px; line-height: 1.4; text-align: right; font-weight: 800; letter-spacing: .8px; }
+.flow-profile { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.flow-avatar { display: grid; flex: 0 0 38px; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(255,255,255,.22); border-radius: 50%; color: #09233b; background: linear-gradient(140deg, #b5f5ff, #54baff); font-size: 10px; font-weight: 900; }
+.flow-avatar-lead { color: #07352e; background: linear-gradient(140deg, #b5ffe5, #4bd8c3); }
+.flow-profile strong, .flow-profile small, .flow-crm-contact strong, .flow-crm-contact small { display: block; overflow-wrap: anywhere; }
+.flow-profile strong { color: #f8fbff; font-size: 11px; line-height: 1.35; }
+.flow-profile small { margin-top: 4px; color: #adc0d8; font-size: 9px; line-height: 1.4; }
+.flow-card-foot { min-height: 34px; display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(201, 225, 255, .12); color: #cad8e9; font-size: 9px; line-height: 1.4; }
+.tap-ripple, .flow-check { display: grid; flex: 0 0 22px; width: 22px; height: 22px; place-items: center; border-radius: 50%; color: #69edda; background: rgba(73, 226, 201, .14); font-size: 14px; font-weight: 900; }
+.tap-ripple { animation: tap-pop 2.4s ease-in-out infinite; }
+.flow-connector { position: relative; display: grid; place-items: center; color: #68dcf7; }
+.flow-connector span { position: relative; z-index: 1; display: grid; width: 28px; height: 28px; place-items: center; border: 1px solid rgba(104, 220, 247, .32); border-radius: 50%; background: #0b2551; font-size: 17px; animation: arrow-nudge 1.8s ease-in-out infinite; }
+.flow-connector i { position: absolute; left: -7px; right: -7px; height: 1px; background: linear-gradient(90deg, transparent, rgba(86, 214, 245, .7), transparent); }
+.flow-crm-contact { display: grid; gap: 6px; }
+.flow-crm-contact strong { color: #f3f6ff; font-size: 11px; line-height: 1.35; }
+.flow-crm-contact small { color: #a9bdd7; font-size: 9px; line-height: 1.45; }
+.flow-followup { display: grid; grid-template-columns: 7px 1fr; gap: 5px 8px; align-items: center; padding: 9px; border: 1px solid rgba(150, 169, 255, .18); border-radius: 11px; background: rgba(111, 98, 220, .1); }
+.flow-followup-dot { width: 7px; height: 7px; border-radius: 50%; background: #8d83ff; box-shadow: 0 0 12px rgba(141, 131, 255, .8); }
+.flow-followup > span:nth-child(2) { color: #a8b7d2; font-size: 8px; text-transform: uppercase; letter-spacing: .7px; }
+.flow-followup b { grid-column: 2; color: #edf1ff; font-size: 9px; font-weight: 700; }
+.flow-note { display: flex; align-items: center; gap: 9px; padding-inline: 5px; color: #b8cbe4; font-size: 11px; line-height: 1.5; }
+.flow-note-dot { flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: #5be0c6; box-shadow: 0 0 13px #5be0c6; }
+.hero-scene-glow, .hero-scene-grid, .hero-connection-lines, .connection-packet, .scene-card, .phone-mockup, .scene-orbit-dot, .scene-caption { display: none; }
+@keyframes flow-card-arrive { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes flow-card-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@keyframes tap-pop { 0%, 100% { box-shadow: 0 0 0 0 rgba(73, 226, 201, .15); } 50% { box-shadow: 0 0 0 7px rgba(73, 226, 201, 0); } }
+@keyframes arrow-nudge { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+
+@media (max-width: 1024px) {
+    .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .hero-visual { min-height: auto; }
+    .hero-scene { max-width: 760px; }
+    .flow-card { min-height: 190px; }
+}
+@media (max-width: 650px) {
+    .hero-grid { gap: 26px; }
+    .hero-visual { padding: 0; }
+    .hero-scene { gap: 18px; padding-top: 10px; }
+    .connection-flow { grid-template-columns: minmax(0, 1fr); gap: 10px; max-width: 430px; width: 100%; margin-inline: auto; }
+    .flow-card { min-height: 0; padding: 15px; gap: 13px; }
+    .flow-connector { height: 22px; }
+    .flow-connector span { transform: rotate(90deg); }
+    .flow-connector i { top: 50%; left: calc(50% - 1px); right: auto; width: 1px; height: 30px; background: linear-gradient(180deg, transparent, rgba(86, 214, 245, .7), transparent); }
+    .hero-scene-glow, .hero-scene-grid { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .flow-card, .tap-ripple, .flow-connector span { animation: none !important; }
+}
+html { overflow-x: clip; }

@@ -20,7 +20,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css?v=20261022-animated-hero">
+    <link rel="stylesheet" href="css/style.css?v=20261022-connection-flow">
 </head>
 <body>
     <nav class="navbar">
@@ -75,7 +75,7 @@
             <div class="hero-content">
                 <div class="eyebrow" data-i18n="hero.eyebrow">THE SMARTER WAY TO CONNECT</div>
                 <h1 class="hero-title" data-i18n="hero.title">Your identity.<br>One tap away.</h1>
-                <p class="hero-desc" data-i18n="hero.description">Create, share, and manage your professional identity with BlipLink.</p>
+                <p class="hero-desc" data-i18n="hero.description">Share your digital ID in one tap. Turn new connections into CRM leads and follow up in one place.</p>
                 <div class="hero-btns">
                     <a href="#" class="btn-primary" data-i18n="hero.ctaPrimary">Create Your BlipLink</a>
                     <a href="#business" class="btn-secondary" data-i18n="hero.ctaSecondary">For Companies</a>
@@ -83,59 +83,27 @@
             </div>
             <div class="hero-visual" aria-label="Digital card, contact exchange, and CRM preview">
                 <div class="hero-scene" aria-hidden="true">
-                    <div class="hero-scene-glow hero-scene-glow-one"></div>
-                    <div class="hero-scene-glow hero-scene-glow-two"></div>
-                    <div class="hero-scene-grid"></div>
-                    <svg class="hero-connection-lines" viewBox="0 0 600 540" fill="none" aria-hidden="true">
-                        <path class="connection-line connection-line-back" d="M52 184C142 126 189 220 270 246S439 138 548 197" />
-                        <path class="connection-line connection-line-front" d="M52 184C142 126 189 220 270 246S439 138 548 197" />
-                        <path class="connection-line connection-line-lower" d="M83 388C172 365 195 314 280 314S434 371 526 344" />
-                        <circle class="connection-node node-left" cx="52" cy="184" r="6" />
-                        <circle class="connection-node node-center" cx="280" cy="314" r="7" />
-                        <circle class="connection-node node-right" cx="548" cy="197" r="6" />
-                    </svg>
-                    <div class="connection-packet packet-one"><span></span></div>
-                    <div class="connection-packet packet-two"><span></span></div>
-                    <article class="scene-card scene-exchange">
-                        <div class="scene-card-top"><span class="scene-icon scene-icon-exchange">↔</span><span class="scene-live"><i></i><span data-i18n="hero.demo.live">LIVE</span></span></div>
-                        <p class="scene-eyebrow" data-i18n="hero.demo.exchangeLabel">CONTACT EXCHANGE</p>
-                        <div class="scene-person"><span class="scene-avatar scene-avatar-mint">JM</span><span><strong data-i18n="hero.demo.exchangeName">Jordan Morgan</strong><small data-i18n="hero.demo.exchangeRole">Product designer</small></span></div>
-                        <div class="scene-divider"></div>
-                        <div class="scene-footer"><span class="scene-check">✓</span><span data-i18n="hero.demo.shared">Details shared with consent</span></div>
-                    </article>
-                    <div class="phone-mockup">
-                        <div class="phone-screen">
-                            <div class="profile-header" aria-hidden="true"></div>
-                            <div class="profile-body">
-                                <div class="profile-pic">
-                                    <img src="images.jpg" alt="" width="451" height="679">
-                                </div>
-                                <h3 class="profile-name" data-i18n="hero.profileName">Oliver Bennett</h3>
-                                <p class="profile-role" data-i18n="hero.profileRole">Chief Executive Officer (CEO)</p>
-                                <div class="profile-links">
-                                    <div class="link-item" data-i18n="hero.email">Email</div>
-                                    <div class="link-item" data-i18n="hero.phone">Phone</div>
-                                    <div class="link-item" data-i18n="hero.linkedin">LinkedIn</div>
-                                    <div class="link-item" data-i18n="hero.website">Website</div>
-                                </div>
-                                <div class="scene-exchange-button"><span>↔</span><span data-i18n="hero.demo.exchangeButton">Exchange contact</span></div>
-                                <div class="qr-area">
-                                    <img class="qr-code" data-page-qr alt="" width="72" height="72">
-                                    <span class="qr-text" data-i18n="hero.scanToConnect">Scan to Connect</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="flow-heading"><span data-i18n="hero.demo.preview">PRODUCT PREVIEW</span><strong data-i18n="hero.demo.caption">One tap. A real connection. A clear next step.</strong></div>
+                    <div class="connection-flow">
+                        <article class="flow-card flow-card-id">
+                            <div class="flow-card-head"><span class="flow-icon flow-icon-id">↗</span><span class="flow-step-label" data-i18n="hero.demo.stepOne">ONE TAP</span></div>
+                            <div class="flow-profile"><span class="flow-avatar">OB</span><span><strong data-i18n="hero.profileName">Oliver Bennett</strong><small data-i18n="hero.profileRole">Chief Executive Officer (CEO)</small></span></div>
+                            <div class="flow-card-foot"><span class="tap-ripple">⌁</span><span data-i18n="hero.demo.shareID">Share your digital ID</span></div>
+                        </article>
+                        <div class="flow-connector" aria-hidden="true"><span>→</span><i></i></div>
+                        <article class="flow-card flow-card-lead">
+                            <div class="flow-card-head"><span class="flow-icon flow-icon-lead">↔</span><span class="flow-step-label" data-i18n="hero.demo.stepTwo">NEW CONNECTION</span></div>
+                            <div class="flow-profile"><span class="flow-avatar flow-avatar-lead">SK</span><span><strong data-i18n="hero.demo.crmName">Samira Khan</strong><small data-i18n="hero.demo.crmRole">Growth lead · Riyadh</small></span></div>
+                            <div class="flow-card-foot"><span class="flow-check">✓</span><span data-i18n="hero.demo.consent">Contact shared with consent</span></div>
+                        </article>
+                        <div class="flow-connector" aria-hidden="true"><span>→</span><i></i></div>
+                        <article class="flow-card flow-card-crm">
+                            <div class="flow-card-head"><span class="flow-icon flow-icon-crm">▤</span><span class="flow-step-label" data-i18n="hero.demo.stepThree">CRM FOLLOW-UP</span></div>
+                            <div class="flow-crm-contact"><strong data-i18n="hero.demo.crmAdded">Lead connected to CRM</strong><small data-i18n="hero.demo.followup">Follow up in the same workspace</small></div>
+                            <div class="flow-followup"><span class="flow-followup-dot"></span><span data-i18n="hero.demo.nextStep">Next step</span><b data-i18n="hero.demo.followupTask">Send a follow-up</b></div>
+                        </article>
                     </div>
-                    <article class="scene-card scene-crm">
-                        <div class="scene-card-top"><span class="scene-icon scene-icon-crm">↗</span><span class="scene-tag" data-i18n="hero.demo.newContact">NEW CONTACT</span></div>
-                        <div class="scene-person"><span class="scene-avatar scene-avatar-blue">SK</span><span><strong data-i18n="hero.demo.crmName">Samira Khan</strong><small data-i18n="hero.demo.crmRole">Growth lead · Riyadh</small></span></div>
-                        <div class="scene-pipeline"><span></span><span></span><span></span><span></span></div>
-                        <div class="scene-footer"><span data-i18n="hero.demo.crmStage">Added to CRM</span><b><i></i><span data-i18n="hero.demo.justNow">JUST NOW</span></b></div>
-                    </article>
-                    <div class="scene-orbit-dot orbit-dot-one"></div>
-                    <div class="scene-orbit-dot orbit-dot-two"></div>
-                    <div class="scene-orbit-dot orbit-dot-three"></div>
-                    <div class="scene-caption"><span class="scene-preview-tag" data-i18n="hero.demo.preview">PRODUCT PREVIEW</span><span class="scene-caption-pulse"></span><span data-i18n="hero.demo.caption">A new connection, already in motion</span></div>
+                    <div class="flow-note"><span class="flow-note-dot"></span><span data-i18n="hero.demo.footer">From first tap to your next conversation, all in one place.</span></div>
                 </div>
             </div>
         </div>
