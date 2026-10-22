@@ -17,10 +17,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard/card.css?v=12">
+    <link rel="stylesheet" href="dashboard/card-contact.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="dashboard/config.js"></script>
     <script src="dashboard/card-theme.js?v=2" defer></script>
-    <script src="dashboard/card.js?v=15" defer></script>
+    <script src="dashboard/card-contact.js?v=1" defer></script>
+    <script src="dashboard/card.js?v=16" defer></script>
 </head>
 <body>
     <main class="public-card-shell">
@@ -45,6 +47,7 @@
                 <p id="publicBio" class="public-bio"></p>
                 <p id="cardFeedback" class="card-feedback" role="status" aria-live="polite"></p>
                 <div id="publicActions" class="public-contact-details"></div>
+                <a id="publicAddress" class="public-address" target="_blank" rel="noopener noreferrer" hidden></a>
                 <nav id="publicSocials" class="public-socials" aria-label="Social profiles"></nav>
                 <div id="publicCompanyLinks" class="public-company-links" hidden></div>
                 <section class="card-qr-section" aria-label="Share card QR code">
@@ -55,7 +58,6 @@
                     <button id="saveContactButton" class="save-contact-button" type="button" hidden>Save contact</button>
                     <button id="exchangeContactButton" class="share-card-button" type="button">Exchange contact</button>
                 </div>
-                <a id="publicAddress" class="public-address" target="_blank" rel="noopener noreferrer" hidden></a>
                 <div id="walletActions" class="wallet-actions" aria-label="Digital wallet passes">
                     <a id="appleWalletLink" target="_blank" rel="noopener noreferrer" hidden>Add to Apple Wallet</a>
                     <a id="googleWalletLink" target="_blank" rel="noopener noreferrer" hidden>Add to Google Wallet</a>

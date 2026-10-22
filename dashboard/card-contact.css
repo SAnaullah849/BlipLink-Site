@@ -1,0 +1,62 @@
+/* Shared rounded contact fields on every card and its previews. */
+.public-card .public-contact-details,
+.overview-profile-card .preview-contacts {
+    display: grid;
+    width: 100%;
+    gap: 10px;
+    margin: 18px 0 0;
+}
+.public-card .card-contact-row,
+.overview-profile-card .card-contact-row {
+    display: flex;
+    min-width: 0;
+    min-height: 54px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--card-muted, #697991) 9%, var(--card-card, #ffffff));
+    color: var(--card-text, #132548);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: start;
+    text-decoration: none;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+.public-card .card-contact-row:hover,
+.overview-profile-card .card-contact-row:hover {
+    border-color: color-mix(in srgb, var(--card-accent, #087bff) 30%, transparent);
+    background: color-mix(in srgb, var(--card-muted, #697991) 15%, var(--card-card, #ffffff));
+    color: var(--card-text, #132548);
+    text-decoration: none;
+}
+.public-card .card-contact-row:focus-visible,
+.overview-profile-card .card-contact-row:focus-visible {
+    outline: 2px solid var(--card-accent, #087bff);
+    outline-offset: 3px;
+}
+.card-contact-row svg {
+    width: 25px;
+    height: 25px;
+    flex: 0 0 25px;
+}
+.card-contact-row .card-contact-value {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+.public-card .public-address,
+.overview-profile-card .preview-address {
+    margin: 10px 0 0;
+}
+.public-card .public-contact-details[hidden] + .public-address,
+.overview-profile-card .preview-contacts[hidden] + .preview-address {
+    margin-top: 18px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .card-contact-row { transition: none; }
+}

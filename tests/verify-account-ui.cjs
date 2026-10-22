@@ -9,7 +9,7 @@ const output = process.env.BLIPLINK_QA_OUTPUT || path.join(os.tmpdir(), 'bliplin
 
 function mockSupabase({ type = 'company', limit = 3, status = 'active', period = 'yearly' } = {}) {
     const user = { id: '11111111-1111-4111-8111-111111111111', email: 'devops@shaunco.ai' };
-    const profiles = [JSON.parse(localStorage.getItem('qa-profile') || 'null') || { id: '22222222-2222-4222-8222-222222222222', user_id: user.id, full_name: 'Alex Morgan', contact_email: 'alex@example.com', company_name: 'BlipLink', card_theme: {}, custom_links: [], created_at: new Date().toISOString() }];
+    const profiles = [JSON.parse(localStorage.getItem('qa-profile') || 'null') || { id: '22222222-2222-4222-8222-222222222222', user_id: user.id, full_name: 'Alex Morgan', contact_email: 'alex@example.com', phone: '+15551234567', website_url: 'https://example.com/alex', address: 'Office 07, Third Floor, 42 Business Avenue, Riyadh', company_name: 'BlipLink', card_theme: {}, custom_links: [], created_at: new Date().toISOString() }];
     if (type === 'company') profiles.push(JSON.parse(localStorage.getItem('qa-second-profile') || 'null') || { id: '44444444-4444-4444-8444-444444444444', user_id: user.id, full_name: 'Jamie Chen', job_title: 'Designer', department: 'Design', contact_email: 'jamie@example.com', card_theme: {}, custom_links: [], created_at: '2020-01-01' });
     let brand = JSON.parse(localStorage.getItem('qa-brand') || 'null') || { user_id: user.id, name: 'Northstar Labs', contact_email: 'hello@northstar.example', phone: '+15550009999', bio: 'Built for better connections.', website_url: 'https://northstar.example', address: '42 Company Avenue', logo_path: `${user.id}/company/logo.png`, banner_path: `${user.id}/company/banner.png`, banner_position: 50, custom_links: [], card_theme: {} };
     window.__qaRequests = [];
@@ -122,6 +122,15 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                 const preview = userPage.frameLocator('#personalPreviewFrame');
                 await preview.locator('#publicName').filter({ hasText: 'Alex Rivera' }).waitFor();
                 assert.equal(await preview.locator('.card-qr-section').isVisible(), false);
+                await userPage.locator('input[name="theme_showContacts"]').uncheck();
+                await preview.locator('#publicActions').waitFor({ state: 'hidden' });
+                assert.equal(await preview.locator('#publicAddress').isVisible(), true);
+                await userPage.locator('input[name="theme_showContacts"]').check();
+                await preview.locator('#publicActions').waitFor({ state: 'visible' });
+                await userPage.locator('input[name="theme_showAddress"]').uncheck();
+                await preview.locator('#publicAddress').waitFor({ state: 'hidden' });
+                await userPage.locator('input[name="theme_showAddress"]').check();
+                await preview.locator('#publicAddress').waitFor({ state: 'visible' });
                 assert.equal(await preview.locator('#publicCard').evaluate(el => el.style.getPropertyValue('--card-accent')), '#6d28d9');
                 await userPage.locator('#savePersonalCard').click();
                 await userPage.locator('#personalSaveState').filter({ hasText: 'All changes saved' }).waitFor();
@@ -142,6 +151,14 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                 assert.equal(await publicPage.locator('#publicCard').evaluate(el => el.style.getPropertyValue('--card-accent')), '#6d28d9');
                 assert.equal(await publicPage.locator('#exchangeContactButton').isVisible(), false);
                 assert.equal(await publicPage.locator('.card-qr-section').isVisible(), false);
+                assert.equal(await publicPage.getByRole('link', { name: 'Website: https://example.com/alex', exact: true }).getAttribute('href'), 'https://example.com/alex');
+                assert.equal(await publicPage.getByRole('link', { name: 'Email: alex@example.com', exact: true }).getAttribute('href'), 'mailto:alex@example.com');
+                assert.equal(await publicPage.getByRole('link', { name: 'Phone: +15551234567', exact: true }).getAttribute('href'), 'tel:+15551234567');
+                assert.match(await publicPage.locator('#publicAddress').getAttribute('href'), /google.com\/maps\/search/);
+                assert.equal(await publicPage.locator('#publicAddress svg').isVisible(), true);
+                assert.equal(await publicPage.locator('#publicActions a').first().evaluate(el => getComputedStyle(el).borderRadius), '14px');
+                await publicPage.setViewportSize({ width: 390, height: 1000 });
+                assert.equal(await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
                 await publicPage.screenshot({ path: path.join(output, 'personal-public-card.png'), fullPage: true });
                 await userContext.close();
                 continue;
@@ -226,6 +243,17 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                 assert.equal(await publicPage.locator('#publicBanner').evaluate(el => el.style.objectPosition), 'center 72%');
                 assert.equal(await publicPage.locator('#publicCompanyLinks a').textContent(), 'Follow Northstar');
                 assert.match(await publicPage.locator('#publicActions').textContent(), id.startsWith('2222') ? /alex@example.com/ : /jamie@example.com/);
+                assert.equal(await publicPage.getByRole('link', { name: 'Website: https://northstar.example/', exact: true }).getAttribute('href'), 'https://northstar.example/');
+                assert.equal(await publicPage.locator('#publicAddress svg').isVisible(), true);
+                if (id.startsWith('4444')) assert.equal(await publicPage.locator('#publicActions [data-contact-type="phone"]').count(), 0);
+                await publicPage.setViewportSize({ width: 390, height: 1000 });
+                assert.equal(await publicPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+                if (id.startsWith('2222')) {
+                    await publicPage.screenshot({ path: path.join(output, 'company-public-card.png'), fullPage: true });
+                    await publicPage.evaluate(() => window.BlipLinkCardTheme.apply(document.getElementById('publicCard'), window.BlipLinkCardTheme.presets.midnight, { surface: document.body }));
+                    assert.equal(await publicPage.locator('#publicActions a').first().evaluate(el => getComputedStyle(el).color), 'rgb(244, 247, 255)');
+                    await publicPage.screenshot({ path: path.join(output, 'company-public-card-dark.png'), fullPage: true });
+                }
                 await publicPage.close();
             }
             await userPage.setViewportSize({ width: 390, height: 844 });

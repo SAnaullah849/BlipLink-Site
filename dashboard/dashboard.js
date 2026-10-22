@@ -1032,10 +1032,12 @@
         byId('overviewPhotoFallback').hidden = Boolean(company.logo_path);
         setImage('overviewPhoto', company.logo_path); setImage('overviewBanner', company.banner_path);
         byId('overviewBanner').style.objectPosition = 'center ' + (company.banner_position ?? 50) + '%';
-        byId('overviewContacts').replaceChildren(...[['Email',company.contact_email],['Phone',company.phone],['Website',company.website_url]].filter(([,value])=>value).map(([label,value])=>{
-            const p=document.createElement('p'); p.className='preview-contact'; const link=document.createElement('a'); link.textContent=value; link.href=label==='Email'?'mailto:'+value:label==='Phone'?'tel:'+value:safePreviewUrl(value); if(label==='Website'){link.target='_blank';link.rel='noopener noreferrer';} p.append(document.createTextNode(label+': '),link);return p;
-        }));
-        const address=byId('overviewAddress'); address.textContent=company.address || ''; address.hidden=!company.address; address.href='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(company.address || '');
+        window.BlipLinkCardContacts.render(byId('overviewContacts'), [
+            { label: 'Website', value: company.website_url, type: 'website' },
+            { label: 'Email', value: company.contact_email, type: 'email' },
+            { label: 'Phone', value: company.phone, type: 'phone' },
+        ]);
+        window.BlipLinkCardContacts.update(byId('overviewAddress'), { label: 'Address', value: company.address, type: 'address' });
         byId('overviewSocials').replaceChildren(...(company.custom_links || []).filter(item=>item.category==='social').map(item=>makeCompanyLink(item.label,item.url)));
     }
 

@@ -88,7 +88,7 @@
         setOptionalText('publicAlternateName', personal.alternate_name);
         setOptionalText('publicAlternateRole', personal.alternate_job_title);
         setOptionalText('publicDepartment', personal.department);
-        setAddressLink('publicAddress', cardProfile.address);
+        window.BlipLinkCardContacts.update(byId('publicAddress'), { label: 'Address', value: cardProfile.address, type: 'address' });
         byId('publicInitials').textContent = getInitials(cardProfile.full_name);
         const cardUrl = previewMode
             ? new URL(`card.html?id=${encodeURIComponent(cardProfile.profile_id || '')}`, window.location.href).href
@@ -135,30 +135,13 @@
             }
         }
 
-        const actions = [
-            ['Email', cardProfile.contact_email, 'email'],
-            ['Phone', cardProfile.phone, 'phone'],
-            ['Secondary phone', personal.secondary_phone, 'phone'],
-            ['Website', cardProfile.website_url, 'website'],
-            ['Book a meeting', personal.booking_url, 'website'],
-        ].filter(([, value]) => value);
-        byId('publicActions').replaceChildren(...actions.map(([label, value, type]) => {
-            const item = document.createElement('p');
-            item.className = 'public-contact-detail';
-            const name = document.createElement('span');
-            name.textContent = label;
-            const link = document.createElement('a');
-            link.href = type === 'email' ? `mailto:${value}` :
-                type === 'phone' ? `tel:${value}` : safeWebUrl(value);
-            if (type === 'website') {
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-            }
-            link.textContent = value;
-            item.append(name, link);
-            return item;
-        }));
-        byId('publicActions').hidden = actions.length === 0;
+        window.BlipLinkCardContacts.render(byId('publicActions'), [
+            { label: 'Website', value: cardProfile.website_url, type: 'website' },
+            { label: 'Email', value: cardProfile.contact_email, type: 'email' },
+            { label: 'Phone', value: cardProfile.phone, type: 'phone' },
+            { label: 'Secondary phone', value: personal.secondary_phone, type: 'phone' },
+            { label: 'Book a meeting', value: personal.booking_url, type: 'booking' },
+        ]);
 
         const socialEntries = [
             ['LinkedIn', cardProfile.linkedin_url, 'linkedin'],
@@ -384,17 +367,6 @@
         const element = byId(id);
         element.textContent = value || '';
         element.hidden = !value;
-    }
-
-    function setAddressLink(id, address) {
-        const link = byId(id);
-        link.textContent = address || '';
-        link.hidden = !address;
-        if (address) {
-            link.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-        } else {
-            link.removeAttribute('href');
-        }
     }
 
     function getInitials(value) {
