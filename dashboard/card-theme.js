@@ -10,7 +10,7 @@
         showWallets: true, showSaveContact: true,
     });
     const choices = {
-        layout: ['centered', 'left', 'compact'], font: ['sans', 'manrope', 'serif', 'system'],
+        layout: ['centered', 'left', 'compact'], font: ['sans'],
         avatarShape: ['circle', 'rounded', 'square'], buttonShape: ['rounded', 'pill', 'square'],
         socialStyle: ['solid', 'outline', 'minimal'], shadow: ['soft', 'bold', 'none'],
         spacing: ['comfortable', 'compact'], coverStyle: ['gradient', 'solid'],
@@ -19,9 +19,9 @@
     const presets = Object.freeze({
         signature: { ...defaults },
         midnight: { ...defaults, pageColor: '#080f20', cardColor: '#111d34', textColor: '#f4f7ff', mutedColor: '#a7b6cf', accentColor: '#7dd3fc', coverStart: '#172554', coverEnd: '#155e75', socialStyle: 'outline' },
-        rose: { ...defaults, pageColor: '#fff1f2', cardColor: '#fffaf8', textColor: '#4c1d35', mutedColor: '#8c5b70', accentColor: '#b83267', coverStart: '#fb7185', coverEnd: '#fbcfe8', font: 'serif', avatarShape: 'rounded' },
+        rose: { ...defaults, pageColor: '#fff1f2', cardColor: '#fffaf8', textColor: '#4c1d35', mutedColor: '#8c5b70', accentColor: '#b83267', coverStart: '#fb7185', coverEnd: '#fbcfe8', avatarShape: 'rounded' },
         forest: { ...defaults, pageColor: '#edf5ef', cardColor: '#fbfdf9', textColor: '#173d2b', mutedColor: '#597162', accentColor: '#25724c', coverStart: '#14532d', coverEnd: '#86b890', layout: 'left' },
-        minimal: { ...defaults, pageColor: '#eeeeee', textColor: '#202020', mutedColor: '#666666', accentColor: '#202020', coverStart: '#e2e2e2', coverEnd: '#f5f5f5', radius: 8, shadow: 'none', socialStyle: 'minimal', layout: 'compact', font: 'system', coverHeight: 100, avatarSize: 84 },
+        minimal: { ...defaults, pageColor: '#eeeeee', textColor: '#202020', mutedColor: '#666666', accentColor: '#202020', coverStart: '#e2e2e2', coverEnd: '#f5f5f5', radius: 8, shadow: 'none', socialStyle: 'minimal', layout: 'compact', coverHeight: 100, avatarSize: 84 },
     });
 
     function normalize(value) {
@@ -55,7 +55,7 @@
 
     function apply(card, value, options = {}) {
         const theme = normalize(value);
-        const fonts = { sans: '"DM Sans", sans-serif', manrope: '"Manrope", sans-serif', serif: 'Georgia, serif', system: 'system-ui, sans-serif' };
+        const fonts = { sans: 'Roboto, sans-serif' };
         card.classList.add('themed-card');
         for (const key of ['layout', 'socialStyle', 'spacing']) card.dataset[key] = theme[key];
         const vars = {

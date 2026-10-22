@@ -4,7 +4,7 @@
     --muted: #697991;
     --blue: #087bff;
     --border: #e4eaf2;
-    font-family: "DM Sans", sans-serif;
+    font-family: "Roboto", sans-serif;
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -115,7 +115,7 @@ a {
     background: linear-gradient(135deg, #e5f2ff, #cfe8ff);
     box-shadow: 0 6px 19px rgba(19, 37, 72, 0.2);
     color: var(--blue);
-    font-family: "Manrope", sans-serif;
+    font-family: "Roboto", sans-serif;
     font-size: 30px;
     font-weight: 800;
 }
@@ -137,7 +137,7 @@ a {
 .public-card h1 {
     overflow-wrap: anywhere;
     margin: 0;
-    font-family: "Manrope", sans-serif;
+    font-family: "Roboto", sans-serif;
     font-size: clamp(25px, 7vw, 31px);
     font-weight: 800;
     letter-spacing: -0.045em;
@@ -407,7 +407,7 @@ a {
 
 .exchange-form h2 {
     margin: 0;
-    font-family: "Manrope", sans-serif;
+    font-family: "Roboto", sans-serif;
     font-size: 23px;
     letter-spacing: -0.04em;
 }
@@ -557,10 +557,10 @@ a {
 /* The same appearance engine styles both the saved card and the editor preview. */
 body.card-theme-surface { background: var(--card-page); }
 .card-theme-surface .return-home { color: var(--card-page-text); }
-.themed-card { border-color: color-mix(in srgb, var(--card-muted) 22%, transparent); border-radius: var(--card-radius); background: var(--card-card); color: var(--card-text); box-shadow: var(--card-shadow); font-family: var(--card-font); }
+.themed-card { border-color: color-mix(in srgb, var(--card-muted) 22%, transparent); border-radius: var(--card-radius); background: var(--card-card); color: var(--card-text); box-shadow: var(--card-shadow); font-family: Roboto, sans-serif; }
 .themed-card .public-card-cover { height: var(--card-cover-height); background: var(--card-cover); }
-.themed-card .public-card-avatar { width: var(--card-avatar-size); height: var(--card-avatar-size); margin-top: calc(var(--card-avatar-size) * -.5); border-color: var(--card-card); border-radius: var(--card-avatar-radius); background: var(--card-card); color: var(--card-accent); font-family: var(--card-font); }
-.themed-card h1 { color: var(--card-text); font-family: var(--card-font); }
+.themed-card .public-card-avatar { width: var(--card-avatar-size); height: var(--card-avatar-size); margin-top: calc(var(--card-avatar-size) * -.5); border-color: var(--card-card); border-radius: var(--card-avatar-radius); background: var(--card-card); color: var(--card-accent); font-family: Roboto, sans-serif; }
+.themed-card h1 { color: var(--card-text); font-family: Roboto, sans-serif; }
 .themed-card .public-role, .themed-card .public-bio, .themed-card .card-qr-section, .themed-card .public-contact-detail span, .themed-card .public-card-footer { color: var(--card-muted); }
 .themed-card .public-company, .themed-card .public-contact-detail a, .themed-card .public-address, .themed-card .public-card-footer a { color: var(--card-accent); }
 .themed-card .public-social, .themed-card .save-contact-button { border-radius: var(--card-button-radius); background: var(--card-accent); color: var(--card-on-accent); }
@@ -590,6 +590,6 @@ body.card-preview-mode { min-height: 0; }
 .card-theme-surface[data-page-tone="dark"] .public-card-brand img:last-child { filter: brightness(0) invert(1); }
 .public-alternate,.public-department { margin:5px 0; color:var(--card-muted,#697991); font-size:14px; }
 .public-company-links { margin:20px 0; text-align:left; }
-.public-company-links h2 { margin:16px 0 10px; font:700 12px var(--card-font,"DM Sans",sans-serif); color:var(--card-muted,#697991); }
+.public-company-links h2 { margin:16px 0 10px; font:700 12px Roboto,sans-serif; color:var(--card-muted,#697991); }
 .public-company-links section > div { display:flex; flex-wrap:wrap; gap:8px; }
 .public-company-links a { padding:10px 13px; border:1px solid currentColor; border-radius:var(--card-button-radius,12px); color:var(--card-accent,#087bff); font-size:12px; text-decoration:none; overflow-wrap:anywhere; }

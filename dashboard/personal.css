@@ -4,13 +4,13 @@
 .personal-header-actions > a, .personal-text-button { padding: 0; border: 0; background: transparent; color: #59718f; font: inherit; font-size: 12px; text-decoration: none; cursor: pointer; }
 .personal-main { max-width: 1244px; margin: 0 auto; padding: 38px 22px 22px; }
 .personal-intro { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 27px; }
-.personal-intro h1 { margin: 8px 0 4px; font: 800 clamp(30px, 4vw, 40px)/1.2 Manrope, sans-serif; letter-spacing: -1.5px; }
+.personal-intro h1 { margin: 8px 0 4px; font: 800 clamp(30px, 4vw, 40px)/1.2 Roboto, sans-serif; letter-spacing: -1.5px; }
 .personal-intro p, .personal-save-state { color: #7a879a; font-size: 13px; }
 .personal-save-state { padding: 9px 13px; border: 1px solid #e2e8f0; border-radius: 999px; background: #fff; }
 .personal-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 400px; align-items: start; gap: 32px; }
 .personal-editor { overflow: hidden; }
 .personal-tabs { display: flex; gap: 5px; padding: 9px; border-bottom: 1px solid #e8edf5; background: #fafbfe; }
-.personal-tabs button { flex: 1; padding: 14px 10px; border: 0; border-radius: 10px; background: transparent; color: #7b8799; font: 700 13px 'DM Sans', sans-serif; cursor: pointer; }
+.personal-tabs button { flex: 1; padding: 14px 10px; border: 0; border-radius: 10px; background: transparent; color: #7b8799; font: 700 13px 'Roboto', sans-serif; cursor: pointer; }
 .personal-tabs button[aria-selected="true"] { background: #fff; color: #087bff; box-shadow: 0 2px 8px #17375a0d; }
 .personal-tab-panel { padding: clamp(20px, 3vw, 32px); }
 .personal-contacts-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 16px; }
@@ -45,7 +45,7 @@
 .personal-share-actions a[aria-disabled="true"] { opacity: .5; pointer-events: none; }
 .personal-preview-hint { margin: 13px 0; color: #929eb0; font-size: 11px; text-align: center; }
 .personal-presets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 30px; }
-.personal-preset { display: grid; gap: 8px; padding: 8px; border: 1px solid #e1e8f1; border-radius: 12px; background: #fff; color: #61738e; font: 600 10px 'DM Sans', sans-serif; cursor: pointer; }
+.personal-preset { display: grid; gap: 8px; padding: 8px; border: 1px solid #e1e8f1; border-radius: 12px; background: #fff; color: #61738e; font: 600 10px 'Roboto', sans-serif; cursor: pointer; }
 .personal-preset[aria-pressed="true"] { border-color: #087bff; box-shadow: 0 0 0 2px #087bff19; }
 .personal-preset-swatch { height: 53px; border-radius: 7px; background: var(--preset-background); box-shadow: inset 0 -23px var(--preset-card); }
 .personal-design-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
