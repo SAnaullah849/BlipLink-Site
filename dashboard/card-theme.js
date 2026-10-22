@@ -81,7 +81,7 @@
             '.public-company-links': theme.showSocials,
             '.card-qr-section': theme.showQr, '.public-address': theme.showAddress,
             '.wallet-actions': theme.showWallets, '#saveContactButton': theme.showSaveContact,
-            '#exchangeContactButton': !options.individual,
+            '#exchangeContactButton': true,
         };
         for (const [selector, visible] of Object.entries(visibility)) {
             const element = card.querySelector(selector);
