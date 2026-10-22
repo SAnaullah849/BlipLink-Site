@@ -163,7 +163,7 @@
         const notice = byId('accountAllowance');
         if (notice) {
             notice.textContent = accountAccess
-                ? `${individual ? 'Individual professional' : 'Company account'} · ${profiles.length} of ${accountAccess.profile_limit} profiles used. ${window.BlipLinkAccess.message(accountAccess)}`
+                ? `Team profiles · ${profiles.length} of ${accountAccess.profile_limit} used.`
                 : 'Account access is unavailable. Editing is paused. Contact support.';
         }
         const button = byId('addProfileButton');

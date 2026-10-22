@@ -146,7 +146,7 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                 await userContext.close();
                 continue;
             }
-            await userPage.locator('#accountAllowance').filter({ hasText: '2 of' }).waitFor();
+            await userPage.locator('#accountAllowance').filter({ hasText: '2 of' }).waitFor({ state: 'attached' });
             assert.equal(await userPage.locator('#addProfileButton').isDisabled(), type === 'individual');
             assert.equal(await userPage.locator('[data-nav="company"]').isVisible(), type === 'company');
             assert.equal(await userPage.locator('#adminNavigationLink').count(), 0);
@@ -155,6 +155,7 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
             await userPage.locator('#companyTitle').filter({ hasText: 'Northstar Labs' }).waitFor();
             assert.equal(await userPage.locator('#dashboardView').isVisible(), true);
             assert.equal(await userPage.locator('[data-nav="social"]').count(), 0);
+            assert.equal(await userPage.locator('#accountAllowance').isVisible(), false);
             await userPage.getByRole('button', { name: 'Edit company details' }).click();
             await userPage.locator('#companyDetailsForm input[name="name"]').fill('Northstar Studio');
             await userPage.locator('#companyDetailsForm input[name="contact_email"]').fill('company@northstar.example');
@@ -182,6 +183,8 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
             assert.equal(await userPage.locator('#overviewViewCard').count(), 0);
             await userPage.goto(base + '/dashboard/profile.html');
             await userPage.locator('.team-card').nth(1).waitFor();
+            assert.equal(await userPage.locator('#accountAllowance').isVisible(), true);
+            assert.equal(await userPage.locator('#accountAllowance').textContent(), 'Team profiles · 2 of 3 used.');
             await userPage.locator('#teamSearch').fill('Design');
             assert.equal(await userPage.locator('.team-card').count(), 1);
             assert.match(await userPage.locator('.team-card h3').textContent(), /Jamie/);
@@ -228,9 +231,10 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
             await userPage.setViewportSize({ width: 390, height: 844 });
             for (const route of ['index', 'profile', 'company', 'theme']) {
                 await userPage.goto(base + `/dashboard/${route}.html`);
-                await userPage.locator('#accountAllowance').filter({ hasText: '2 of' }).waitFor();
+                await userPage.locator('#accountAllowance').filter({ hasText: '2 of' }).waitFor({ state: 'attached' });
                 await userPage.locator('#companyTitle').filter({ hasText: 'Northstar Studio' }).waitFor({ state: 'attached' });
                 assert.equal(await userPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, route + ' mobile overflow');
+                assert.equal(await userPage.locator('#accountAllowance').isVisible(), route === 'profile', route + ' notice visibility');
                 await userPage.screenshot({ path: path.join(output, `${route}-mobile.png`), fullPage: true });
                 if (route === 'profile') {
                     await userPage.locator('.team-card').first().getByRole('button', { name: 'Edit card' }).click();
@@ -239,6 +243,11 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                     await userPage.getByRole('button', { name: 'Close employee editor' }).click();
                 }
             }
+            await userPage.goto(base + '/dashboard/subscription.html');
+            await userPage.locator('#subscriptionStatus').filter({ hasText: 'Active' }).waitFor();
+            assert.equal(await userPage.locator('#accountAllowance').isVisible(), false);
+            assert.equal(await userPage.locator('#subscriptionPlan').textContent(), 'Yearly access');
+            assert.notEqual(await userPage.locator('#subscriptionExpires').textContent(), '—');
             await userContext.close();
         }
         for (const type of ['individual', 'company']) {
@@ -272,7 +281,7 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                 await pausedPage.locator('#personalWorkspace').waitFor({ state: 'visible' });
                 assert.equal(await pausedPage.locator('#savePersonalCard').isEnabled(), true);
             } else {
-                await pausedPage.locator('#accountAllowance').filter({ hasText: 'Monthly access' }).waitFor();
+                await pausedPage.locator('#subscriptionPlan').filter({ hasText: 'Monthly access' }).waitFor({ state: 'attached' });
                 await pausedPage.locator('#mobileNavigationToggle').click();
                 await pausedPage.locator('[data-nav="crm"]').waitFor({ state: 'visible' });
             }

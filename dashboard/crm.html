@@ -16,7 +16,7 @@
     <script src="access-state.js?v=1" defer></script>
     <script src="card-theme.js?v=2" defer></script>
     <script src="theme-editor.js?v=1" defer></script>
-    <script src="dashboard.js?v=29" defer></script>
+    <script src="dashboard.js?v=30" defer></script>
 </head>
 <body data-page="crm">
     <div id="dashboardView" class="dashboard-shell" hidden>
@@ -108,7 +108,7 @@
                 </div>
             </header>
 
-            <p id="accountAllowance" class="notice notice-info" role="status">Loading account allowance…</p>
+            <p id="accountAllowance" class="notice notice-info" data-dashboard-page="profile" role="status" hidden>Loading team allowance…</p>
             <div id="dashboardMessage" class="notice" role="status" aria-live="polite" hidden></div>
 
             <section id="overview" class="dashboard-page" data-dashboard-page="overview">
