@@ -164,7 +164,7 @@
     }
 
     function goToDashboard() {
-        window.location.assign(new URL('dashboard/index.html', window.location.href).href);
+        window.location.assign(new URL('dashboard/', window.location.origin).href);
     }
 
     function showSetupNotice(message) {

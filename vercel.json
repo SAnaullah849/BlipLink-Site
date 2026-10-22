@@ -1,0 +1,30 @@
+{
+  "redirects": [
+    { "source": "/dashboard", "destination": "/dashboard/", "permanent": true },
+    { "source": "/dashboard/index.html", "destination": "/dashboard/", "permanent": true },
+    { "source": "/dashboard/profile.html", "destination": "/dashboard/profile", "permanent": true },
+    { "source": "/dashboard/theme.html", "destination": "/dashboard/theme", "permanent": true },
+    { "source": "/dashboard/leads.html", "destination": "/dashboard/leads", "permanent": true },
+    { "source": "/dashboard/crm.html", "destination": "/dashboard/crm", "permanent": true },
+    { "source": "/dashboard/company.html", "destination": "/dashboard/company", "permanent": true },
+    { "source": "/dashboard/subscription.html", "destination": "/dashboard/subscription", "permanent": true },
+    { "source": "/dashboard/help.html", "destination": "/dashboard/help", "permanent": true },
+    { "source": "/dashboard/personal.html", "destination": "/dashboard/personal", "permanent": true },
+    { "source": "/dashboard/social.html", "destination": "/dashboard/company", "permanent": true },
+    { "source": "/card.html", "destination": "/card", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/dashboard/", "destination": "/dashboard/index.html" },
+    { "source": "/dashboard/overview", "destination": "/dashboard/index.html" },
+    { "source": "/dashboard/profile", "destination": "/dashboard/profile.html" },
+    { "source": "/dashboard/theme", "destination": "/dashboard/theme.html" },
+    { "source": "/dashboard/leads", "destination": "/dashboard/leads.html" },
+    { "source": "/dashboard/crm", "destination": "/dashboard/crm.html" },
+    { "source": "/dashboard/company", "destination": "/dashboard/company.html" },
+    { "source": "/dashboard/subscription", "destination": "/dashboard/subscription.html" },
+    { "source": "/dashboard/help", "destination": "/dashboard/help.html" },
+    { "source": "/dashboard/personal", "destination": "/dashboard/personal.html" },
+    { "source": "/card", "destination": "/card.html" }
+  ]
+}

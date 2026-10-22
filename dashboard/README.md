@@ -18,10 +18,9 @@ Users retain their profiles and designs while paused. The individual editor beco
 
 ## Frontend routes
 
-- `/login.html` handles email/password sign-in and invitation password setup.
-- `/dashboard/personal.html` gives individuals Profile, Design, and Links tabs, one card, image uploads, live preview, and sharing. Old company dashboard routes redirect individuals here before company data is loaded.
-- `/dashboard/index.html`, `profile.html` (My Team), `theme.html`, `leads.html`, `crm.html`, `company.html`, `subscription.html`, and `help.html` make up the company dashboard. `social.html` redirects to Company. Expired accounts can view access information and help.
-- `/card.html?id=<profile-id>` renders available public cards. Existing IDs are preserved.
+- `/login.html` handles email/password sign-in and invitation password setup. `/login` is a clean URL alias.
+- `/dashboard/` is the company overview. `/dashboard/profile`, `/dashboard/theme`, `/dashboard/leads`, `/dashboard/crm`, `/dashboard/company`, `/dashboard/subscription`, `/dashboard/help`, and `/dashboard/personal` are clean URLs for their respective pages. Existing `.html` dashboard URLs redirect to the clean paths. Old company dashboard routes redirect individual accounts to the personal workspace before company data is loaded.
+- `/card?id=<profile-id>` renders available public cards. Existing card IDs are preserved; `/card.html` redirects to the clean path.
 
 The in-app admin page, API, membership table, and admin-grant functions have been removed. Account management happens only in Supabase.
 

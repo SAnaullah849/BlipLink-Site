@@ -31,11 +31,11 @@
             client = window.supabase.createClient(config.url, config.anonKey);
             const session = await client.auth.getSession();
             if (session.error) throw new Error('Unable to verify your sign-in. Please try again.');
-            if (!session.data.session?.user) { window.location.replace('../login.html'); return; }
+            if (!session.data.session?.user) { window.location.replace('/login'); return; }
             user = session.data.session.user;
             byId('personalSignOut').hidden = false;
             accessState = await window.BlipLinkAccess.load(client);
-            if (accessState.account_type !== 'individual') { window.location.replace('index.html'); return; }
+            if (accessState.account_type !== 'individual') { window.location.replace('/dashboard/'); return; }
             let result = await client.from('company_profiles').select('*').eq('user_id', user.id)
                 .order('created_at', { ascending: true }).limit(1).maybeSingle();
             if (result.error) throw new Error('Unable to load your card. Please try again.');
@@ -56,12 +56,12 @@
             selectTab(window.location.hash.slice(1));
             postPreview();
             window.BlipLinkAccess.watch(client, access => {
-                if (access?.account_type === 'company') { dirty = false; window.location.replace('index.html'); return; }
+                if (access?.account_type === 'company') { dirty = false; window.location.replace('/dashboard/'); return; }
                 accessState = access; applyAccessState();
             });
             client.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_OUT' || !session?.user || session.user.id !== user.id) {
-                    dirty = false; window.location.replace('../login.html');
+                    dirty = false; window.location.replace('/login');
                 }
             });
         } catch (error) { showMessage(error.message || 'Unable to open your card.', 'error'); }
@@ -111,7 +111,7 @@
             if (dirty && !window.confirm('Sign out and discard your unsaved changes?')) return;
             const result = await client.auth.signOut();
             if (result.error) { showMessage('Unable to sign out. Please try again.', 'error'); return; }
-            dirty = false; window.location.replace('../login.html');
+            dirty = false; window.location.replace('/login');
         });
     }
 
@@ -285,7 +285,7 @@
         try { if (text.includes('://')) return new URL(text).pathname.replace(/\D/g, ''); } catch { return ''; }
         return text.replace(/\D/g, '');
     }
-    function publicCardUrl() { return new URL(`../card.html?id=${encodeURIComponent(profile.id)}`, window.location.href).href; }
+    function publicCardUrl() { return new URL(`/card?id=${encodeURIComponent(profile.id)}`, window.location.href).href; }
     function updateSharing() {
         const active = Boolean(profile.full_name?.trim()) && !profile.is_locked && accessState?.can_edit;
         byId('openPersonalCard').setAttribute('aria-disabled', String(!active)); byId('copyPersonalCard').disabled = !active;

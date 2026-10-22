@@ -97,14 +97,14 @@
         }
 
         if (!data.session?.user) {
-            window.location.replace('../login.html');
+            window.location.replace('/login');
             return;
         }
 
         currentUser = data.session.user;
         await loadAccountAccess();
         if (accountAccess?.account_type === 'individual') {
-            window.location.replace('personal.html');
+            window.location.replace('/dashboard/personal');
             return;
         }
         showDashboard();
@@ -120,7 +120,7 @@
         showPage(window.location.hash.slice(1) || document.body.dataset.page || 'overview');
         window.BlipLinkAccess.watch(supabaseClient, access => {
             const previouslyActive = accountAccess?.can_edit;
-            if (access?.account_type === 'individual') { window.location.replace('personal.html'); return; }
+            if (access?.account_type === 'individual') { window.location.replace('/dashboard/personal'); return; }
             accountAccess = access;
             renderAccountAllowance(); loadSubscription();
             if (access?.can_edit && !previouslyActive) { window.location.reload(); return; }
@@ -130,7 +130,7 @@
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' || !session?.user) {
                 currentUser = null;
-                window.location.replace('../login.html');
+                window.location.replace('/login');
                 return;
             }
 
@@ -140,7 +140,7 @@
                 window.setTimeout(async () => {
                     await loadAccountAccess();
                     if (accountAccess?.account_type === 'individual') {
-                        window.location.replace('personal.html');
+                        window.location.replace('/dashboard/personal');
                         return;
                     }
                     await loadProfiles();
@@ -243,7 +243,7 @@
             return;
         }
         profile = {};
-        window.location.replace('../login.html');
+        window.location.replace('/login');
     }
 
     async function loadProfiles(selectedProfileId) {
@@ -353,7 +353,7 @@
             const details = document.createElement('p'); details.className = 'team-card-contact'; details.textContent = [item.contact_email, item.phone].filter(Boolean).join('\n');
             const actions = document.createElement('div'); actions.className = 'team-card-actions';
             const edit = actionButton('Edit card', () => loadProfile(item), 'button button-primary button-small');
-            const view = document.createElement('a'); view.className = 'button button-secondary button-small'; view.textContent = 'View card'; view.href = `../card.html?id=${encodeURIComponent(item.id)}`; view.target = '_blank'; view.rel = 'noopener noreferrer'; view.hidden = status(item) !== 'public';
+            const view = document.createElement('a'); view.className = 'button button-secondary button-small'; view.textContent = 'View card'; view.href = `/card?id=${encodeURIComponent(item.id)}`; view.target = '_blank'; view.rel = 'noopener noreferrer'; view.hidden = status(item) !== 'public';
             const more = document.createElement('details'); more.className = 'team-card-more';
             const summary = document.createElement('summary'); summary.textContent = 'More'; summary.setAttribute('aria-label', `More actions for ${item.full_name || 'draft member'}`);
             const remove = actionButton('Delete member', () => deleteProfile(item), 'text-button team-delete'); remove.disabled = profiles.length <= 1;
@@ -443,7 +443,7 @@
     }
     function updateCardLink() {
         const valid = accountAccess?.can_edit && profile.full_name?.trim() && !profile.is_locked;
-        const url = new URL(`../card.html?id=${encodeURIComponent(profile.id || '')}`, window.location.href).href;
+        const url = new URL(`/card?id=${encodeURIComponent(profile.id || '')}`, window.location.origin).href;
         const link = byId('viewCardButton'); link.href = valid ? url : '#'; link.setAttribute('aria-disabled', String(!valid));
         byId('copyCardLinkButton').disabled = !valid; byId('cardLinkText').textContent = valid ? url : 'Save a name and unlock this card to share it.'; return valid ? url : '';
     }

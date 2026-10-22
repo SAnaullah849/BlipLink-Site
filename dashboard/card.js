@@ -91,7 +91,7 @@
         window.BlipLinkCardContacts.update(byId('publicAddress'), { label: 'Address', value: cardProfile.address, type: 'address' });
         byId('publicInitials').textContent = getInitials(cardProfile.full_name);
         const cardUrl = previewMode
-            ? new URL(`card.html?id=${encodeURIComponent(cardProfile.profile_id || '')}`, window.location.href).href
+            ? new URL(`/card?id=${encodeURIComponent(cardProfile.profile_id || '')}`, window.location.origin).href
             : window.location.href;
         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=272x272&margin=2&data=${encodeURIComponent(cardUrl)}`;
         if (byId('cardQrCode').src !== qrUrl) byId('cardQrCode').src = qrUrl;
