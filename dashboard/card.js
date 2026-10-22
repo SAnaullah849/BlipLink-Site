@@ -22,14 +22,13 @@
         byId('exchangeContactButton').addEventListener('click', () => byId('exchangeDialog').showModal());
         byId('closeExchangeDialog').addEventListener('click', () => byId('exchangeDialog').close());
 
-        const config = window.BLIPLINK_SUPABASE_CONFIG;
-        if (!window.supabase?.createClient || !config?.url || !config?.anonKey) {
+        if (!window.BlipLinkAuth || !window.supabase?.createClient) {
             showStatus('This card is temporarily unavailable. Please try again later.');
             return;
         }
 
         try {
-            const client = window.supabase.createClient(config.url, config.anonKey);
+            const client = window.BlipLinkAuth.createClient();
             const { data, error } = await client.rpc('get_public_company_card', {
                 requested_user_id: userId,
             });
@@ -64,9 +63,8 @@
 
     function initializePreview() {
         document.body.classList.add('card-preview-mode');
-        const config = window.BLIPLINK_SUPABASE_CONFIG;
-        if (!window.supabase?.createClient || !config?.url || !config?.anonKey) return;
-        const client = window.supabase.createClient(config.url, config.anonKey);
+        if (!window.BlipLinkAuth || !window.supabase?.createClient) return;
+        const client = window.BlipLinkAuth.createClient();
         window.addEventListener('message', event => {
             if (event.origin !== window.location.origin || event.source !== window.parent ||
                 event.data?.type !== 'bliplink-card-preview' || !event.data.profile) return;
@@ -325,8 +323,7 @@
         };
 
         try {
-            const config = window.BLIPLINK_SUPABASE_CONFIG;
-            const client = window.supabase.createClient(config.url, config.anonKey);
+            const client = window.BlipLinkAuth.createClient();
             const { error } = await client.rpc('submit_public_card_exchange', values);
             if (error) throw error;
             const confirmation = 'Your details were shared successfully. The profile owner can follow up with you.';

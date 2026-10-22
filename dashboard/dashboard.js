@@ -74,20 +74,13 @@
         window.addEventListener('resize', () => { if (window.innerWidth > 640) closeMobileNavigation(); });
         window.addEventListener('beforeunload', event => { if (profileDirty || themeDirty) { event.preventDefault(); event.returnValue = ''; } });
 
-        const config = window.BLIPLINK_SUPABASE_CONFIG;
-        if (!window.supabase?.createClient || !config?.url || !config?.anonKey) {
+        if (!window.BlipLinkAuth || !window.supabase?.createClient) {
             byId('dashboardView').hidden = false;
             showDashboardMessage('Dashboard configuration is unavailable. Please try again later.', 'error');
             return;
         }
 
-        supabaseClient = window.supabase.createClient(config.url, config.anonKey, {
-            auth: {
-                autoRefreshToken: true,
-                persistSession: true,
-                detectSessionInUrl: true,
-            },
-        });
+        supabaseClient = window.BlipLinkAuth.createClient();
 
         const { data, error } = await supabaseClient.auth.getSession();
         if (error) {

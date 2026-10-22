@@ -22,13 +22,12 @@
         buildDesignControls();
         buildSocialControls();
         bindEditor();
-        const config = window.BLIPLINK_SUPABASE_CONFIG;
-        if (!window.supabase?.createClient || !config?.url || !config?.anonKey) {
+        if (!window.BlipLinkAuth || !window.supabase?.createClient) {
             showMessage('Sign-in is temporarily unavailable. Please try again later.', 'error');
             return;
         }
         try {
-            client = window.supabase.createClient(config.url, config.anonKey);
+            client = window.BlipLinkAuth.createClient();
             const session = await client.auth.getSession();
             if (session.error) throw new Error('Unable to verify your sign-in. Please try again.');
             if (!session.data.session?.user) { window.location.replace('/login'); return; }

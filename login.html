@@ -10,10 +10,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="dashboard/dashboard.css?v=12">
+    <link rel="stylesheet" href="dashboard/dashboard.css?v=13">
+    <link rel="stylesheet" href="dashboard/auth.css?v=1">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="dashboard/config.js"></script>
-    <script src="dashboard/login.js?v=4" defer></script>
+    <script src="dashboard/auth-client.js?v=1"></script>
+    <script src="dashboard/login.js?v=5" defer></script>
 </head>
 <body>
     <main class="login-screen">
@@ -33,9 +35,45 @@
                 <label for="loginEmail">Work email</label>
                 <input id="loginEmail" name="email" type="email" autocomplete="username" placeholder="you@company.com" required>
                 <label for="loginPassword">Password</label>
-                <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+                <div class="password-field">
+                    <input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required>
+                    <button class="password-visibility" type="button" data-password-target="loginPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                </div>
+                <div class="login-options">
+                    <label class="remember-option"><input id="rememberMe" type="checkbox" checked> <span>Remember me</span></label>
+                    <button class="text-action" type="button" data-show-auth="recovery">Forgot password?</button>
+                </div>
                 <button id="loginButton" class="button button-primary button-full" type="submit">Sign in</button>
                 <p id="loginMessage" class="form-message" role="alert" aria-live="polite"></p>
+            </form>
+            <div class="auth-divider" id="authDivider"><span>or</span></div>
+            <button id="showSso" class="button button-secondary button-full" type="button" data-show-auth="sso">Continue with company SSO</button>
+            <form id="ssoForm" class="form-stack auth-secondary-form" hidden>
+                <label for="ssoEmail">Company email</label>
+                <input id="ssoEmail" name="email" type="email" autocomplete="username" placeholder="you@company.com" required>
+                <p class="auth-help">We’ll use your company email domain to find your organization’s sign-in provider.</p>
+                <label class="remember-option"><input id="ssoRememberMe" type="checkbox" checked> <span>Remember me</span></label>
+                <button id="ssoButton" class="button button-primary button-full" type="submit">Continue</button>
+                <p id="ssoMessage" class="form-message" role="alert" aria-live="polite"></p>
+                <button class="text-action auth-back" type="button" data-show-auth="login">Back to password sign in</button>
+            </form>
+            <form id="recoveryForm" class="form-stack auth-secondary-form" hidden>
+                <label for="recoveryEmail">Email address</label>
+                <input id="recoveryEmail" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
+                <button id="recoveryButton" class="button button-primary button-full" type="submit">Send reset link</button>
+                <p id="recoveryMessage" class="form-message" role="status" aria-live="polite"></p>
+                <button class="text-action auth-back" type="button" data-show-auth="login">Back to sign in</button>
+            </form>
+            <form id="newPasswordForm" class="form-stack auth-secondary-form" hidden>
+                <label for="newPassword">New password</label>
+                <div class="password-field">
+                    <input id="newPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+                    <button class="password-visibility" type="button" data-password-target="newPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                </div>
+                <label for="confirmNewPassword">Confirm new password</label>
+                <input id="confirmNewPassword" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
+                <button id="newPasswordButton" class="button button-primary button-full" type="submit">Update password</button>
+                <p id="newPasswordMessage" class="form-message" role="alert" aria-live="polite"></p>
             </form>
             <form id="invitationForm" class="form-stack" hidden>
                 <label for="invitationEmail">Invited work email</label>
