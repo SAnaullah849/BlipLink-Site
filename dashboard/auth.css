@@ -97,11 +97,16 @@
 .password-visibility svg {
     width: 20px;
     height: 20px;
+    display: none;
     fill: none;
     stroke: currentColor;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.8;
+}
+
+.password-visibility svg.is-active {
+    display: block;
 }
 
 .password-visibility:hover,

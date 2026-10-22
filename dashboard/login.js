@@ -345,8 +345,8 @@
         const input = byId(button.dataset.passwordTarget);
         const showPassword = input.type === 'password';
         input.type = showPassword ? 'text' : 'password';
-        button.querySelector('[data-eye-visible]').hidden = !showPassword;
-        button.querySelector('[data-eye-hidden]').hidden = showPassword;
+        button.querySelector('[data-eye-visible]').classList.toggle('is-active', showPassword);
+        button.querySelector('[data-eye-hidden]').classList.toggle('is-active', !showPassword);
         button.setAttribute('aria-label', showPassword ? 'Hide password' : 'Show password');
         button.setAttribute('aria-pressed', String(showPassword));
     }
