@@ -252,6 +252,7 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                     await publicPage.screenshot({ path: path.join(output, 'company-public-card.png'), fullPage: true });
                     await publicPage.evaluate(() => window.BlipLinkCardTheme.apply(document.getElementById('publicCard'), window.BlipLinkCardTheme.presets.midnight, { surface: document.body }));
                     assert.equal(await publicPage.locator('#publicActions a').first().evaluate(el => getComputedStyle(el).color), 'rgb(244, 247, 255)');
+                    await publicPage.locator('#publicActions a').first().evaluate(el => Promise.all(el.getAnimations().map(animation => animation.finished)));
                     await publicPage.screenshot({ path: path.join(output, 'company-public-card-dark.png'), fullPage: true });
                 }
                 await publicPage.close();
@@ -263,6 +264,11 @@ function mockSupabase({ type = 'company', limit = 3, status = 'active', period =
                 await userPage.locator('#companyTitle').filter({ hasText: 'Northstar Studio' }).waitFor({ state: 'attached' });
                 assert.equal(await userPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, route + ' mobile overflow');
                 assert.equal(await userPage.locator('#accountAllowance').isVisible(), route === 'profile', route + ' notice visibility');
+                if (route === 'index') {
+                    const groupWidth = await userPage.locator('#overviewContacts').evaluate(el => el.getBoundingClientRect().width);
+                    const rowWidths = await userPage.locator('#overviewContacts a').evaluateAll(rows => rows.map(el => el.getBoundingClientRect().width));
+                    assert.ok(rowWidths.length > 0 && rowWidths.every(width => Math.abs(width - groupWidth) < 1), 'Overview contact rows fill the card width');
+                }
                 await userPage.screenshot({ path: path.join(output, `${route}-mobile.png`), fullPage: true });
                 if (route === 'profile') {
                     await userPage.locator('.team-card').first().getByRole('button', { name: 'Edit card' }).click();
