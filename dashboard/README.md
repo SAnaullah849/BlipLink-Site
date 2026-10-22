@@ -26,7 +26,7 @@ The in-app admin page, API, membership table, and admin-grant functions have bee
 
 ## Themes and preview
 
-`company_profiles.card_theme` stores validated-size JSON. A shared browser normalizer accepts only known color, font, layout, spacing, shape, and visibility options. It accepts no arbitrary CSS or HTML. Five presets can be customized, saved, and reloaded. The same-origin iframe preview reuses the actual public-card renderer without sending analytics. Individual public cards omit contact exchange, because individuals have no CRM/lead-management interface.
+`company_profiles.card_theme` stores validated-size JSON. A shared browser normalizer accepts only known color, font, layout, spacing, shape, and visibility options. It accepts no arbitrary CSS or HTML. Five presets can be customized, saved, and reloaded. The same-origin iframe preview reuses the actual public-card renderer without sending analytics. Active Individual and Company cards accept consented contact exchanges; owners review requests in their workspace.
 
 ## Auth, hosting, and storage
 

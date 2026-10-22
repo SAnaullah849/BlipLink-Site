@@ -329,13 +329,19 @@
             const client = window.supabase.createClient(config.url, config.anonKey);
             const { error } = await client.rpc('submit_public_card_exchange', values);
             if (error) throw error;
-            message.textContent = 'Your details were shared with the card owner.';
+            const confirmation = 'Your details were shared successfully. The profile owner can follow up with you.';
+            message.textContent = confirmation;
+            byId('cardFeedback').textContent = confirmation;
             form.reset();
-            window.setTimeout(() => byId('exchangeDialog').close(), 1200);
+            window.setTimeout(() => {
+                const dialog = byId('exchangeDialog');
+                if (dialog.open) dialog.close();
+            }, 900);
         } catch (error) {
             console.error('Contact exchange submission failed:', error);
+            byId('cardFeedback').textContent = '';
             message.textContent = error?.code === 'PGRST202'
-                ? 'Contact exchange is not set up yet. Please try again later.'
+                ? 'Contact sharing is temporarily unavailable. Please try again later.'
                 : 'We could not send your details. Please try again.';
         } finally {
             button.disabled = false;

@@ -1256,9 +1256,9 @@ create trigger company_profiles_active_edit before update or delete on public.co
 create or replace function public.enforce_active_contact_exchange()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
-    if not public.account_is_active(new.card_owner_id) or not exists(
-        select 1 from public.account_settings where user_id = new.card_owner_id and account_type = 'company'
-    ) then raise exception 'This card is not accepting contact exchanges.'; end if;
+    if not public.account_is_active(new.card_owner_id) then
+        raise exception 'This card is not accepting contact exchanges.';
+    end if;
     return new;
 end;
 $$;
