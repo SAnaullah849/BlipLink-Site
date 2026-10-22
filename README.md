@@ -8,7 +8,7 @@ Open [dashboard/setup.sql](dashboard/setup.sql), copy the **whole file**, paste 
 
 Existing inactive accounts stay inactive. Review them in the next step and activate the accounts that should have access.
 
-Keep public sign-ups disabled in Supabase Authentication. Keep its **Site URL** and allowed redirect URL set to your live `/login.html`, currently `https://bliplink.vercel.app/login.html`. Invitation emails use Supabase's normal confirmation link so customers can set their own password.
+Public registration is enabled for individual accounts at `/register` (or `/register.html`). Company accounts remain invitation-only. Keep Supabase email confirmation enabled and set its **Site URL** and allowed redirect URL to your live `/login.html`, currently `https://bliplink.vercel.app/login.html`; registration confirmation and password recovery return there. New individual signups need an `account_settings` row with active access before they can edit a profile. Invitation emails use Supabase's normal confirmation link so company users can set their own password.
 
 ## 2. Add an account's options
 

@@ -18,7 +18,7 @@ Users retain their profiles and designs while paused. The individual editor beco
 
 ## Frontend routes
 
-- `/login.html` handles email/password sign-in and invitation password setup. `/login` is a clean URL alias.
+- `/login.html` handles email/password sign-in, invitation password setup, and email confirmation callbacks. `/login` is a clean URL alias. `/register` and `/register.html` provide public individual registration; company accounts remain invitation-only.
 - `/dashboard/` is the company overview. `/dashboard/profile`, `/dashboard/theme`, `/dashboard/leads`, `/dashboard/crm`, `/dashboard/company`, `/dashboard/subscription`, `/dashboard/help`, and `/dashboard/personal` are clean URLs for their respective pages. Existing `.html` dashboard URLs redirect to the clean paths. Old company dashboard routes redirect individual accounts to the personal workspace before company data is loaded.
 - `/card?id=<profile-id>` renders available public cards. Existing card IDs are preserved; `/card.html` redirects to the clean path.
 
@@ -38,7 +38,7 @@ Company cards derive their shared company name, banner, address, website, wallet
 
 Banner positioning is stored as a bounded vertical percentage. Company image paths must belong to the owner. Links accept HTTPS and are rendered as text, never HTML. The preview iframe accepts messages only from the same-origin parent. Preview mode performs no analytics or contact exchange writes. Removing a team member does not delete legacy image files, because the company or another card may still reference them.
 
-Keep public registration disabled in Supabase Auth. Set the project Site URL and allowed Redirect URL to the deployed `/login.html` (currently `https://bliplink.vercel.app/login.html`). Keep the standard invitation confirmation link in the Supabase email template. Database setup cannot change these project-level Auth settings.
+Public individual registration is enabled at `/register`; company accounts remain invitation-only. Keep email confirmation enabled in Supabase Auth. Set the project Site URL and allowed Redirect URL to the deployed `/login.html` (currently `https://bliplink.vercel.app/login.html`), which handles email confirmation, invitation, and recovery callbacks. Keep the standard confirmation link in the Supabase email template. Newly registered individual accounts need an active `account_settings` row before profile editing is enabled. Database setup cannot change these project-level Auth settings.
 
 `config.js` contains only the public project URL and publishable key. Vercel needs server-side `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for `/api/track-event`. The service key never reaches the browser. Analytics use trusted hosting country/city headers and store aggregate counts, not raw IP addresses.
 

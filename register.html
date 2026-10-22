@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#f5f7fb">
+    <title>Create an Individual Account | BlipLink</title>
+    <link rel="icon" type="image/png" href="assets/logo-symbol.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="dashboard/dashboard.css?v=13">
+    <link rel="stylesheet" href="dashboard/auth.css?v=5">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="dashboard/config.js"></script>
+    <script src="dashboard/auth-client.js?v=1"></script>
+    <script src="dashboard/register.js?v=1" defer></script>
+</head>
+<body>
+    <main class="login-screen">
+        <section class="login-card" aria-labelledby="registerTitle">
+            <a class="brand" href="index.html" aria-label="BlipLink home">
+                <img src="assets/logo-symbol.png" alt="" width="42" height="42">
+                <img src="assets/logo-wordmark.png" alt="BlipLink" class="brand-wordmark">
+            </a>
+            <div class="login-heading">
+                <span class="eyebrow">BLIPLINK PORTAL</span>
+                <h1 id="registerTitle">Create your account</h1>
+                <p>Register for an individual BlipLink profile.</p>
+            </div>
+            <div id="registerNotice" class="notice notice-info" role="status" hidden></div>
+            <form id="registerForm" class="form-stack">
+                <label for="registerEmail">Email address</label>
+                <input id="registerEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required>
+                <label for="registerPassword">Password</label>
+                <div class="password-field">
+                    <input id="registerPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+                    <button class="password-visibility" type="button" data-password-target="registerPassword" aria-label="Show password" aria-pressed="false">
+                        <svg data-eye-visible viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg data-eye-hidden class="is-active" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a16.4 16.4 0 0 1-4.1 4.8"></path><path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.7-1.2"></path></svg>
+                    </button>
+                </div>
+                <label for="registerPasswordConfirm">Confirm password</label>
+                <div class="password-field">
+                    <input id="registerPasswordConfirm" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
+                    <button class="password-visibility" type="button" data-password-target="registerPasswordConfirm" aria-label="Show password" aria-pressed="false">
+                        <svg data-eye-visible viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <svg data-eye-hidden class="is-active" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"></path><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"></path><path d="M9.9 5.2A10 10 0 0 1 12 5c6.4 0 10 7 10 7a16.4 16.4 0 0 1-4.1 4.8"></path><path d="M6.6 6.6C3.7 8.3 2 12 2 12s3.6 7 10 7a10 10 0 0 0 4.7-1.2"></path></svg>
+                    </button>
+                </div>
+                <button id="registerButton" class="button button-primary button-full" type="submit">Create account</button>
+                <p id="registerMessage" class="form-message" role="alert" aria-live="polite"></p>
+            </form>
+            <section id="registrationSuccess" class="auth-confirmation" aria-live="polite" hidden>
+                <h2>Check your email</h2>
+                <p>We sent a confirmation link to <strong id="confirmationEmail"></strong>. Confirm your email, then sign in.</p>
+                <p class="field-hint">New individual accounts need BlipLink admin activation before profile editing is available. Company accounts are created by invitation.</p>
+            </section>
+            <p class="login-footnote">Already have an account? <a href="login.html">Sign in</a>. Need a company account? <a class="request-access-link" href="mailto:devops@shaunco.ai?subject=Request%20for%20a%20BlipLink%20company%20account">Request an invitation</a>.</p>
+            <a class="back-link" href="index.html">← Back to BlipLink</a>
+        </section>
+    </main>
+</body>
+</html>

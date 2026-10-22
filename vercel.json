@@ -15,6 +15,7 @@
   ],
   "rewrites": [
     { "source": "/login", "destination": "/login.html" },
+    { "source": "/register", "destination": "/register.html" },
     { "source": "/privacy", "destination": "/privacy.html" },
     { "source": "/terms", "destination": "/terms.html" },
     { "source": "/dashboard/", "destination": "/dashboard/index.html" },

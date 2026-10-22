@@ -114,6 +114,30 @@
     background: #edf5ff;
 }
 
+.auth-confirmation {
+    margin: 22px 0;
+    padding: 20px;
+    border: 1px solid #b9ddff;
+    border-radius: 16px;
+    background: #f1f8ff;
+    color: #304763;
+    line-height: 1.65;
+}
+
+.auth-confirmation h2 {
+    margin: 0 0 8px;
+    color: #102d58;
+    font-size: 20px;
+}
+
+.auth-confirmation p {
+    margin: 0 0 12px;
+}
+
+.auth-confirmation p:last-child {
+    margin-bottom: 0;
+}
+
 .login-options {
     display: flex;
     align-items: center;
