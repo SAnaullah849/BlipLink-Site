@@ -1172,9 +1172,10 @@ create trigger account_settings_sync after insert or update on public.account_se
 create or replace function public.create_company_profile_for_new_user()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
-    -- Metadata is user-editable and deliberately grants no type, quota, or access.
+    -- An unprepared self-signup gets an active individual account. Preconfigured
+    -- company/inactive accounts keep their admin-selected type and access.
     insert into public.account_settings(email, access_status)
-    values(lower(new.email), 'inactive') on conflict(email) do nothing;
+    values(lower(new.email), 'active') on conflict(email) do nothing;
     update public.account_settings set user_id = new.id where email = lower(new.email);
     insert into public.company_profiles(user_id, contact_email) values(new.id, new.email);
     return new;

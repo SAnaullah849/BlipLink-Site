@@ -8,7 +8,7 @@ Open [dashboard/setup.sql](dashboard/setup.sql), copy the **whole file**, paste 
 
 Existing inactive accounts stay inactive. Review them in the next step and activate the accounts that should have access.
 
-Public registration is enabled for individual accounts at `/register` (or `/register.html`). Company accounts remain invitation-only. Keep Supabase email confirmation enabled and set its **Site URL** and allowed redirect URL to your live `/login.html`, currently `https://bliplink.vercel.app/login.html`; registration confirmation and password recovery return there. New individual signups need an `account_settings` row with active access before they can edit a profile. Invitation emails use Supabase's normal confirmation link so company users can set their own password.
+Public registration is enabled for individual accounts at `/register` (or `/register.html`). New, unprepared individual signups receive active access automatically for the default yearly period. Company accounts remain invitation-only; prepare their `account_settings` row before sending an invitation so their company type and access rules are preserved. Email confirmation is disabled in Supabase so individual registration does not depend on SMTP. Password reset and company invitation emails still require working SMTP. Set Supabase's **Site URL** and allowed redirect URL to your live `/login.html`, currently `https://bliplink.vercel.app/login.html`.
 
 ## 2. Add an account's options
 
@@ -32,7 +32,7 @@ Open **Authentication → Users → Add user → Send invitation** and enter the
 
 Supabase's built-in Authentication popup is separate from this app. The options live in **account_settings**, not in that popup. You do not need to write SQL for each new customer.
 
-If you already invited a user, their row is already in **account_settings**. Edit that row instead of inviting them again. Users invited without prepared settings start as **inactive individuals** until you configure their access.
+If you already invited a user, their row is already in **account_settings**. Edit that row instead of inviting them again. Prepare a company's row as **company** before sending its invitation; an unprepared new Auth user receives the default active individual account.
 
 ## 4. Manage and renew access
 
