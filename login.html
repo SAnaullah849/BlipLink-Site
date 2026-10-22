@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="dashboard/config.js"></script>
     <script src="dashboard/auth-client.js?v=1"></script>
-    <script src="dashboard/login.js?v=5" defer></script>
+    <script src="dashboard/login.js?v=6" defer></script>
 </head>
 <body>
     <main class="login-screen">
@@ -71,7 +71,10 @@
                     <button class="password-visibility" type="button" data-password-target="newPassword" aria-label="Show password" aria-pressed="false">◉</button>
                 </div>
                 <label for="confirmNewPassword">Confirm new password</label>
-                <input id="confirmNewPassword" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
+                <div class="password-field">
+                    <input id="confirmNewPassword" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
+                    <button class="password-visibility" type="button" data-password-target="confirmNewPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                </div>
                 <button id="newPasswordButton" class="button button-primary button-full" type="submit">Update password</button>
                 <p id="newPasswordMessage" class="form-message" role="alert" aria-live="polite"></p>
             </form>
@@ -79,9 +82,15 @@
                 <label for="invitationEmail">Invited work email</label>
                 <input id="invitationEmail" name="email" type="email" autocomplete="username" readonly>
                 <label for="invitationPassword">Create password</label>
-                <input id="invitationPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+                <div class="password-field">
+                    <input id="invitationPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+                    <button class="password-visibility" type="button" data-password-target="invitationPassword" aria-label="Show password" aria-pressed="false">◉</button>
+                </div>
                 <label for="invitationPasswordConfirm">Confirm password</label>
-                <input id="invitationPasswordConfirm" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
+                <div class="password-field">
+                    <input id="invitationPasswordConfirm" name="password_confirmation" type="password" autocomplete="new-password" minlength="8" placeholder="Enter the same password again" required>
+                    <button class="password-visibility" type="button" data-password-target="invitationPasswordConfirm" aria-label="Show password" aria-pressed="false">◉</button>
+                </div>
                 <button id="invitationButton" class="button button-primary button-full" type="submit">Set password</button>
                 <p id="invitationMessage" class="form-message" role="alert" aria-live="polite"></p>
             </form>
